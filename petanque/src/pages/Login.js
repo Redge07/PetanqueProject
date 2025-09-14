@@ -5,17 +5,22 @@ import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, setLogin } = useContext(UsersContext);
-  const [res, setRes] = useState("");
+  const { setLogin, setPlayer } = useContext(UsersContext);
+  const [res, setRes] = useState({ res: "en attente" });
   const handleSignUp = (e) => {
     e.preventDefault();
     const user = {
       pseudo: e.target.elements.pseudo.value,
       password: e.target.elements.password.value,
     };
-    axios
-      .post("http://localhost:5000/inscription", user)
-      .then((res) => setRes(res.data));
+    axios.post("http://localhost:5000/inscription", user).then((res) => {
+      setRes(res.data);
+      if (res.data.res == 1) {
+        setTimeout(() => {
+          chargeHome(res.data);
+        }, 1000);
+      }
+    });
   };
   const handleSignIn = (e) => {
     e.preventDefault();
@@ -25,12 +30,17 @@ const Login = () => {
     };
     axios.post("http://localhost:5000/connexion", user).then((res) => {
       setRes(res.data);
-      chargeHome();
+      if (res.data.res == 1) {
+        setTimeout(() => {
+          chargeHome(res.data);
+        }, 1000);
+      }
     });
   };
 
-  const chargeHome = () => {
+  const chargeHome = (value) => {
     setLogin(true);
+    setPlayer(value);
     navigate("/Home");
   };
   return (
@@ -55,7 +65,7 @@ const Login = () => {
         />
         <input type="submit" value="Inscription" />
       </form>
-      <p>{res}</p>
+      <p>{res.res}</p>
     </div>
   );
 };

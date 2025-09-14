@@ -7,8 +7,9 @@ export const UsersContext = createContext();
 
 const App = () => {
   const [login, setLogin] = useState(false);
+  const [player, setPlayer] = useState({ res: 0 });
   return (
-    <UsersContext.Provider value={{ login, setLogin }}>
+    <UsersContext.Provider value={{ login, setLogin, player, setPlayer }}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />}></Route>
