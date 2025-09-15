@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const Organisation = ({ player }) => {
   const [tournaments, setTournaments] = useState({ res: 0 });
@@ -13,8 +13,6 @@ const Organisation = ({ player }) => {
   };
   useEffect(() => {
     recharge();
-    // const interval = setInterval(recharge, 5000);
-    // return () => clearInterval(interval);
   }, []);
 
   const createTournament = async (e) => {
@@ -42,6 +40,7 @@ const Organisation = ({ player }) => {
             {tournaments.results.map((t) => (
               <li key={t.id}>
                 <p>{t.name}</p>
+                <NavLink to={"/Home/" + t.id}>Voir</NavLink>
                 <button onClick={() => deleteTournament(t.id)}>
                   Supprimer
                 </button>

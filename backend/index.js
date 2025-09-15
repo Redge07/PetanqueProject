@@ -37,7 +37,7 @@ app.get("/get_tournament/:admin", (req, res) => {
 
 app.get("/get_players/:id_tournament", (req, res) => {
   connection.query(
-    "select pseudo from players where id_tournament = ?",
+    "select * from players where id_tournament = ?",
     [req.params.id_tournament],
     (err, results) => {
       res.json(results);
@@ -110,6 +110,7 @@ app.post("/create_tournament/:admin", (req, res) => {
   );
 });
 
+// Ajouter un joueur a un tournoi
 app.post("/add_player/:id_tournament", (req, res) => {
   const { pseudo } = req.body;
   connection.query(
@@ -132,12 +133,23 @@ app.delete("/:id", (req, res) => {
   );
 });
 
+// Supprimer un tournoi
 app.delete("/delete_tournament/:id", (req, res) => {
   connection.query(
     "delete from tournaments where id = ?",
     [req.params.id],
     (err, results) => {
       res.send(`Le tournoi numéro ${req.params.id} à bien été supprimé`);
+    }
+  );
+});
+
+app.delete("/delete_player_tournament/:id", (req, res) => {
+  connection.query(
+    "delete from players where id = ?",
+    [req.params.id],
+    (err, results) => {
+      res.send(`Le joueur numéro ${req.params.id} à été supprimé`);
     }
   );
 });

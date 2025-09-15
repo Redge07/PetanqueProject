@@ -2,6 +2,7 @@ import React, { createContext, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import Tournament from "./pages/Tournament";
 
 export const UsersContext = createContext();
 
@@ -14,6 +15,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Login />}></Route>
           <Route path="/Home" element={<Home />}></Route>
+          <Route path="/Home/:idTournament" element={<Tournament />}></Route>
         </Routes>
       </BrowserRouter>
     </UsersContext.Provider>
