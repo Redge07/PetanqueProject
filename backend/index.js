@@ -35,6 +35,7 @@ app.get("/get_tournament/:admin", (req, res) => {
   );
 });
 
+// Pour trouver les tournois quand un joueur entre un id
 app.get("/get_tournament_players/:id", (req, res) => {
   connection.query(
     "select * from tournaments where id = ?",
@@ -129,10 +130,26 @@ app.post("/create_tournament/:admin", (req, res) => {
 app.post("/add_player/:id_tournament", (req, res) => {
   const { pseudo, iduser } = req.body;
   connection.query(
-    "insert into players (pseudo, id_tournament, id_user, valider) values (?, ?, ?, 0)",
-    [pseudo, req.params.id_tournament, iduser],
+    "select * from players where id_user = ?",
+    [iduser],
     (err, results) => {
-      res.send(`Le joueur ${pseudo} à eté ajouté au tournoi`);
+      if (results.length > 0) {
+        res.json({
+          res: 0,
+          msg: "Ce joueur a deja fait une demande ou participe deja a un tournoi",
+        });
+      } else {
+        connection.query(
+          "insert into players (pseudo, id_tournament, id_user, valider) values (?, ?, ?, 0)",
+          [pseudo, req.params.id_tournament, iduser],
+          (err, results) => {
+            res.json({
+              res: 1,
+              msg: `Le joueur ${pseudo} à eté ajouté au tournoi`,
+            });
+          }
+        );
+      }
     }
   );
 });
@@ -166,6 +183,28 @@ app.delete("/delete_player_tournament/:id", (req, res) => {
     [req.params.id],
     (err, results) => {
       res.send(`Le joueur numéro ${req.params.id} à été supprimé`);
+    }
+  );
+});
+
+// Api pour afficher les tournois en cours d'un joueurs
+app.get("/get_tournament_user/:id", (req, res) => {
+  connection.query(
+    "select * from players where id_user = ?",
+    [req.params.id],
+    (err, results) => {
+      if (results.length > 0) {
+        let id_tournament = results[0].id_tournament;
+        connection.query(
+          "select * from tournaments where id = ?",
+          [id_tournament],
+          (err, results) => {
+            res.json({ res: 1, results: results[0] });
+          }
+        );
+      } else {
+        res.json({ res: 0 });
+      }
     }
   );
 });

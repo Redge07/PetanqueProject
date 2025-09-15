@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { UsersContext } from "../App";
 import axios from "axios";
 
@@ -58,6 +58,7 @@ const Tournament = () => {
           );
         })}
       </ul>
+      <NavLink to="/Home">Retour</NavLink>
     </div>
   );
 };
