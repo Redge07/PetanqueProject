@@ -54,7 +54,7 @@ const Home = () => {
         admin ? (
           <Organisation player={player.player} />
         ) : (
-          <Participant />
+          <Participant player={player.player} />
         )
       ) : null}
       {choice ? (

@@ -8,10 +8,10 @@ const Tournament = () => {
   const { login, setLogin, setPlayer } = useContext(UsersContext);
   const [listPlayers, setListPlayers] = useState([]);
   const navigate = useNavigate();
-  //   useEffect(() => {
-  //     setLogin(true);
-  //     setPlayer({ player: { id: 6, pseudo: "Admin" } });
-  //   }, []);
+  // useEffect(() => {
+  //   setLogin(true);
+  //   setPlayer({ player: { id: 6, pseudo: "Admin" } });
+  // }, []);
   useEffect(() => {
     if (!login) {
       navigate("/");
