@@ -2,12 +2,19 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 const Participant = ({ player }) => {
+  // State pour contenir le tournoi qui a été trouver grace à l'id dans la recherche de tournoi
   const [tournament, setTournament] = useState({});
+  // State qui va contenir le tournoi sur lequel le joueur est inscrit en direct
   const [tournamentActuel, setTournamentActuel] = useState({ res: 0 });
+  // State qui gère l'apparition du formulaiure pour pouvoir s'inscrire a un tournoi, évidemment le tournoi est celui qu'on a trouvé grace a l'id au préalable
   const [formulaire, setFormulaire] = useState(false);
+  // State qui va contenir l'id du tournoi qu'on a trouvé en recherchant un tournoi
   const [idTournament, setIdTournament] = useState();
+  // State qui contenir la réponse de l'api quand on voudra s'inscrire a un tournoi, soit on a réussi a s'inscrire au tournoi, soit le joueur est deja inscrit a un autre tournoi
   const [resForm, setResForm] = useState("");
+  // State qui gère l'apparition du formulaire pour trouver un tournoi (donc avec la volonté de vouloir s'inscrire)
   const [searchTournament, setSearchTournament] = useState(true);
+  // Fonction trouver un tournoi grace a l'id, le joueur cherche un tournoi avec l'id, et quand il valide, on lui renvoie le tournoi auquel correspond l'id
   const handleSearch = (e) => {
     e.preventDefault();
     axios
@@ -20,6 +27,7 @@ const Participant = ({ player }) => {
       });
   };
 
+  // Fonction quand on valide le formulaire d'inscription a un tournoi, si le joueur est inscrit on lance la fonction recharge, pour afficher le fait que le joueur participe bien a un tournoi
   const handleInscrire = (e) => {
     e.preventDefault();
     axios
@@ -35,14 +43,17 @@ const Participant = ({ player }) => {
       });
   };
 
+  // Fonction qui charge la page et donc pour vérifier si le joueur participe a un tournoi
   const recharge = () => {
     axios
       .get("http://localhost:5000/get_tournament_user/" + player.id)
       .then((res) => {
         setTournamentActuel(res.data);
+        // Si le joueur participe bien a un tournoi alors on enlève le fait de vouloir trouver un tournoi pour s'inscrire car le joueur est du coup deja inscrit a un tournoi
         if (res.data.res == 1) {
           setSearchTournament(false);
         } else {
+          // Sinon a on affiche bien le fait de vouloir trouver un tournoi pour s'inscrire
           setSearchTournament(true);
         }
       });
