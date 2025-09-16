@@ -66,8 +66,10 @@ const Participant = ({ player }) => {
   return (
     <div>
       <h1>Participant</h1>
+      {/* Afficher le formulaire pour rechercher un tournoi avec l'id */}
       {searchTournament && (
         <div>
+          {/* Formulaire pour chercher un tournoi */}
           <form onSubmit={handleSearch}>
             <input
               type="text"
@@ -77,6 +79,7 @@ const Participant = ({ player }) => {
             <input type="submit" value="Chercher" />
           </form>
 
+          {/* Si la recherche a abouti et donc trouver un tournoi existant, alors on affiche le tournoi en question */}
           {tournament.res == 1 && (
             <ul>
               <li>{tournament.results[0].name}</li>
@@ -90,9 +93,11 @@ const Participant = ({ player }) => {
               </button>
             </ul>
           )}
+          {/* Sinon il n'y a pas de tournoi qui correspond */}
           {tournament.res == 0 && (
             <p>Aucun tournoi ne correspond a cette identifiant</p>
           )}
+          {/* Si on a bien trouver un tournoi pour la recherche, on fait apparaitre le form pour s'inscrire */}
           {formulaire && (
             <form onSubmit={handleInscrire}>
               <input
@@ -105,6 +110,7 @@ const Participant = ({ player }) => {
               <button onClick={() => setFormulaire(false)}>Stop</button>
             </form>
           )}
+          {/* Nous dit si la réponse de l'api pour inscrire un joueur (oui ou alors non car le joueur est deja inscrit) */}
           <p>{resForm.msg}</p>
         </div>
       )}
