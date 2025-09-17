@@ -9,6 +9,8 @@ const Tournament = () => {
   const { login, setLogin, setPlayer } = useContext(UsersContext);
   // State pour récupérer les données des joueurs qui participe a ce tournoi précisément grave a une API
   const [listPlayers, setListPlayers] = useState([]);
+  // State des joueurs qui attendent la confirmation de leurs participation
+  const [listPlayersWaiting, setListPlayersWaiting] = useState([]);
   const navigate = useNavigate();
   // useEffect(() => {
   //   setLogin(true);
@@ -20,13 +22,6 @@ const Tournament = () => {
     }
   }, []);
   // Lien de l'API qui enregistre officielement un joueur dans ce tournoi en question, a la fin je recharge les joueurs qui participe au tournoi pour actualiser
-  const handleAddPlayer = async (e) => {
-    e.preventDefault();
-    await axios.post("http://localhost:5000/add_player/" + idTournament, {
-      pseudo: e.target.elements.pseudo.value,
-    });
-    recharge();
-  };
   // J'enregistre les joueurs qui participe aux tournoi et je les mets dans le State "listPlayers"
   const recharge = () => {
     axios
@@ -35,6 +30,7 @@ const Tournament = () => {
   };
   useEffect(() => {
     recharge();
+    handlePlayerWaiting();
   }, []);
   // API qui supprime un joueur
   const handleDeletePlayer = async (value) => {
@@ -43,16 +39,29 @@ const Tournament = () => {
     );
     recharge();
   };
+  const handlePlayerWaiting = () => {
+    axios
+      .get("http://localhost:5000/get_players_waiting/" + idTournament)
+      .then((res) => setListPlayersWaiting(res.data));
+  };
   return (
     <div>
       <h1>Tournament {idTournament}</h1>
-      <h2>Ajouter un joueur</h2>
-      {/* Un formulaire qui enverra les données a l'api pour ajouter un joueur */}
-      <form onSubmit={handleAddPlayer}>
-        <input type="text" name="pseudo" placeholder="Le pseudo du joueur..." />
-        <input type="submit" value="Ajouter" />
-      </form>
+      <h3>Joueurs en attente</h3>
+      <ul>
+        {listPlayersWaiting.map((p) => {
+          return (
+            <li key={p.id}>
+              {p.pseudo}
+              <button onClick={() => handleDeletePlayer(p.id)}>
+                Supprimer
+              </button>
+            </li>
+          );
+        })}
+      </ul>
       {/* Grace a l'api qui recupere les joueurs participant a ce tournoi en question, je les affiche en faisant un map */}
+      <h3>Joueurs accepté</h3>
       <ul>
         {listPlayers.map((p) => {
           return (

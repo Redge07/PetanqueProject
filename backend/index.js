@@ -53,7 +53,18 @@ app.get("/get_tournament_players/:id", (req, res) => {
 // Récupérer les joueurs d'un tournoi
 app.get("/get_players/:id_tournament", (req, res) => {
   connection.query(
-    "select * from players where id_tournament = ?",
+    "select * from players where id_tournament = ? and valider = 1",
+    [req.params.id_tournament],
+    (err, results) => {
+      res.json(results);
+    }
+  );
+});
+
+// Récupérer les joueurs d'un tournoi qui attendent confirmation
+app.get("/get_players_waiting/:id_tournament", (req, res) => {
+  connection.query(
+    "select * from players where id_tournament = ? and valider = 0",
     [req.params.id_tournament],
     (err, results) => {
       res.json(results);
@@ -125,6 +136,9 @@ app.post("/create_tournament/:admin", (req, res) => {
     }
   );
 });
+
+// Api pour afficher les joueurs qui attendent la confirmation de la demande
+app.post("/confirm_player", (req, res) => {});
 
 // Ajouter un joueur a un tournoi
 app.post("/add_player/:id_tournament", (req, res) => {
