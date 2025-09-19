@@ -36,7 +36,7 @@ const Organisation = ({ player }) => {
   return (
     <div>
       <h1>Organisateur</h1>
-      {/* Si l'api qui renvoie les tournoi a res = a 0 ca veut dire que le joueur en question ne gère pas de tournoi */}
+      {/* Si l'api qui renvoie les tournoi a res = 0 ca veut dire que le joueur en question ne gère pas de tournoi */}
       {tournaments.res == 0 ? (
         <p>Vous n'avez aucun tournoi</p>
       ) : (

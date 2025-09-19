@@ -83,6 +83,7 @@ const Tournament = () => {
           );
         })}
       </ul>
+      <button>Lancez le tournoi</button>
       <NavLink to="/Home">Retour</NavLink>
     </div>
   );
