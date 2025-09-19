@@ -43,11 +43,21 @@ const Participant = ({ player }) => {
       });
   };
 
+  // Fonction pour se retirer soit meme d'un tournoi
+  const handleRetirer = async (value) => {
+    await axios.delete(
+      "http://localhost:5000/delete_player_tournament_via_iduser/" + value
+    );
+    recharge();
+  };
+
   // Fonction qui charge la page et donc pour vérifier si le joueur participe a un tournoi
   const recharge = () => {
     axios
       .get("http://localhost:5000/get_tournament_user/" + player.id)
       .then((res) => {
+        setFormulaire(false);
+        setTournament(false);
         setTournamentActuel(res.data);
         // Si le joueur participe bien a un tournoi alors on enlève le fait de vouloir trouver un tournoi pour s'inscrire car le joueur est du coup deja inscrit a un tournoi
         if (res.data.res == 1) {
@@ -111,13 +121,27 @@ const Participant = ({ player }) => {
             </form>
           )}
           {/* Nous dit si la réponse de l'api pour inscrire un joueur (oui ou alors non car le joueur est deja inscrit) */}
-          <p>{resForm.msg}</p>
+          {/* <p>{resForm.msg}</p> */}
         </div>
       )}
       {tournamentActuel.res == 0 ? (
         <p>Vous ne participez a aucun tournoi actuellement</p>
       ) : (
-        <div>{tournamentActuel.results.name}</div>
+        <div>
+          {tournamentActuel.results.name}{" "}
+          <span>
+            {tournamentActuel.valider == 1 ? (
+              "Accepté"
+            ) : (
+              <div>
+                <p>En attente</p>
+                <button onClick={() => handleRetirer(player.id)}>
+                  Se retirer
+                </button>
+              </div>
+            )}
+          </span>
+        </div>
       )}
     </div>
   );

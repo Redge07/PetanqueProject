@@ -209,6 +209,16 @@ app.delete("/delete_player_tournament/:id", (req, res) => {
   );
 });
 
+app.delete("/delete_player_tournament_via_iduser/:id", (req, res) => {
+  connection.query(
+    "delete from players where id_user = ?",
+    [req.params.id],
+    (err, results) => {
+      res.send(`Le joueur numéro ${req.params.id} à été supprimé`);
+    }
+  );
+});
+
 // Api pour afficher les tournois en cours d'un joueurs
 app.get("/get_tournament_user/:id", (req, res) => {
   connection.query(
@@ -217,6 +227,7 @@ app.get("/get_tournament_user/:id", (req, res) => {
     (err, results) => {
       if (results.length > 0) {
         let id_tournament = results[0].id_tournament;
+        let valider = results[0].valider;
         connection.query(
           "select * from tournaments where id = ?",
           [id_tournament],
@@ -228,7 +239,7 @@ app.get("/get_tournament_user/:id", (req, res) => {
               ]);
               return res.json({ res: 0, error: "Tournoi introuvable" });
             }
-            res.json({ res: 1, results: results[0] });
+            res.json({ res: 1, results: results[0], valider: valider });
           }
         );
       } else {
