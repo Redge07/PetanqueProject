@@ -138,7 +138,15 @@ app.post("/create_tournament/:admin", (req, res) => {
 });
 
 // Api pour afficher les joueurs qui attendent la confirmation de la demande
-app.post("/confirm_player", (req, res) => {});
+app.put("/confirm_player/:id", (req, res) => {
+  connection.query(
+    "update players set valider = 1 where id = ?",
+    [req.params.id],
+    (err, results) => {
+      res.send("Changé");
+    }
+  );
+});
 
 // Ajouter un joueur a un tournoi
 app.post("/add_player/:id_tournament", (req, res) => {
@@ -213,6 +221,13 @@ app.get("/get_tournament_user/:id", (req, res) => {
           "select * from tournaments where id = ?",
           [id_tournament],
           (err, results) => {
+            if (results.length === 0) {
+              // Aucun tournoi trouvé
+              connection.query("delete from players where id_tournament = ?", [
+                id_tournament,
+              ]);
+              return res.json({ res: 0, error: "Tournoi introuvable" });
+            }
             res.json({ res: 1, results: results[0] });
           }
         );

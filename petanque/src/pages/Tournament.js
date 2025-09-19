@@ -21,16 +21,17 @@ const Tournament = () => {
       navigate("/");
     }
   }, []);
-  // Lien de l'API qui enregistre officielement un joueur dans ce tournoi en question, a la fin je recharge les joueurs qui participe au tournoi pour actualiser
-  // J'enregistre les joueurs qui participe aux tournoi et je les mets dans le State "listPlayers"
+  // J'enregistre les joueurs qui participe aux tournoi et je les mets dans le State "listPlayers", on lance aussi handlePlayerWaiting pour afficher les joueurs qui attendent, en gros la fonction est recharge car faut relancer les fonctions get car ca affiche la situation actuel
   const recharge = () => {
     axios
       .get("http://localhost:5000/get_players/" + idTournament)
-      .then((res) => setListPlayers(res.data));
+      .then((res) => {
+        setListPlayers(res.data);
+        handlePlayerWaiting();
+      });
   };
   useEffect(() => {
     recharge();
-    handlePlayerWaiting();
   }, []);
   // API qui supprime un joueur
   const handleDeletePlayer = async (value) => {
@@ -39,10 +40,17 @@ const Tournament = () => {
     );
     recharge();
   };
+  // Afficher les joueurs qui attendent la validation
   const handlePlayerWaiting = () => {
     axios
       .get("http://localhost:5000/get_players_waiting/" + idTournament)
       .then((res) => setListPlayersWaiting(res.data));
+  };
+
+  // Lien de l'API qui enregistre officielement un joueur dans ce tournoi en question, a la fin je recharge les joueurs qui participe au tournoi pour actualiser
+  const handleValidPlayer = async (value) => {
+    await axios.put("http://localhost:5000/confirm_player/" + value);
+    recharge();
   };
   return (
     <div>
@@ -56,6 +64,7 @@ const Tournament = () => {
               <button onClick={() => handleDeletePlayer(p.id)}>
                 Supprimer
               </button>
+              <button onClick={() => handleValidPlayer(p.id)}>Valider</button>
             </li>
           );
         })}
