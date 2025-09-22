@@ -72,6 +72,26 @@ app.get("/get_players_waiting/:id_tournament", (req, res) => {
   );
 });
 
+app.get("/verif_start_tournament/:id", (req, res) => {
+  connection.query(
+    "select start from tournaments where id = ?",
+    [req.params.id],
+    (err, results) => {
+      res.send(results[0].start);
+    }
+  );
+});
+
+app.get("/get_versus/:id", (req, res) => {
+  connection.query(
+    "select * from players where id_tournament = ?",
+    [req.params.id],
+    (err, results) => {
+      res.json(results);
+    }
+  );
+});
+
 // Api pour l'inscription
 app.post("/inscription", (req, res) => {
   const { pseudo, password } = req.body;
@@ -146,6 +166,40 @@ app.put("/confirm_player/:id", (req, res) => {
       res.send("Changé");
     }
   );
+});
+
+// API qui lance lle tournoi, donc qui attribut pour chaque joueurs leur adversaire
+app.put("/start_tournament/:id", (req, res) => {
+  connection.query(
+    "select * from players where id_tournament = ? and valider = 1",
+    [req.params.id],
+    (err, results) => {
+      let list_id = [];
+      for (let i = 0; i < results.length; i++) {
+        list_id.push(results[i].id);
+      }
+      list_id.sort(() => Math.random() - 0.5);
+      let matchs = [];
+      for (let i = 0; i < list_id.length; i += 2) {
+        matchs.push([list_id[i], list_id[i + 1]]);
+      }
+      const tour = "1/" + matchs.length;
+      for (let i = 0; i < matchs.length; i++) {
+        connection.query(
+          "update players set id_versus = ?, class = ? where id = ?",
+          [matchs[i][1], tour, matchs[i][0]]
+        );
+        connection.query(
+          "update players set id_versus = ?, class = ? where id = ?",
+          [matchs[i][0], tour, matchs[i][1]]
+        );
+      }
+      res.send("Le tournoi a commencé !!!");
+    }
+  );
+  connection.query("update tournaments set start = 1 where id = ?", [
+    req.params.id,
+  ]);
 });
 
 // Ajouter un joueur a un tournoi

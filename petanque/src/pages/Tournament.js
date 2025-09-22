@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, use } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { UsersContext } from "../App";
 import axios from "axios";
@@ -11,6 +11,9 @@ const Tournament = () => {
   const [listPlayers, setListPlayers] = useState([]);
   // State des joueurs qui attendent la confirmation de leurs participation
   const [listPlayersWaiting, setListPlayersWaiting] = useState([]);
+  // State pour savoir si le tournoi a commencé
+  const [start, setStart] = useState(0);
+  const [listPlayersCurrent, setListPlayersCurrent] = useState([]);
   const navigate = useNavigate();
   // useEffect(() => {
   //   setLogin(true);
@@ -30,9 +33,25 @@ const Tournament = () => {
         handlePlayerWaiting();
       });
   };
+  // Use Effect pour des le début afficher la situation du tournoi et savoir si le tournoi a commencé
   useEffect(() => {
     recharge();
+    axios
+      .get("http://localhost:5000/verif_start_tournament/" + idTournament)
+      .then((res) => {
+        console.log(res.data);
+        setStart(res.data);
+        if (res.data == 1) {
+          recupVersus();
+        }
+      });
   }, []);
+  // fonction pour récupérer tous les joueurs qui sont entrain de jouer le tournoi actuellement pour afficher bien l'avancée du tournoi
+  const recupVersus = () => {
+    axios
+      .get("http://localhost:5000/get_versus/" + idTournament)
+      .then((res) => setListPlayersCurrent(res.data));
+  };
   // API qui supprime un joueur
   const handleDeletePlayer = async (value) => {
     await axios.delete(
@@ -51,6 +70,13 @@ const Tournament = () => {
   const handleValidPlayer = async (value) => {
     await axios.put("http://localhost:5000/confirm_player/" + value);
     recharge();
+  };
+
+  // Fonction qui lance le tournoi officiellement
+  const startTournament = () => {
+    axios
+      .put("http://localhost:5000/start_tournament/" + idTournament)
+      .then((res) => console.log(res.data));
   };
   return (
     <div>
@@ -83,7 +109,16 @@ const Tournament = () => {
           );
         })}
       </ul>
-      <button>Lancez le tournoi</button>
+      <button onClick={startTournament}>Lancez le tournoi</button>
+      {start == 1 ? (
+        <div>
+          {listPlayersCurrent.map((p) => (
+            <p>
+              {p.id} contre {p.id_versus}
+            </p>
+          ))}
+        </div>
+      ) : null}
       <NavLink to="/Home">Retour</NavLink>
     </div>
   );
