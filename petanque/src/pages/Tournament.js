@@ -25,7 +25,7 @@ const Tournament = () => {
     }
   }, []);
   // J'enregistre les joueurs qui participe aux tournoi et je les mets dans le State "listPlayers", on lance aussi handlePlayerWaiting pour afficher les joueurs qui attendent, en gros la fonction est recharge car faut relancer les fonctions get car ca affiche la situation actuel
-  const recharge = () => {
+  const get_players_waiting_and_valid = () => {
     axios
       .get("http://localhost:5000/get_players/" + idTournament)
       .then((res) => {
@@ -33,9 +33,9 @@ const Tournament = () => {
         handlePlayerWaiting();
       });
   };
-  // Use Effect pour des le début afficher la situation du tournoi et savoir si le tournoi a commencé
-  useEffect(() => {
-    recharge();
+  // recharge + des le début afficher la situation du tournoi et savoir si le tournoi a commencé
+  const recharge = () => {
+    get_players_waiting_and_valid();
     axios
       .get("http://localhost:5000/verif_start_tournament/" + idTournament)
       .then((res) => {
@@ -45,6 +45,9 @@ const Tournament = () => {
           recupVersus();
         }
       });
+  };
+  useEffect(() => {
+    recharge();
   }, []);
   // fonction pour récupérer tous les joueurs qui sont entrain de jouer le tournoi actuellement pour afficher bien l'avancée du tournoi
   const recupVersus = () => {
@@ -73,10 +76,14 @@ const Tournament = () => {
   };
 
   // Fonction qui lance le tournoi officiellement
-  const startTournament = () => {
-    axios
+  const startTournament = async () => {
+    await axios
       .put("http://localhost:5000/start_tournament/" + idTournament)
       .then((res) => console.log(res.data));
+    recharge();
+  };
+  const playerWin = (win, lose) => {
+    axios.put("http://localhost:5000/win_player/", { win, lose });
   };
   return (
     <div>
@@ -114,7 +121,15 @@ const Tournament = () => {
         <div>
           {listPlayersCurrent.map((p) => (
             <p>
-              {p.id} contre {p.id_versus}
+              {p.id}{" "}
+              <button onClick={() => playerWin(p.id, p.id_versus)}>
+                Victoire
+              </button>
+              contre {p.id_versus}
+              <button onClick={() => playerWin(p.id_versus, p.id)}>
+                Victoire
+              </button>{" "}
+              1/{p.class}
             </p>
           ))}
         </div>

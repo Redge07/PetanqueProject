@@ -132,7 +132,7 @@ const Participant = ({ player }) => {
           {tournamentActuel.results.name}{" "}
           <div>
             {tournamentActuel.valider == 1 ? (
-              <MyTournament player={player} idT={idTournament} />
+              <MyTournament player={player} idT={tournamentActuel.results.id} />
             ) : (
               <div>
                 <p>En attente</p>

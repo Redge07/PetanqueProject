@@ -105,14 +105,21 @@ app.get("/get_versus_player/:id", (req, res) => {
         "select pseudo from players where id = ?",
         [id_versus],
         (err, results) => {
-          console.log(results);
-
-          res.json({
-            id: player.id,
-            pseudo: player.pseudo,
-            tour: player.class,
-            versus: results[0].pseudo,
-          });
+          if (id_versus == -1) {
+            res.json({
+              id: player.id,
+              pseudo: player.pseudo,
+              tour: player.class,
+              versus: "Pas d'adversaire",
+            });
+          } else {
+            res.json({
+              id: player.id,
+              pseudo: player.pseudo,
+              tour: player.class,
+              versus: results[0].pseudo,
+            });
+          }
         }
       );
     }
@@ -224,6 +231,24 @@ app.put("/start_tournament/:id", (req, res) => {
   connection.query("update tournaments set start = 1 where id = ?", [
     req.params.id,
   ]);
+});
+
+app.put("/win_player/", (req, res) => {
+  const { win, lose } = req.body;
+  connection.query(
+    "select class from players where id = ?",
+    [win],
+    (err, results) => {
+      const tour = parseInt(results[0].class);
+      const newTour = tour / 2;
+      connection.query("update players set class = ? where id = ?", [
+        newTour,
+        win,
+      ]);
+      connection.query("update players set id_versus = -1 where id = ?", [win]);
+      connection.query("delete from players where id = ?", [lose]);
+    }
+  );
 });
 
 // Ajouter un joueur a un tournoi

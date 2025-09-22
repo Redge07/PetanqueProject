@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 
 const MyTournament = ({ player, idT }) => {
+  console.log(idT);
+
   // Savoir les infos du joueur pour son tournoi
   const [dataPlayer, setDataPlayer] = useState({});
   // Savoir si le tournoi a commencé
@@ -20,6 +22,7 @@ const MyTournament = ({ player, idT }) => {
       .then((res) => {
         if (res.data == 1) {
           setStart(true);
+          getVersus();
         }
       });
   }, []);
@@ -31,7 +34,8 @@ const MyTournament = ({ player, idT }) => {
           <div>
             <p>Salut {dataPlayer?.pseudo}</p>
             <p>
-              Tu es en {dataPlayer?.tour} de finale contre {dataPlayer?.versus}
+              Tu es en 1/{dataPlayer?.tour} de finale contre{" "}
+              {dataPlayer?.versus}
             </p>
           </div>
         ) : (
