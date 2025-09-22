@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import MyTournament from "./MyTournament";
 
 const Participant = ({ player }) => {
   // State pour contenir le tournoi qui a été trouver grace à l'id dans la recherche de tournoi
@@ -129,9 +130,9 @@ const Participant = ({ player }) => {
       ) : (
         <div>
           {tournamentActuel.results.name}{" "}
-          <span>
+          <div>
             {tournamentActuel.valider == 1 ? (
-              "Accepté"
+              <MyTournament player={player} idT={idTournament} />
             ) : (
               <div>
                 <p>En attente</p>
@@ -140,7 +141,7 @@ const Participant = ({ player }) => {
                 </button>
               </div>
             )}
-          </span>
+          </div>
         </div>
       )}
     </div>

@@ -82,12 +82,39 @@ app.get("/verif_start_tournament/:id", (req, res) => {
   );
 });
 
+// API Pour récupérer toutes les confrontations du tournoi en question
 app.get("/get_versus/:id", (req, res) => {
   connection.query(
     "select * from players where id_tournament = ?",
     [req.params.id],
     (err, results) => {
       res.json(results);
+    }
+  );
+});
+
+// API pour savoir contre qui on doit jouer
+app.get("/get_versus_player/:id", (req, res) => {
+  connection.query(
+    "select * from players where id_user = ?",
+    [req.params.id],
+    (err, results) => {
+      const id_versus = results[0].id_versus;
+      const player = results[0];
+      connection.query(
+        "select pseudo from players where id = ?",
+        [id_versus],
+        (err, results) => {
+          console.log(results);
+
+          res.json({
+            id: player.id,
+            pseudo: player.pseudo,
+            tour: player.class,
+            versus: results[0].pseudo,
+          });
+        }
+      );
     }
   );
 });
@@ -110,7 +137,6 @@ app.post("/inscription", (req, res) => {
               "select * from users where pseudo = ?",
               [pseudo],
               (err, results) => {
-                console.log(results);
                 if (results.length > 0) {
                   // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
                   res.json({ res: 1, player: results[0] });
@@ -133,8 +159,6 @@ app.post("/connexion", (req, res) => {
     "select * from users where pseudo = ? and password = ?",
     [pseudo, password],
     (err, results) => {
-      console.log(results);
-
       if (results.length > 0) {
         // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
         res.json({ res: 1, player: results[0] });
@@ -168,7 +192,7 @@ app.put("/confirm_player/:id", (req, res) => {
   );
 });
 
-// API qui lance lle tournoi, donc qui attribut pour chaque joueurs leur adversaire
+// API qui lance le tournoi, donc qui attribut pour chaque joueurs leur adversaire
 app.put("/start_tournament/:id", (req, res) => {
   connection.query(
     "select * from players where id_tournament = ? and valider = 1",
@@ -183,7 +207,7 @@ app.put("/start_tournament/:id", (req, res) => {
       for (let i = 0; i < list_id.length; i += 2) {
         matchs.push([list_id[i], list_id[i + 1]]);
       }
-      const tour = "1/" + matchs.length;
+      const tour = matchs.length;
       for (let i = 0; i < matchs.length; i++) {
         connection.query(
           "update players set id_versus = ?, class = ? where id = ?",
