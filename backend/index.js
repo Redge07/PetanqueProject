@@ -72,6 +72,7 @@ app.get("/get_players_waiting/:id_tournament", (req, res) => {
   );
 });
 
+// API pour vérifier qu'un tournoi a commencé
 app.get("/verif_start_tournament/:id", (req, res) => {
   connection.query(
     "select start from tournaments where id = ?",
@@ -105,7 +106,7 @@ app.get("/get_versus_player/:id", (req, res) => {
         "select pseudo from players where id = ?",
         [id_versus],
         (err, results) => {
-          if (id_versus == -1) {
+          if (id_versus == 0) {
             res.json({
               id: player.id,
               pseudo: player.pseudo,
@@ -122,6 +123,36 @@ app.get("/get_versus_player/:id", (req, res) => {
           }
         }
       );
+    }
+  );
+});
+
+// Api pour afficher les tournois en cours d'un joueurs
+app.get("/get_tournament_user/:id", (req, res) => {
+  connection.query(
+    "select * from players where id_user = ?",
+    [req.params.id],
+    (err, results) => {
+      if (results.length > 0) {
+        let id_tournament = results[0].id_tournament;
+        let valider = results[0].valider;
+        connection.query(
+          "select * from tournaments where id = ?",
+          [id_tournament],
+          (err, results) => {
+            if (results.length === 0) {
+              // Aucun tournoi trouvé
+              connection.query("delete from players where id_tournament = ?", [
+                id_tournament,
+              ]);
+              return res.json({ res: 0, error: "Tournoi introuvable" });
+            }
+            res.json({ res: 1, results: results[0], valider: valider });
+          }
+        );
+      } else {
+        res.json({ res: -1 });
+      }
     }
   );
 });
@@ -188,7 +219,7 @@ app.post("/create_tournament/:admin", (req, res) => {
   );
 });
 
-// Api pour afficher les joueurs qui attendent la confirmation de la demande
+// Api pour faire en sorte que le joueur soit accepté au tournoi
 app.put("/confirm_player/:id", (req, res) => {
   connection.query(
     "update players set valider = 1 where id = ?",
@@ -233,6 +264,7 @@ app.put("/start_tournament/:id", (req, res) => {
   ]);
 });
 
+// API qui gèrent le fait qu'un joueur gagne un match
 app.put("/win_player/", (req, res) => {
   const { win, lose } = req.body;
   connection.query(
@@ -245,7 +277,7 @@ app.put("/win_player/", (req, res) => {
         newTour,
         win,
       ]);
-      connection.query("update players set id_versus = -1 where id = ?", [win]);
+      connection.query("update players set id_versus = 0 where id = ?", [win]);
       connection.query("delete from players where id = ?", [lose]);
     }
   );
@@ -318,36 +350,6 @@ app.delete("/delete_player_tournament_via_iduser/:id", (req, res) => {
     [req.params.id],
     (err, results) => {
       res.send(`Le joueur numéro ${req.params.id} à été supprimé`);
-    }
-  );
-});
-
-// Api pour afficher les tournois en cours d'un joueurs
-app.get("/get_tournament_user/:id", (req, res) => {
-  connection.query(
-    "select * from players where id_user = ?",
-    [req.params.id],
-    (err, results) => {
-      if (results.length > 0) {
-        let id_tournament = results[0].id_tournament;
-        let valider = results[0].valider;
-        connection.query(
-          "select * from tournaments where id = ?",
-          [id_tournament],
-          (err, results) => {
-            if (results.length === 0) {
-              // Aucun tournoi trouvé
-              connection.query("delete from players where id_tournament = ?", [
-                id_tournament,
-              ]);
-              return res.json({ res: 0, error: "Tournoi introuvable" });
-            }
-            res.json({ res: 1, results: results[0], valider: valider });
-          }
-        );
-      } else {
-        res.json({ res: 0 });
-      }
     }
   );
 });

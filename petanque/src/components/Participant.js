@@ -57,8 +57,10 @@ const Participant = ({ player }) => {
     axios
       .get("http://localhost:5000/get_tournament_user/" + player.id)
       .then((res) => {
+        console.log(res.data);
+
         setFormulaire(false);
-        setTournament(false);
+        setTournament(res.data);
         setTournamentActuel(res.data);
         // Si le joueur participe bien a un tournoi alors on enlève le fait de vouloir trouver un tournoi pour s'inscrire car le joueur est du coup deja inscrit a un tournoi
         if (res.data.res == 1) {
@@ -93,7 +95,7 @@ const Participant = ({ player }) => {
           {/* Si la recherche a abouti et donc trouver un tournoi existant, alors on affiche le tournoi en question */}
           {tournament.res == 1 && (
             <ul>
-              <li>{tournament.results[0].name}</li>
+              <li>{tournament.results.name}</li>
               <button
                 onClick={() => {
                   setFormulaire(true);
@@ -125,7 +127,7 @@ const Participant = ({ player }) => {
           {/* <p>{resForm.msg}</p> */}
         </div>
       )}
-      {tournamentActuel.res == 0 ? (
+      {tournamentActuel.res == -1 ? (
         <p>Vous ne participez a aucun tournoi actuellement</p>
       ) : (
         <div>

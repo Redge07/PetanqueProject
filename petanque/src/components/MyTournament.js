@@ -2,8 +2,6 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 
 const MyTournament = ({ player, idT }) => {
-  console.log(idT);
-
   // Savoir les infos du joueur pour son tournoi
   const [dataPlayer, setDataPlayer] = useState({});
   // Savoir si le tournoi a commencé
@@ -13,7 +11,6 @@ const MyTournament = ({ player, idT }) => {
       .get("http://localhost:5000/get_versus_player/" + player.id)
       .then((res) => {
         setDataPlayer(res.data);
-        console.log(res.data);
       });
   };
   useEffect(() => {
