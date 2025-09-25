@@ -354,6 +354,104 @@ app.delete("/delete_player_tournament_via_iduser/:id", (req, res) => {
   );
 });
 
+app.get("/charge_player/:id", (req, res) => {
+  const id = req.params.id;
+  connection.query(
+    "select * from players where id_user = ?",
+    [id],
+    (err, results) => {
+      const player = results[0];
+      if (results.length == 0) {
+        res.json({ res: 0 });
+      } else {
+        connection.query(
+          "select * from tournaments where id = ?",
+          [player.id_tournament],
+          (err, results) => {
+            const tournament = results[0];
+            if (player.valider == 0) {
+              res.json({
+                res: 1,
+                pseudo: player.pseudo,
+                tournamentName: tournament.name,
+              });
+            } else {
+              if (tournament.start == 0) {
+                res.json({
+                  res: 2,
+                  pseudo: player.pseudo,
+                  tournamentName: tournament.name,
+                });
+              } else {
+                connection.query(
+                  "select * from players where id = ?",
+                  [player.id_versus],
+                  (err, results) => {
+                    if (results.length == 0) {
+                      res.json({
+                        res: 3,
+                        pseudo: player.pseudo,
+                        tournamentName: tournament.name,
+                        pseudoVersus: "Pas d'adversaire encore",
+                        class: player.class,
+                      });
+                    } else {
+                      const playerVersus = results[0];
+                      res.json({
+                        res: 4,
+                        pseudo: player.pseudo,
+                        tournamentName: tournament.name,
+                        idVersus: playerVersus.id,
+                        pseudoVersus: playerVersus.pseudo,
+                        class: player.class,
+                      });
+                    }
+                  }
+                );
+              }
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
+app.get("/search_tournament/:id", (req, res) => {
+  const idTournament = req.params.id;
+  connection.query(
+    "select * from tournaments where id = ?",
+    [idTournament],
+    (err, results) => {
+      const tournament = results[0];
+      if (results.length == 0) {
+        res.json({ res: 0 });
+      } else {
+        if (tournament.start == 0) {
+          res.json({
+            res: 1,
+            id: tournament.id,
+            name: tournament.name,
+          });
+        } else {
+          res.json({ res: 2, name: tournament.name });
+        }
+      }
+    }
+  );
+});
+
+app.post("/add_player_to_tournament/", (req, res) => {
+  const { idUser, idTournament, pseudo } = req.body;
+  connection.query(
+    "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider) values (?, 0, 0, ?, ?, 0)",
+    [pseudo, idTournament, idUser],
+    (err, results) => {
+      res.json({ res: "Vous avez ajouté au tournoi numéro " + idTournament });
+    }
+  );
+});
+
 app.listen(port, () => {
   console.log("Go server");
 });
