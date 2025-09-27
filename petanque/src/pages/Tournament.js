@@ -4,136 +4,108 @@ import { UsersContext } from "../App";
 import axios from "axios";
 
 const Tournament = () => {
-  // Quand j'arrive sur ce composant, l'url contient l'id du tournoi sur lequelle je souhaite apparaitre
+  // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
   const { idTournament } = useParams();
-  const { login, setLogin, setPlayer } = useContext(UsersContext);
-  // State pour récupérer les données des joueurs qui participe a ce tournoi précisément grave a une API
-  const [listPlayers, setListPlayers] = useState([]);
-  // State des joueurs qui attendent la confirmation de leurs participation
-  const [listPlayersWaiting, setListPlayersWaiting] = useState([]);
-  // State pour savoir si le tournoi a commencé
-  const [start, setStart] = useState(0);
-  const [listPlayersCurrent, setListPlayersCurrent] = useState([]);
+  // State qui récupère une variable global pour savoir si on est connecté
+  const { login } = useContext(UsersContext);
   const navigate = useNavigate();
-  // useEffect(() => {
-  //   setLogin(true);
-  //   setPlayer({ player: { id: 6, pseudo: "Admin" } });
-  // }, []);
+  // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
+  const [listPlayers, setListPlayers] = useState([]);
+  // State qui gère les message quand on supprime ou qu'on accepte un joueur
+  const [responseAPI, setResponseAPI] = useState({ res: 0 });
   useEffect(() => {
     if (!login) {
       navigate("/");
     }
   }, []);
-  // J'enregistre les joueurs qui participe aux tournoi et je les mets dans le State "listPlayers", on lance aussi handlePlayerWaiting pour afficher les joueurs qui attendent, en gros la fonction est recharge car faut relancer les fonctions get car ca affiche la situation actuel
-  const get_players_waiting_and_valid = () => {
+
+  // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
+  const recharge = () => {
+    setResponseAPI({ res: 0 });
     axios
-      .get("http://localhost:5000/get_players/" + idTournament)
+      .get("http://localhost:5000/recup_players_tournament/" + idTournament)
       .then((res) => {
         setListPlayers(res.data);
-        handlePlayerWaiting();
       });
   };
-  // recharge + des le début afficher la situation du tournoi et savoir si le tournoi a commencé
-  const recharge = () => {
-    get_players_waiting_and_valid();
-    axios
-      .get("http://localhost:5000/verif_start_tournament/" + idTournament)
-      .then((res) => {
-        console.log(res.data);
-        setStart(res.data);
-        if (res.data == 1) {
-          recupVersus();
-        }
-      });
+
+  // Fonction pour supprimer un joueur du tournoi
+  const handleDelete = (value) => {
+    axios.delete("http://localhost:5000/delete_player/" + value).then((res) => {
+      setResponseAPI(res.data);
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+    });
   };
+
+  // Fonction pour accepté un joueur
+  const handleValid = (value) => {
+    axios.put("http://localhost:5000/valid_player/" + value).then((res) => {
+      console.log(res.data);
+      setResponseAPI(res.data);
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+    });
+  };
+
   useEffect(() => {
     recharge();
   }, []);
-  // fonction pour récupérer tous les joueurs qui sont entrain de jouer le tournoi actuellement pour afficher bien l'avancée du tournoi
-  const recupVersus = () => {
-    axios
-      .get("http://localhost:5000/get_versus/" + idTournament)
-      .then((res) => setListPlayersCurrent(res.data));
-  };
-  // API qui supprime un joueur
-  const handleDeletePlayer = async (value) => {
-    await axios.delete(
-      "http://localhost:5000/delete_player_tournament/" + value
-    );
-    recharge();
-  };
-  // Afficher les joueurs qui attendent la validation
-  const handlePlayerWaiting = () => {
-    axios
-      .get("http://localhost:5000/get_players_waiting/" + idTournament)
-      .then((res) => setListPlayersWaiting(res.data));
-  };
-
-  // Lien de l'API qui enregistre officielement un joueur dans ce tournoi en question, a la fin je recharge les joueurs qui participe au tournoi pour actualiser
-  const handleValidPlayer = async (value) => {
-    await axios.put("http://localhost:5000/confirm_player/" + value);
-    recharge();
-  };
-
-  // Fonction qui lance le tournoi officiellement
-  const startTournament = async () => {
-    await axios
-      .put("http://localhost:5000/start_tournament/" + idTournament)
-      .then((res) => console.log(res.data));
-    recharge();
-  };
-  const playerWin = (win, lose) => {
-    axios.put("http://localhost:5000/win_player/", { win, lose });
-  };
   return (
     <div>
-      <h1>Tournament {idTournament}</h1>
-      <h3>Joueurs en attente</h3>
-      <ul>
-        {listPlayersWaiting.map((p) => {
-          return (
-            <li key={p.id}>
-              {p.pseudo}
-              <button onClick={() => handleDeletePlayer(p.id)}>
-                Supprimer
-              </button>
-              <button onClick={() => handleValidPlayer(p.id)}>Valider</button>
-            </li>
-          );
-        })}
-      </ul>
-      {/* Grace a l'api qui recupere les joueurs participant a ce tournoi en question, je les affiche en faisant un map */}
-      <h3>Joueurs accepté</h3>
-      <ul>
-        {listPlayers.map((p) => {
-          return (
-            <li key={p.id}>
-              {p.pseudo}
-              <button onClick={() => handleDeletePlayer(p.id)}>
-                Supprimer
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-      <button onClick={startTournament}>Lancez le tournoi</button>
-      {start == 1 ? (
+      <h2>Tournament {idTournament}</h2>
+      {/* Si le tournoi n'a pas commencé on va afficher les joueurs en attente et accepté */}
+      {listPlayers.res == 0 && (
         <div>
-          {listPlayersCurrent.map((p) => (
-            <p>
-              {p.id}{" "}
-              <button onClick={() => playerWin(p.id, p.id_versus)}>
-                Victoire
-              </button>
-              contre {p.id_versus}
-              <button onClick={() => playerWin(p.id_versus, p.id)}>
-                Victoire
-              </button>{" "}
-              1/{p.class}
-            </p>
-          ))}
+          <div>
+            <h3>Joueurs en attente</h3>
+            <ul>
+              {/* On liste les joueurs qui sont en attente en filtrant avec le colonne "valider" */}
+              {listPlayers.results
+                .filter((j) => j.valider == 0)
+                .map((j) => (
+                  <li>
+                    {/* Pseudo du joueur */}
+                    <span>{j.pseudo}</span>
+                    {/* Bouton pour supprimer ce joueur */}
+                    <button onClick={() => handleDelete(j.id_user)}>
+                      Supprimer
+                    </button>
+                    {/* Bouton pour accepté ce joueur */}
+                    <button onClick={() => handleValid(j.id_user)}>
+                      Accepté
+                    </button>
+                    {/* Message qui va apparaitre quand on va supprimer ou accepté un joueur, vérifie si on parle d'une suppression ou d'une validation et vérifie l'id pour bien affiché ce message au joueur concerné */}
+                    {responseAPI.res == 1 && responseAPI.id == j.id_user && (
+                      <p>{responseAPI.msg}</p>
+                    )}
+                  </li>
+                ))}
+            </ul>
+          </div>
+          <div>
+            <h3>Joueurs accepté</h3>
+            <ul>
+              {listPlayers.results
+                .filter((j) => j.valider == 1)
+                .map((j) => (
+                  <li>
+                    <span>{j.pseudo}</span>
+                    <button onClick={() => handleDelete(j.id_user)}>
+                      Supprimer
+                    </button>
+                    {responseAPI.res == 1 && responseAPI.id == j.id_user && (
+                      <p>{responseAPI.msg}</p>
+                    )}
+                  </li>
+                ))}
+            </ul>
+          </div>
         </div>
-      ) : null}
+      )}
+
       <NavLink to="/Home">Retour</NavLink>
     </div>
   );

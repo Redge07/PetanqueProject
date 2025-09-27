@@ -20,80 +20,6 @@ app.get("/", (req, res) => {
   res.send("Salut");
 });
 
-// Api pour lister tous les tournois que le compte en question a crée
-app.get("/get_tournament/:admin", (req, res) => {
-  connection.query(
-    "select * from tournaments where admin = ?",
-    [req.params.admin],
-    (err, results) => {
-      if (results.length > 0) {
-        res.json({ res: 1, results });
-      } else {
-        res.json({ res: 0 });
-      }
-    }
-  );
-});
-
-// Pour trouver les tournois quand un joueur entre un id
-app.get("/get_tournament_players/:id", (req, res) => {
-  connection.query(
-    "select * from tournaments where id = ?",
-    [req.params.id],
-    (err, results) => {
-      if (results.length > 0) {
-        res.json({ res: 1, results });
-      } else {
-        res.json({ res: 0 });
-      }
-    }
-  );
-});
-
-// Récupérer les joueurs d'un tournoi
-app.get("/get_players/:id_tournament", (req, res) => {
-  connection.query(
-    "select * from players where id_tournament = ? and valider = 1",
-    [req.params.id_tournament],
-    (err, results) => {
-      res.json(results);
-    }
-  );
-});
-
-// Récupérer les joueurs d'un tournoi qui attendent confirmation
-app.get("/get_players_waiting/:id_tournament", (req, res) => {
-  connection.query(
-    "select * from players where id_tournament = ? and valider = 0",
-    [req.params.id_tournament],
-    (err, results) => {
-      res.json(results);
-    }
-  );
-});
-
-// API pour vérifier qu'un tournoi a commencé
-app.get("/verif_start_tournament/:id", (req, res) => {
-  connection.query(
-    "select start from tournaments where id = ?",
-    [req.params.id],
-    (err, results) => {
-      res.send(results[0].start);
-    }
-  );
-});
-
-// API Pour récupérer toutes les confrontations du tournoi en question
-app.get("/get_versus/:id", (req, res) => {
-  connection.query(
-    "select * from players where id_tournament = ?",
-    [req.params.id],
-    (err, results) => {
-      res.json(results);
-    }
-  );
-});
-
 // API pour savoir contre qui on doit jouer
 app.get("/get_versus_player/:id", (req, res) => {
   connection.query(
@@ -127,35 +53,7 @@ app.get("/get_versus_player/:id", (req, res) => {
   );
 });
 
-// Api pour afficher les tournois en cours d'un joueurs
-app.get("/get_tournament_user/:id", (req, res) => {
-  connection.query(
-    "select * from players where id_user = ?",
-    [req.params.id],
-    (err, results) => {
-      if (results.length > 0) {
-        let id_tournament = results[0].id_tournament;
-        let valider = results[0].valider;
-        connection.query(
-          "select * from tournaments where id = ?",
-          [id_tournament],
-          (err, results) => {
-            if (results.length === 0) {
-              // Aucun tournoi trouvé
-              connection.query("delete from players where id_tournament = ?", [
-                id_tournament,
-              ]);
-              return res.json({ res: 0, error: "Tournoi introuvable" });
-            }
-            res.json({ res: 1, results: results[0], valider: valider });
-          }
-        );
-      } else {
-        res.json({ res: -1 });
-      }
-    }
-  );
-});
+//--------------------------Log & Sign-----------------------------
 
 // Api pour l'inscription
 app.post("/inscription", (req, res) => {
@@ -207,6 +105,23 @@ app.post("/connexion", (req, res) => {
   );
 });
 
+//-------------------------Organisateur------------------------------------
+
+// Api pour lister tous les tournois que le compte en question a crée
+app.get("/get_tournament/:admin", (req, res) => {
+  connection.query(
+    "select * from tournaments where admin = ?",
+    [req.params.admin],
+    (err, results) => {
+      if (results.length > 0) {
+        res.json({ res: 1, results });
+      } else {
+        res.json({ res: 0 });
+      }
+    }
+  );
+});
+
 // Api pour crée un tournoi quand on est connecté en tant qu'utilisateur
 app.post("/create_tournament/:admin", (req, res) => {
   const { name } = req.body;
@@ -215,109 +130,6 @@ app.post("/create_tournament/:admin", (req, res) => {
     [name, req.params.admin],
     (err, results) => {
       res.send(`Votre tournoi ${name} a bien été crée`);
-    }
-  );
-});
-
-// Api pour faire en sorte que le joueur soit accepté au tournoi
-app.put("/confirm_player/:id", (req, res) => {
-  connection.query(
-    "update players set valider = 1 where id = ?",
-    [req.params.id],
-    (err, results) => {
-      res.send("Changé");
-    }
-  );
-});
-
-// API qui lance le tournoi, donc qui attribut pour chaque joueurs leur adversaire
-app.put("/start_tournament/:id", (req, res) => {
-  connection.query(
-    "select * from players where id_tournament = ? and valider = 1",
-    [req.params.id],
-    (err, results) => {
-      let list_id = [];
-      for (let i = 0; i < results.length; i++) {
-        list_id.push(results[i].id);
-      }
-      list_id.sort(() => Math.random() - 0.5);
-      let matchs = [];
-      for (let i = 0; i < list_id.length; i += 2) {
-        matchs.push([list_id[i], list_id[i + 1]]);
-      }
-      const tour = matchs.length;
-      for (let i = 0; i < matchs.length; i++) {
-        connection.query(
-          "update players set id_versus = ?, class = ? where id = ?",
-          [matchs[i][1], tour, matchs[i][0]]
-        );
-        connection.query(
-          "update players set id_versus = ?, class = ? where id = ?",
-          [matchs[i][0], tour, matchs[i][1]]
-        );
-      }
-      res.send("Le tournoi a commencé !!!");
-    }
-  );
-  connection.query("update tournaments set start = 1 where id = ?", [
-    req.params.id,
-  ]);
-});
-
-// API qui gèrent le fait qu'un joueur gagne un match
-app.put("/win_player/", (req, res) => {
-  const { win, lose } = req.body;
-  connection.query(
-    "select class from players where id = ?",
-    [win],
-    (err, results) => {
-      const tour = parseInt(results[0].class);
-      const newTour = tour / 2;
-      connection.query("update players set class = ? where id = ?", [
-        newTour,
-        win,
-      ]);
-      connection.query("update players set id_versus = 0 where id = ?", [win]);
-      connection.query("delete from players where id = ?", [lose]);
-    }
-  );
-});
-
-// Ajouter un joueur a un tournoi
-app.post("/add_player/:id_tournament", (req, res) => {
-  const { pseudo, iduser } = req.body;
-  connection.query(
-    "select * from players where id_user = ?",
-    [iduser],
-    (err, results) => {
-      if (results.length > 0) {
-        res.json({
-          res: 0,
-          msg: "Ce joueur a deja fait une demande ou participe deja a un tournoi",
-        });
-      } else {
-        connection.query(
-          "insert into players (pseudo, id_tournament, id_user, valider) values (?, ?, ?, 0)",
-          [pseudo, req.params.id_tournament, iduser],
-          (err, results) => {
-            res.json({
-              res: 1,
-              msg: `Le joueur ${pseudo} à eté ajouté au tournoi`,
-            });
-          }
-        );
-      }
-    }
-  );
-});
-
-// Api pour supprimer un utilisateurs
-app.delete("/:id", (req, res) => {
-  connection.query(
-    "delete from users where id = ?",
-    [req.params.id],
-    (err, results) => {
-      res.send(`Le user avec l'id ${req.params.id} à été supprimé`);
     }
   );
 });
@@ -333,60 +145,52 @@ app.delete("/delete_tournament/:id", (req, res) => {
   );
 });
 
-// Supprimer un joueur d'un tournoi
-app.delete("/delete_player_tournament/:id", (req, res) => {
-  connection.query(
-    "delete from players where id = ?",
-    [req.params.id],
-    (err, results) => {
-      res.send(`Le joueur numéro ${req.params.id} à été supprimé`);
-    }
-  );
-});
+//----------------Players----------------------------------------
 
-app.delete("/delete_player_tournament_via_iduser/:id", (req, res) => {
-  connection.query(
-    "delete from players where id_user = ?",
-    [req.params.id],
-    (err, results) => {
-      res.send(`Le joueur numéro ${req.params.id} à été supprimé`);
-    }
-  );
-});
-
+// API pour récupérer la situation d'un utilisateur sur sa situation de joueur
 app.get("/charge_player/:id", (req, res) => {
   const id = req.params.id;
   connection.query(
+    // On regarde si il est enregistré comme un joueur
     "select * from players where id_user = ?",
     [id],
     (err, results) => {
       const player = results[0];
+      // Si il n'est pas dans la liste alors ce n'est pas un joueur
       if (results.length == 0) {
         res.json({ res: 0 });
+        // Si il est dans la liste alors c'est un joueur et on va voir sa situation précise
       } else {
+        // On va récupérer le tournoi auquel il est attribué en tant que joueur
         connection.query(
           "select * from tournaments where id = ?",
           [player.id_tournament],
           (err, results) => {
             const tournament = results[0];
+            // Si la colonne valider du joueur est a 0 alors sa demande est en attente
             if (player.valider == 0) {
               res.json({
                 res: 1,
                 pseudo: player.pseudo,
                 tournamentName: tournament.name,
               });
+              // Sinon ca veut dire que sa demande a été accepté et donc il participe a un tournoi
             } else {
+              // Si le tournoi n'a pas commencé, alors le joueur a juste a attendre que ca commence
               if (tournament.start == 0) {
                 res.json({
                   res: 2,
                   pseudo: player.pseudo,
                   tournamentName: tournament.name,
                 });
+                // Sinon ca veut dire que le tournoi a commencé
               } else {
+                // On va vérifié l'adversaire du joueur
                 connection.query(
                   "select * from players where id = ?",
                   [player.id_versus],
                   (err, results) => {
+                    // Si ca retourne rien alors il n'a pas encore d'adversaire attribué
                     if (results.length == 0) {
                       res.json({
                         res: 3,
@@ -395,6 +199,7 @@ app.get("/charge_player/:id", (req, res) => {
                         pseudoVersus: "Pas d'adversaire encore",
                         class: player.class,
                       });
+                      // Sinon il a bien un adversaire attribué
                     } else {
                       const playerVersus = results[0];
                       res.json({
@@ -417,22 +222,28 @@ app.get("/charge_player/:id", (req, res) => {
   );
 });
 
+// API qui va renvoyer la requete d'un joueur pour trouver un tournoi et vouloir s'inscrire
 app.get("/search_tournament/:id", (req, res) => {
   const idTournament = req.params.id;
+  // On cherche l'id du tournoi dans la table
   connection.query(
     "select * from tournaments where id = ?",
     [idTournament],
     (err, results) => {
       const tournament = results[0];
+      // Si ca retourne rien, alors l'id ne correspond a aucun tournoi
       if (results.length == 0) {
         res.json({ res: 0 });
+        // Sinon ca veut dire qu'un tournoi existe bien
       } else {
+        // Si il n'a pas commencé
         if (tournament.start == 0) {
           res.json({
             res: 1,
             id: tournament.id,
             name: tournament.name,
           });
+          // Sinon il a deja commencé
         } else {
           res.json({ res: 2, name: tournament.name });
         }
@@ -441,13 +252,85 @@ app.get("/search_tournament/:id", (req, res) => {
   );
 });
 
+// API qui inscrit la demande d'un joueur a un tournoi
 app.post("/add_player_to_tournament/", (req, res) => {
   const { idUser, idTournament, pseudo } = req.body;
   connection.query(
     "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider) values (?, 0, 0, ?, ?, 0)",
     [pseudo, idTournament, idUser],
     (err, results) => {
-      res.json({ res: "Vous avez ajouté au tournoi numéro " + idTournament });
+      res.json({
+        res: "Vous avez été ajouté au tournoi numéro " + idTournament,
+      });
+    }
+  );
+});
+
+// API qui désinscrit un joueur d'un tournoi
+app.delete("/delete_inscription/:id", (req, res) => {
+  connection.query(
+    "delete from players where id_user = ?",
+    [req.params.id],
+    (err, results) => {
+      res.json({ res: "Vous vous etes désinscrit du tournoi" });
+    }
+  );
+});
+
+//-----------------------Tournament------------------------------
+
+// API pour savoir si le tournoi a commencé et pour récupérer les joueurs
+app.get("/recup_players_tournament/:id", (req, res) => {
+  // On récupère le tournoi
+  connection.query(
+    "select * from tournaments where id = ?",
+    [req.params.id],
+    (err, results) => {
+      // Si le tournoi n'a pas commencé
+      if (results[0].start == 0) {
+        // On récupère tous les joueurs en lien avec le tournoi
+        connection.query(
+          "select * from players where id_tournament = ?",
+          [req.params.id],
+          (err, results) => {
+            res.json({ res: 0, results: results });
+          }
+        );
+        // Sinon le tournoi n'a pas commencé
+      } else {
+        res.json({ res: 1 });
+      }
+    }
+  );
+});
+
+// API pour supprimer un joueur
+app.delete("/delete_player/:id", (req, res) => {
+  connection.query(
+    "delete from players where id_user = ?",
+    [req.params.id],
+    (err, results) => {
+      // Renvoyer un message pour dire que ce joueur a bien été supprimer
+      res.json({
+        res: 1,
+        id: req.params.id,
+        msg: "Le joueur a été supprimé du tournoi",
+      });
+    }
+  );
+});
+
+app.put("/valid_player/:id", (req, res) => {
+  connection.query(
+    "update players set valider = 1 where id_user = ?",
+    [req.params.id],
+    (err, results) => {
+      // Renvoyer un message pour dire que ce joueur a bien été accepté
+      res.json({
+        res: 1,
+        id: req.params.id,
+        msg: "Le joueur a été ajouté du tournoi",
+      });
     }
   );
 });
