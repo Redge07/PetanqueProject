@@ -337,22 +337,34 @@ app.put("/valid_player/:id", (req, res) => {
 
 //------------------------Go_Tournament-----------------------
 
+function getRandomElements(arr, n) {
+  const result = [];
+
+  for (let i = 0; i < n; i++) {
+    const index = Math.floor(Math.random() * arr.length);
+    result.push(arr.splice(index, 1)[0]); // enlève de la liste
+  }
+
+  return result;
+}
+
 app.put("/go_tournament/:id", (req, res) => {
   connection.query(
     "delete from players where id_tournament = ? and valider = 0",
-    [req.params.id]
-  );
-  connection.query(
-    "select * from players where id_tournament = ? and valider = 1",
     [req.params.id],
     (err, results) => {
-      let listPlayrs = results;
-      let nb_players = results.length;
-      let p2 = 2 ** Math.floor(Math.log2(nb_players));
-      let prelim = (nb_players - p2) * 2;
-      const playersRandom = listPlayrs
-        .sort(() => 0.5 - Math.random())
-        .slice(0, prelim);
+      connection.query(
+        "select * from players where id_tournament = ? and valider = 1",
+        [req.params.id],
+        (err, results) => {
+          let listPlayers = results;
+          let nb_players = results.length;
+          let p2 = 2 ** Math.floor(Math.log2(nb_players));
+          let prelim = (nb_players - p2) * 2;
+          const tirage = getRandomElements(listPlayers, prelim);
+          res.json({ res1: listPlayers, res2: tirage });
+        }
+      );
     }
   );
 });
