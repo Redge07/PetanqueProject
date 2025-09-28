@@ -20,39 +20,6 @@ app.get("/", (req, res) => {
   res.send("Salut");
 });
 
-// API pour savoir contre qui on doit jouer
-app.get("/get_versus_player/:id", (req, res) => {
-  connection.query(
-    "select * from players where id_user = ?",
-    [req.params.id],
-    (err, results) => {
-      const id_versus = results[0].id_versus;
-      const player = results[0];
-      connection.query(
-        "select pseudo from players where id = ?",
-        [id_versus],
-        (err, results) => {
-          if (id_versus == 0) {
-            res.json({
-              id: player.id,
-              pseudo: player.pseudo,
-              tour: player.class,
-              versus: "Pas d'adversaire",
-            });
-          } else {
-            res.json({
-              id: player.id,
-              pseudo: player.pseudo,
-              tour: player.class,
-              versus: results[0].pseudo,
-            });
-          }
-        }
-      );
-    }
-  );
-});
-
 //--------------------------Log & Sign-----------------------------
 
 // Api pour l'inscription
@@ -298,7 +265,47 @@ app.get("/recup_players_tournament/:id", (req, res) => {
         );
         // Sinon le tournoi n'a pas commencé
       } else {
-        res.json({ res: 1 });
+        // Je récupère tous les joueurs qui sont inscrits
+        connection.query(
+          "select * from players where id_tournament = ?",
+          [req.params.id],
+          // Tous les joueurs ont deja leur adversaire attribué mais on fait un beau algo pour envoyer les confrontations correctement au front-end
+          (err, results) => {
+            // On déclare le tableau qui contiendra les matches au propres
+            let matches = [];
+            // On fait un tour de tous les joueurs (forcément il y a des doublons car 2 jouers se rencontrent forcément)
+            for (let i = 0; i < results.length; i++) {
+              const key = [
+                Math.min(results[i].id_user, results[i].id_versus),
+                Math.max(results[i].id_user, results[i].id_versus),
+              ].join("-");
+              console.log(key);
+
+              let match = matches.find((m) => m.key == key);
+              if (!match) {
+                match = {
+                  key,
+                  joueurA: null,
+                  joueurB: null,
+                  class: results[i].class,
+                };
+                matches.push(match);
+              }
+              if (!match.joueurA) {
+                match.joueurA = {
+                  id: results[i].id_user,
+                  pseudo: results[i].pseudo,
+                };
+              } else {
+                match.joueurB = {
+                  id: results[i].id_user,
+                  pseudo: results[i].pseudo,
+                };
+              }
+            }
+            res.json({ res: 1, results: matches });
+          }
+        );
       }
     }
   );
@@ -348,21 +355,53 @@ function getRandomElements(arr, n) {
   return result;
 }
 
+// API pour lancer le tournoi
 app.put("/go_tournament/:id", (req, res) => {
+  // Dans un premier temps je supprime les joueurs qui n'ont pas été accepté au tournoi
   connection.query(
     "delete from players where id_tournament = ? and valider = 0",
     [req.params.id],
     (err, results) => {
+      // Je récupère tous les joueurs qui sont inscrit
       connection.query(
         "select * from players where id_tournament = ? and valider = 1",
         [req.params.id],
+        // On va attribuer a chaque joueur sont futurs adversaire et a quelle tour du tournoi il va commencer
         (err, results) => {
-          let listPlayers = results;
-          let nb_players = results.length;
-          let p2 = 2 ** Math.floor(Math.log2(nb_players));
-          let prelim = (nb_players - p2) * 2;
+          const listPlayers = results;
+          const nb_players = results.length;
+          const p2 = 2 ** Math.floor(Math.log2(nb_players));
+          const prelim = (nb_players - p2) * 2;
           const tirage = getRandomElements(listPlayers, prelim);
-          res.json({ res1: listPlayers, res2: tirage });
+          // Les joueurs tirés aléatoirement qui vont disputer un match en plus
+          for (let i = 0; i < tirage.length; i++) {
+            connection.query(
+              "update players set id_versus = ?, class = ? where id_user = ?",
+              [
+                i % 2 == 0 ? tirage[i + 1].id_user : tirage[i - 1].id_user,
+                p2,
+                tirage[i].id_user,
+              ]
+            );
+          }
+          // Les joueurs qui vont attendre que les autres finissent leur premeir match
+          for (let i = 0; i < listPlayers.length; i++) {
+            connection.query(
+              "update players set id_versus = ?, class = ? where id_user = ?",
+              [
+                i % 2 == 0
+                  ? listPlayers[i + 1].id_user
+                  : listPlayers[i - 1].id_user,
+                p2 / 2,
+                listPlayers[i].id_user,
+              ]
+            );
+          }
+          // Et forcément j'actualise le fait que le tournoi a commencé
+          connection.query("update tournaments set start = 1 where id = ? ", [
+            req.params.id,
+          ]);
+          res.status(200).send("Tournoi lancé");
         }
       );
     }

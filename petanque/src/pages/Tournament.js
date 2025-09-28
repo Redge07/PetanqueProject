@@ -13,6 +13,7 @@ const Tournament = () => {
   const [listPlayers, setListPlayers] = useState([]);
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
+  const [responseGoTournament, setResponseGoTournament] = useState("");
   useEffect(() => {
     if (!login) {
       navigate("/");
@@ -25,6 +26,7 @@ const Tournament = () => {
     axios
       .get("http://localhost:5000/recup_players_tournament/" + idTournament)
       .then((res) => {
+        console.log(res.data);
         setListPlayers(res.data);
       });
   };
@@ -62,6 +64,17 @@ const Tournament = () => {
       );
       return listPlayersValider.length;
     }
+  };
+
+  const handleGoTournament = () => {
+    axios
+      .put("http://localhost:5000/go_tournament/" + idTournament)
+      .then((res) => {
+        setResponseGoTournament(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
   };
 
   useEffect(() => {
@@ -104,6 +117,7 @@ const Tournament = () => {
             </ul>
           </div>
           <div>
+            {/* On va lister tous les joueurs qui n'ont pas encore été accepté pour ce tournoi en question dans la base de données */}
             <h3>Joueurs accepté</h3>
             <p>
               Il y a {countPlayer(1)}{" "}
@@ -125,9 +139,29 @@ const Tournament = () => {
                 ))}
             </ul>
           </div>
+          <button onClick={handleGoTournament}>Lancer le tournoi</button>
+          <p>{responseGoTournament}</p>
         </div>
       )}
-
+      {/* Le tournoi a commencé */}
+      {listPlayers.res == 1 && (
+        <div>
+          <h2>Go Tournoi</h2>
+          <div>
+            <ul>
+              {/* Je liste toutes les confrontations */}
+              {listPlayers.results.map((p, i) => (
+                <li key={p.id_user}>
+                  <p>
+                    Match {i + 1} : {p.joueurA.pseudo} vs {p.joueurB.pseudo} en
+                    1/{p.class}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
       <NavLink to="/Home">Retour</NavLink>
     </div>
   );
