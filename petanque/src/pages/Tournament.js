@@ -50,6 +50,20 @@ const Tournament = () => {
     });
   };
 
+  const countPlayer = (value) => {
+    if (value == 0) {
+      let listPlayersAttente = listPlayers.results.filter(
+        (p) => p.valider == 0
+      );
+      return listPlayersAttente.length;
+    } else {
+      let listPlayersValider = listPlayers.results.filter(
+        (p) => p.valider == 1
+      );
+      return listPlayersValider.length;
+    }
+  };
+
   useEffect(() => {
     recharge();
   }, []);
@@ -61,12 +75,16 @@ const Tournament = () => {
         <div>
           <div>
             <h3>Joueurs en attente</h3>
+            <p>
+              Il y a {countPlayer(0)}{" "}
+              {countPlayer(0) > 1 ? "joueurs" : "joueur"} en attente
+            </p>
             <ul>
               {/* On liste les joueurs qui sont en attente en filtrant avec le colonne "valider" */}
               {listPlayers.results
                 .filter((j) => j.valider == 0)
                 .map((j) => (
-                  <li>
+                  <li key={j.id_user}>
                     {/* Pseudo du joueur */}
                     <span>{j.pseudo}</span>
                     {/* Bouton pour supprimer ce joueur */}
@@ -87,11 +105,15 @@ const Tournament = () => {
           </div>
           <div>
             <h3>Joueurs accepté</h3>
+            <p>
+              Il y a {countPlayer(1)}{" "}
+              {countPlayer(1) > 1 ? "joueurs" : "joueur"} en attente
+            </p>
             <ul>
               {listPlayers.results
                 .filter((j) => j.valider == 1)
                 .map((j) => (
-                  <li>
+                  <li key={j.id_user}>
                     <span>{j.pseudo}</span>
                     <button onClick={() => handleDelete(j.id_user)}>
                       Supprimer
