@@ -128,6 +128,7 @@ app.get("/charge_player/:id", (req, res) => {
         res.json({ res: 0 });
         // Si il est dans la liste alors c'est un joueur et on va voir sa situation précise
       } else {
+        // Si le jouuer n'a pas gagné le tournoi on continue le processus normal
         if (player.class != 0.5) {
           // On va récupérer le tournoi auquel il est attribué en tant que joueur
           connection.query(
@@ -185,6 +186,7 @@ app.get("/charge_player/:id", (req, res) => {
               }
             }
           );
+          // Le joueur a déjà gagné le tournoi
         } else {
           res.json({
             res: 5,
@@ -312,6 +314,7 @@ app.get("/recup_players_tournament/:id", (req, res) => {
             res.json({ res: 1, results: matches });
           }
         );
+        // Le tournoi est fini et il y a un vainqueur
       } else {
         connection.query(
           "select * from players where id_tournament = ?",
@@ -350,7 +353,7 @@ app.put("/valid_player/:id", (req, res) => {
       res.json({
         res: 1,
         id: req.params.id,
-        msg: "Le joueur a été ajouté du tournoi",
+        msg: "Le joueur a été ajouté au tournoi",
       });
     }
   );
@@ -422,23 +425,30 @@ app.put("/go_tournament/:id", (req, res) => {
   );
 });
 
+// API qui gère la victoire d'un joueur et donc on doit actualiser les données des joueurs
 app.put("/win_player/:id", (req, res) => {
+  // On récupère l'id du vainqueur, l'id du perdant et à quelle tour il est actuellement dans le tournoi
   const { win, lose, tour } = req.body;
+  // Directement on supprime le joueur qui a perdu, car il ne participe plus au tournoi et donc il n'a plus le statut de joueur
   connection.query(
     "delete from players where id_user = ?",
     [lose],
     (err, results) => {
+      // Si le joueur n'a pas gagné la finale alors c'est le processus normal
       if (tour != 1) {
+        // On récupère tous les joueurs du tournoi
         connection.query(
           "select * from players where id_tournament = ?",
           [req.params.id],
           (err, results) => {
+            // On essaye de récupérer un joueur qui pourrait potentiellement etre le prochain adversaire du gagnant en vérifiant certains attributs
             const player_waiting = results.find(
               (p) =>
                 p.id_versus == 0 &&
                 p.class == tour / 2 &&
                 p.id_tournament == req.params.id
             );
+            // Si il n'y a aucun joueur qui peut etre le prochain adversaire du gagnant, alors on passe le joueur au tour suivant mais avec aucun adversaire pour le moment
             if (!player_waiting) {
               connection.query(
                 "update players set id_versus = 0, class = ? where id_user = ?",
@@ -447,11 +457,14 @@ app.put("/win_player/:id", (req, res) => {
                   res.send("Victoire validé");
                 }
               );
+              // Sinon on a bien trouvé un joueur qui rempli les cases pour etre le prochain adversaire du gagnant
             } else {
+              // Donc on actualise les attributs du gagnant
               connection.query(
                 "update players set id_versus = ?, class = ? where id_user = ?",
                 [player_waiting.id_user, tour / 2, win],
                 (err, results) => {
+                  // On actualise aussi les attributs du joueur qui attendait son prochain adversaire
                   connection.query(
                     "update players set id_versus = ? where id_user = ?",
                     [win, player_waiting.id_user],
@@ -464,11 +477,14 @@ app.put("/win_player/:id", (req, res) => {
             }
           }
         );
+        // Ca veut dire que le joueur a gagné la finale
       } else {
+        // Donc on dit que le tournoi est terminé
         connection.query(
           "update tournaments set start = 2 where id = ?",
           [req.params.id],
           (err, results) => {
+            // Et on actualise le joueur en tant que vainqueur
             connection.query(
               "update players set class = 0.5 where id_user = ?",
               [win],

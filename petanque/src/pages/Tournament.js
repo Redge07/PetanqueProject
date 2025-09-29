@@ -56,6 +56,7 @@ const Tournament = () => {
     });
   };
 
+  // Fonction pour connaitre le nombre de joueurs en attente et confirmé
   const countPlayer = (value) => {
     if (value == 0) {
       let listPlayersAttente = listPlayers.results.filter(
@@ -70,6 +71,7 @@ const Tournament = () => {
     }
   };
 
+  // Fonction quand je décide de démarrer le tournoi
   const handleGoTournament = () => {
     axios
       .put("http://localhost:5000/go_tournament/" + idTournament)
@@ -81,6 +83,7 @@ const Tournament = () => {
       });
   };
 
+  // Fonction quand je déclare le vainqueur
   const handleWinner = (win, lose, tour) => {
     console.log(
       "Le gagnant est " +
@@ -214,6 +217,7 @@ const Tournament = () => {
           </div>
         </div>
       )}
+      {/* Le tournoi est fini est on affiche le vainqueur */}
       {listPlayers.res == 2 && (
         <div>
           <h1>{listPlayers.msg}</h1>

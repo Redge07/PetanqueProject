@@ -133,6 +133,7 @@ const Participant = ({ player }) => {
           été accepté. Le tournoi va bientot commencer
         </div>
       )}
+      {/* On est en plein tournoi mais je n'ai pas encore d'adversaire attribué */}
       {dataPlayer.res == 3 && (
         <div>
           <h3>
@@ -142,6 +143,7 @@ const Participant = ({ player }) => {
           <p>Vous n'avez pas encore d'adversaire</p>
         </div>
       )}
+      {/* On est en plein tournoi et je connais mon prochain adversaire */}
       {dataPlayer.res == 4 && (
         <div>
           <h3>
@@ -154,6 +156,7 @@ const Participant = ({ player }) => {
           </p>
         </div>
       )}
+      {/* Le joueur a gagné le tournoi */}
       {dataPlayer.res == 5 && (
         <div>
           <h1>{dataPlayer.msg}</h1>
