@@ -128,62 +128,69 @@ app.get("/charge_player/:id", (req, res) => {
         res.json({ res: 0 });
         // Si il est dans la liste alors c'est un joueur et on va voir sa situation précise
       } else {
-        // On va récupérer le tournoi auquel il est attribué en tant que joueur
-        connection.query(
-          "select * from tournaments where id = ?",
-          [player.id_tournament],
-          (err, results) => {
-            const tournament = results[0];
-            // Si la colonne valider du joueur est a 0 alors sa demande est en attente
-            if (player.valider == 0) {
-              res.json({
-                res: 1,
-                pseudo: player.pseudo,
-                tournamentName: tournament.name,
-              });
-              // Sinon ca veut dire que sa demande a été accepté et donc il participe a un tournoi
-            } else {
-              // Si le tournoi n'a pas commencé, alors le joueur a juste a attendre que ca commence
-              if (tournament.start == 0) {
+        if (player.class != 0.5) {
+          // On va récupérer le tournoi auquel il est attribué en tant que joueur
+          connection.query(
+            "select * from tournaments where id = ?",
+            [player.id_tournament],
+            (err, results) => {
+              const tournament = results[0];
+              // Si la colonne valider du joueur est a 0 alors sa demande est en attente
+              if (player.valider == 0) {
                 res.json({
-                  res: 2,
+                  res: 1,
                   pseudo: player.pseudo,
                   tournamentName: tournament.name,
                 });
-                // Sinon ca veut dire que le tournoi a commencé
+                // Sinon ca veut dire que sa demande a été accepté et donc il participe a un tournoi
               } else {
-                // On va vérifié l'adversaire du joueur
-                connection.query(
-                  "select * from players where id = ?",
-                  [player.id_versus],
-                  (err, results) => {
-                    // Si ca retourne rien alors il n'a pas encore d'adversaire attribué
-                    if (results.length == 0) {
-                      res.json({
-                        res: 3,
-                        pseudo: player.pseudo,
-                        tournamentName: tournament.name,
-                        pseudoVersus: "Pas d'adversaire encore",
-                        class: player.class,
-                      });
-                      // Sinon il a bien un adversaire attribué
-                    } else {
-                      const playerVersus = results[0];
-                      res.json({
-                        res: 4,
-                        pseudo: player.pseudo,
-                        tournamentName: tournament.name,
-                        idVersus: playerVersus.id,
-                        pseudoVersus: playerVersus.pseudo,
-                        class: player.class,
-                      });
+                // Si le tournoi n'a pas commencé, alors le joueur a juste a attendre que ca commence
+                if (tournament.start == 0) {
+                  res.json({
+                    res: 2,
+                    pseudo: player.pseudo,
+                    tournamentName: tournament.name,
+                  });
+                  // Sinon ca veut dire que le tournoi a commencé
+                } else {
+                  // On va vérifié l'adversaire du joueur
+                  connection.query(
+                    "select * from players where id_user = ?",
+                    [player.id_versus],
+                    (err, results) => {
+                      // Si ca retourne rien alors il n'a pas encore d'adversaire attribué
+                      if (results.length == 0) {
+                        res.json({
+                          res: 3,
+                          pseudo: player.pseudo,
+                          tournamentName: tournament.name,
+                          pseudoVersus: "Pas d'adversaire encore",
+                          class: player.class,
+                        });
+                        // Sinon il a bien un adversaire attribué
+                      } else {
+                        const playerVersus = results[0];
+                        res.json({
+                          res: 4,
+                          pseudo: player.pseudo,
+                          tournamentName: tournament.name,
+                          idVersus: playerVersus.id_user,
+                          pseudoVersus: playerVersus.pseudo,
+                          class: player.class,
+                        });
+                      }
                     }
-                  }
-                );
+                  );
+                }
               }
             }
-          }
-        );
+          );
+        } else {
+          res.json({
+            res: 5,
+            msg: "Félicitations vous etes le grand vainqueur",
+          });
+        }
       }
     }
   );
@@ -264,7 +271,7 @@ app.get("/recup_players_tournament/:id", (req, res) => {
           }
         );
         // Sinon le tournoi n'a pas commencé
-      } else {
+      } else if (results[0].start == 1) {
         // Je récupère tous les joueurs qui sont inscrits
         connection.query(
           "select * from players where id_tournament = ?",
@@ -279,7 +286,6 @@ app.get("/recup_players_tournament/:id", (req, res) => {
                 Math.min(results[i].id_user, results[i].id_versus),
                 Math.max(results[i].id_user, results[i].id_versus),
               ].join("-");
-              console.log(key);
 
               let match = matches.find((m) => m.key == key);
               if (!match) {
@@ -304,6 +310,14 @@ app.get("/recup_players_tournament/:id", (req, res) => {
               }
             }
             res.json({ res: 1, results: matches });
+          }
+        );
+      } else {
+        connection.query(
+          "select * from players where id_tournament = ?",
+          [req.params.id],
+          (err, results) => {
+            res.json({ res: 2, msg: "Le vainqueur est " + results[0].pseudo });
           }
         );
       }
@@ -404,6 +418,67 @@ app.put("/go_tournament/:id", (req, res) => {
           res.status(200).send("Tournoi lancé");
         }
       );
+    }
+  );
+});
+
+app.put("/win_player/:id", (req, res) => {
+  const { win, lose, tour } = req.body;
+  connection.query(
+    "delete from players where id_user = ?",
+    [lose],
+    (err, results) => {
+      if (tour != 1) {
+        connection.query(
+          "select * from players where id_tournament = ?",
+          [req.params.id],
+          (err, results) => {
+            const player_waiting = results.find(
+              (p) =>
+                p.id_versus == 0 &&
+                p.class == tour / 2 &&
+                p.id_tournament == req.params.id
+            );
+            if (!player_waiting) {
+              connection.query(
+                "update players set id_versus = 0, class = ? where id_user = ?",
+                [tour / 2, win],
+                (err, results) => {
+                  res.send("Victoire validé");
+                }
+              );
+            } else {
+              connection.query(
+                "update players set id_versus = ?, class = ? where id_user = ?",
+                [player_waiting.id_user, tour / 2, win],
+                (err, results) => {
+                  connection.query(
+                    "update players set id_versus = ? where id_user = ?",
+                    [win, player_waiting.id_user],
+                    (err, results) => {
+                      res.send("Victoire validé");
+                    }
+                  );
+                }
+              );
+            }
+          }
+        );
+      } else {
+        connection.query(
+          "update tournaments set start = 2 where id = ?",
+          [req.params.id],
+          (err, results) => {
+            connection.query(
+              "update players set class = 0.5 where id_user = ?",
+              [win],
+              (err, results) => {
+                res.send("Victoire validé");
+              }
+            );
+          }
+        );
+      }
     }
   );
 });

@@ -13,7 +13,10 @@ const Tournament = () => {
   const [listPlayers, setListPlayers] = useState([]);
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
+  // State qui affiche le message quand le tournoi est bien lancé
   const [responseGoTournament, setResponseGoTournament] = useState("");
+  // State qui dit que tel joueur a gagné
+  const [responseWin, setResponseWin] = useState("");
   useEffect(() => {
     if (!login) {
       navigate("/");
@@ -28,6 +31,7 @@ const Tournament = () => {
       .then((res) => {
         console.log(res.data);
         setListPlayers(res.data);
+        setResponseWin("");
       });
   };
 
@@ -71,6 +75,32 @@ const Tournament = () => {
       .put("http://localhost:5000/go_tournament/" + idTournament)
       .then((res) => {
         setResponseGoTournament(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
+  };
+
+  const handleWinner = (win, lose, tour) => {
+    console.log(
+      "Le gagnant est " +
+        win +
+        " et le perdant est " +
+        lose +
+        " pour ce 1/" +
+        tour +
+        " finale " +
+        "pour le tournoi " +
+        idTournament
+    );
+    axios
+      .put("http://localhost:5000/win_player/" + idTournament, {
+        win: win,
+        lose: lose,
+        tour: tour,
+      })
+      .then((res) => {
+        setResponseWin(res.data);
         setTimeout(() => {
           recharge();
         }, 1000);
@@ -148,18 +178,45 @@ const Tournament = () => {
         <div>
           <h2>Go Tournoi</h2>
           <div>
+            <p>{responseWin}</p>
             <ul>
               {/* Je liste toutes les confrontations */}
               {listPlayers.results.map((p, i) => (
                 <li key={p.id_user}>
                   <p>
-                    Match {i + 1} : {p.joueurA.pseudo} vs {p.joueurB.pseudo} en
-                    1/{p.class}
+                    Match {i + 1} : {p.joueurA.pseudo} vs{" "}
+                    {p.joueurB
+                      ? p.joueurB.pseudo
+                      : "Pas encore d'adversaire attribué"}{" "}
+                    en 1/{p.class}
                   </p>
+                  {p.joueurB && (
+                    <div>
+                      <button
+                        onClick={() =>
+                          handleWinner(p.joueurA.id, p.joueurB.id, p.class)
+                        }
+                      >
+                        Victoire de {p.joueurA.pseudo}
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleWinner(p.joueurB.id, p.joueurA.id, p.class)
+                        }
+                      >
+                        Victoire de {p.joueurB.pseudo}
+                      </button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
           </div>
+        </div>
+      )}
+      {listPlayers.res == 2 && (
+        <div>
+          <h1>{listPlayers.msg}</h1>
         </div>
       )}
       <NavLink to="/Home">Retour</NavLink>
