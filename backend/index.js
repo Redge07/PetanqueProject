@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
 
 app.use("/log", require("./routes/log"));
 app.use("/players", require("./routes/players"));
+app.use("/organisateurs", require("./routes/organisateurs"));
 
 // //--------------------------Log & Sign-----------------------------
 
@@ -77,43 +78,43 @@ app.use("/players", require("./routes/players"));
 
 //-------------------------Organisateur------------------------------------
 
-// Api pour lister tous les tournois que le compte en question a crée
-app.get("/get_tournament/:admin", (req, res) => {
-  connection.query(
-    "select * from tournaments where admin = ?",
-    [req.params.admin],
-    (err, results) => {
-      if (results.length > 0) {
-        res.json({ res: 1, results });
-      } else {
-        res.json({ res: 0 });
-      }
-    }
-  );
-});
+// // Api pour lister tous les tournois que le compte en question a crée
+// app.get("/get_tournament/:admin", (req, res) => {
+//   connection.query(
+//     "select * from tournaments where admin = ?",
+//     [req.params.admin],
+//     (err, results) => {
+//       if (results.length > 0) {
+//         res.json({ res: 1, results });
+//       } else {
+//         res.json({ res: 0 });
+//       }
+//     }
+//   );
+// });
 
-// Api pour crée un tournoi quand on est connecté en tant qu'utilisateur
-app.post("/create_tournament/:admin", (req, res) => {
-  const { name } = req.body;
-  connection.query(
-    "insert into tournaments (name, admin) values(?, ?)",
-    [name, req.params.admin],
-    (err, results) => {
-      res.send(`Votre tournoi ${name} a bien été crée`);
-    }
-  );
-});
+// // Api pour crée un tournoi quand on est connecté en tant qu'utilisateur
+// app.post("/create_tournament/:admin", (req, res) => {
+//   const { name } = req.body;
+//   connection.query(
+//     "insert into tournaments (name, admin) values(?, ?)",
+//     [name, req.params.admin],
+//     (err, results) => {
+//       res.send(`Votre tournoi ${name} a bien été crée`);
+//     }
+//   );
+// });
 
-// Supprimer un tournoi
-app.delete("/delete_tournament/:id", (req, res) => {
-  connection.query(
-    "delete from tournaments where id = ?",
-    [req.params.id],
-    (err, results) => {
-      res.send(`Le tournoi numéro ${req.params.id} à bien été supprimé`);
-    }
-  );
-});
+// // Supprimer un tournoi
+// app.delete("/delete_tournament/:id", (req, res) => {
+//   connection.query(
+//     "delete from tournaments where id = ?",
+//     [req.params.id],
+//     (err, results) => {
+//       res.send(`Le tournoi numéro ${req.params.id} à bien été supprimé`);
+//     }
+//   );
+// });
 
 //----------------Players----------------------------------------
 

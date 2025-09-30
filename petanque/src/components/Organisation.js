@@ -11,7 +11,7 @@ const Organisation = ({ player }) => {
   const recharge = () => {
     console.log(player);
     axios
-      .get("http://localhost:5000/get_tournament/" + player.id)
+      .get("http://localhost:5000/organisateurs/charge/" + player.id)
       .then((res) => setTournaments(res.data));
   };
   useEffect(() => {
@@ -22,15 +22,18 @@ const Organisation = ({ player }) => {
   const createTournament = async (e) => {
     e.preventDefault();
     setAddTournament(false);
-    await axios.post("http://localhost:5000/create_tournament/" + player.id, {
-      name: e.target.elements.name.value,
-    });
+    await axios.post(
+      "http://localhost:5000/organisateurs/create/" + player.id,
+      {
+        name: e.target.elements.name.value,
+      }
+    );
     recharge();
   };
 
   // Fonction qui supprime un tournoi
   const deleteTournament = async (value) => {
-    await axios.delete("http://localhost:5000/delete_tournament/" + value);
+    await axios.delete("http://localhost:5000/organisateurs/delete/" + value);
     recharge();
   };
   return (
