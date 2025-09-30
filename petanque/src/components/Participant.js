@@ -17,7 +17,7 @@ const Participant = ({ player }) => {
     e.preventDefault();
     const pseudo = e.target.elements.pseudo.value;
     axios
-      .post("http://localhost:5000/add_player_to_tournament/", {
+      .post("http://localhost:5000/players/add_player/", {
         idUser: player.id,
         idTournament: dataTournament.id,
         pseudo: pseudo,
@@ -36,7 +36,7 @@ const Participant = ({ player }) => {
     const idSearch = e.target.elements.id.value;
     console.log(idSearch);
     axios
-      .get("http://localhost:5000/search_tournament/" + idSearch)
+      .get("http://localhost:5000/players/search/" + idSearch)
       .then((res) => {
         console.log(res.data);
         setDataTournament(res.data);
@@ -46,7 +46,7 @@ const Participant = ({ player }) => {
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
   const handleDelete = () => {
     axios
-      .delete("http://localhost:5000/delete_inscription/" + player.id)
+      .delete("http://localhost:5000/players/delete_player/" + player.id)
       .then((res) => {
         setResponseDeinscription(res.data.res);
         setTimeout(() => {
@@ -61,7 +61,7 @@ const Participant = ({ player }) => {
     setResponseInscription("");
     setResponseDeinscription("");
     axios
-      .get("http://localhost:5000/charge_player/" + player.id)
+      .get("http://localhost:5000/players/charge/" + player.id)
       .then((res) => {
         console.log(res.data);
         setDataPlayer(res.data);

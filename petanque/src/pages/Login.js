@@ -14,7 +14,7 @@ const Login = () => {
       password: e.target.elements.password.value,
     };
     axios
-      .post("http://localhost:5000/players/inscription", user)
+      .post("http://localhost:5000/log/inscription", user)
       .then((res) => {
         setRes(res.data);
         if (res.data.res == 1) {
@@ -30,7 +30,7 @@ const Login = () => {
       pseudo: e.target.elements.pseudo.value,
       password: e.target.elements.password.value,
     };
-    axios.post("http://localhost:5000/players/connexion", user).then((res) => {
+    axios.post("http://localhost:5000/log/connexion", user).then((res) => {
       setRes(res.data);
       if (res.data.res == 1) {
         setTimeout(() => {
