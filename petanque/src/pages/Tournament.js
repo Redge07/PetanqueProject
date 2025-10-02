@@ -27,7 +27,7 @@ const Tournament = () => {
   const recharge = () => {
     setResponseAPI({ res: 0 });
     axios
-      .get("http://localhost:5000/recup_players_tournament/" + idTournament)
+      .get("http://localhost:5000/tournaments/charge/" + idTournament)
       .then((res) => {
         console.log(res.data);
         setListPlayers(res.data);
@@ -37,23 +37,27 @@ const Tournament = () => {
 
   // Fonction pour supprimer un joueur du tournoi
   const handleDelete = (value) => {
-    axios.delete("http://localhost:5000/delete_player/" + value).then((res) => {
-      setResponseAPI(res.data);
-      setTimeout(() => {
-        recharge();
-      }, 1000);
-    });
+    axios
+      .delete("http://localhost:5000/tournaments/delete_players/" + value)
+      .then((res) => {
+        setResponseAPI(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
   };
 
   // Fonction pour accepté un joueur
   const handleValid = (value) => {
-    axios.put("http://localhost:5000/valid_player/" + value).then((res) => {
-      console.log(res.data);
-      setResponseAPI(res.data);
-      setTimeout(() => {
-        recharge();
-      }, 1000);
-    });
+    axios
+      .put("http://localhost:5000/tournaments/valid/" + value)
+      .then((res) => {
+        console.log(res.data);
+        setResponseAPI(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
   };
 
   // Fonction pour connaitre le nombre de joueurs en attente et confirmé
@@ -74,7 +78,7 @@ const Tournament = () => {
   // Fonction quand je décide de démarrer le tournoi
   const handleGoTournament = () => {
     axios
-      .put("http://localhost:5000/go_tournament/" + idTournament)
+      .put("http://localhost:5000/gotournaments/go_tournament/" + idTournament)
       .then((res) => {
         setResponseGoTournament(res.data);
         setTimeout(() => {
@@ -97,7 +101,7 @@ const Tournament = () => {
         idTournament
     );
     axios
-      .put("http://localhost:5000/win_player/" + idTournament, {
+      .put("http://localhost:5000/gotournaments/win_player/" + idTournament, {
         win: win,
         lose: lose,
         tour: tour,
