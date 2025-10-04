@@ -17,7 +17,7 @@ exports.charge = (req, res) => {
             res.json({ res: 0, results: results });
           }
         );
-        // Sinon le tournoi n'a pas commencé
+        // Sinon le tournoi a commencé
       } else if (results[0].start == 1) {
         // Je récupère tous les joueurs qui sont inscrits
         connection.query(
@@ -27,11 +27,11 @@ exports.charge = (req, res) => {
           (err, results) => {
             // On déclare le tableau qui contiendra les matches au propres
             let matches = [];
-            // On fait un tour de tous les joueurs (forcément il y a des doublons car 2 jouers se rencontrent forcément)
+            // On fait un tour de tous les joueurs (forcément il y a des doublons car 2 joueurs se rencontrent forcément)
             for (let i = 0; i < results.length; i++) {
               const key = [
-                Math.min(results[i].id_user, results[i].id_versus),
-                Math.max(results[i].id_user, results[i].id_versus),
+                Math.min(results[i].numero, results[i].id_versus),
+                Math.max(results[i].numero, results[i].id_versus),
               ].join("-");
 
               let match = matches.find((m) => m.key == key);
@@ -46,12 +46,12 @@ exports.charge = (req, res) => {
               }
               if (!match.joueurA) {
                 match.joueurA = {
-                  id: results[i].id_user,
+                  id: results[i].numero,
                   pseudo: results[i].pseudo,
                 };
               } else {
                 match.joueurB = {
-                  id: results[i].id_user,
+                  id: results[i].numero,
                   pseudo: results[i].pseudo,
                 };
               }

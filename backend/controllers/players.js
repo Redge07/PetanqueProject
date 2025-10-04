@@ -42,8 +42,8 @@ exports.charge = (req, res) => {
                 } else {
                   // On va vérifié l'adversaire du joueur
                   connection.query(
-                    "select * from players where id_user = ?",
-                    [player.id_versus],
+                    "select * from players where numero = ? and id_tournament = ?",
+                    [player.id_versus, player.id_tournament],
                     (err, results) => {
                       // Si ca retourne rien alors il n'a pas encore d'adversaire attribué
                       if (results.length == 0) {
@@ -61,7 +61,7 @@ exports.charge = (req, res) => {
                           res: 4,
                           pseudo: player.pseudo,
                           tournamentName: tournament.name,
-                          idVersus: playerVersus.id_user,
+                          idVersus: playerVersus.numero,
                           pseudoVersus: playerVersus.pseudo,
                           class: player.class,
                         });
