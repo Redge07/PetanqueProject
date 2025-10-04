@@ -1,0 +1,4 @@
+ajouter un joueur tout seul
+quand un joueur a gagné, il peut se désinscrire lui meme de ce tournoi
+
+Quand c'est fait ---> grosse réflexion pour le long terme et peut encore modifier du code
