@@ -50,7 +50,25 @@ const Tournament = () => {
   // Fonction pour accepté un joueur
   const handleValid = (value) => {
     axios
-      .put("http://localhost:5000/tournaments/valid/" + value)
+      .put("http://localhost:5000/tournaments/valid/" + idTournament, {
+        id_user: value,
+      })
+      .then((res) => {
+        console.log(res.data);
+        setResponseAPI(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
+  };
+
+  // Fonction pour ajouter un joueur manuellement
+  const handleAddPlayer = (e) => {
+    e.preventDefault();
+    axios
+      .post("http://localhost:5000/tournaments/add_player/" + idTournament, {
+        pseudo: e.target.elements.pseudo.value,
+      })
       .then((res) => {
         console.log(res.data);
         setResponseAPI(res.data);
@@ -158,7 +176,7 @@ const Tournament = () => {
             <h3>Joueurs accepté</h3>
             <p>
               Il y a {countPlayer(1)}{" "}
-              {countPlayer(1) > 1 ? "joueurs" : "joueur"} en attente
+              {countPlayer(1) > 1 ? "joueurs" : "joueur"} accepté
             </p>
             <ul>
               {listPlayers.results
@@ -176,6 +194,16 @@ const Tournament = () => {
                 ))}
             </ul>
           </div>
+          <h3>Ajouté un joueur manuellement</h3>
+          {/* Form pour ajouter un joueur manuellement */}
+          <form onSubmit={handleAddPlayer}>
+            <input
+              type="text"
+              name="pseudo"
+              placeholder="Entrez un pseudo..."
+            />
+            <input type="submit" value="Inscrire le joueur" />
+          </form>
           <button onClick={handleGoTournament}>Lancer le tournoi</button>
           <p>{responseGoTournament}</p>
         </div>

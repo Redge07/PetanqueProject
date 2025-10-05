@@ -89,17 +89,43 @@ exports.delete_players = (req, res) => {
   );
 };
 
+// API pour accepter la demande d'un joueur
 exports.valid = (req, res) => {
   connection.query(
-    "update players set valider = 1 where id_user = ?",
+    "select * from players where id_tournament = ? and valider = 1",
     [req.params.id],
     (err, results) => {
-      // Renvoyer un message pour dire que ce joueur a bien été accepté
-      res.json({
-        res: 1,
-        id: req.params.id,
-        msg: "Le joueur a été ajouté au tournoi",
-      });
+      connection.query(
+        "update players set valider = 1, numero = ? where id_user = ?",
+        [results.length + 1, req.body.id_user],
+        (err, results) => {
+          // Renvoyer un message pour dire que ce joueur a bien été accepté
+          res.json({
+            res: 1,
+            id: req.params.id,
+            msg: "Le joueur a été ajouté au tournoi",
+          });
+        }
+      );
+    }
+  );
+};
+
+//API pour ajouter un joueur manuellement
+exports.add_player = (req, res) => {
+  const { pseudo } = req.body;
+
+  connection.query(
+    "select * from players where id_tournament = ? and valider = 1",
+    [req.params.id],
+    (err, results) => {
+      connection.query(
+        "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider, numero) values(?, 0, 0, ?, -1, 1, ?)",
+        [pseudo, req.params.id, results.length + 1],
+        (err, results) => {
+          res.send("Le joueur a été ajouté");
+        }
+      );
     }
   );
 };

@@ -35,7 +35,7 @@ const Organisation = ({ player }) => {
   const deleteTournament = async (value) => {
     await axios.delete("http://localhost:5000/organisateurs/delete/" + value);
     recharge();
-  };
+  }; 
   return (
     <div>
       <h1>Organisateur</h1>
