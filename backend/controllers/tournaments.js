@@ -46,12 +46,12 @@ exports.charge = (req, res) => {
               }
               if (!match.joueurA) {
                 match.joueurA = {
-                  id: results[i].numero,
+                  numero: results[i].numero,
                   pseudo: results[i].pseudo,
                 };
               } else {
                 match.joueurB = {
-                  id: results[i].numero,
+                  numero: results[i].numero,
                   pseudo: results[i].pseudo,
                 };
               }
@@ -73,8 +73,8 @@ exports.charge = (req, res) => {
   );
 };
 
-// API pour supprimer un joueur
-exports.delete_players = (req, res) => {
+// API pour supprimer un joueur en attente
+exports.delete_players_attente = (req, res) => {
   connection.query(
     "delete from players where id_user = ?",
     [req.params.id],
@@ -83,6 +83,22 @@ exports.delete_players = (req, res) => {
       res.json({
         res: 1,
         id: req.params.id,
+        msg: "Le joueur a été supprimé du tournoi",
+      });
+    }
+  );
+};
+
+// API pour supprimer un joueur validé
+exports.delete_players_valid = (req, res) => {
+  connection.query(
+    "delete from players where numero = ? and id_tournament = ?",
+    [req.body.numero, req.params.id],
+    (err, results) => {
+      // Renvoyer un message pour dire que ce joueur a bien été supprimer
+      res.json({
+        res: 1,
+        numero: req.body.numero,
         msg: "Le joueur a été supprimé du tournoi",
       });
     }

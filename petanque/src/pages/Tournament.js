@@ -35,10 +35,28 @@ const Tournament = () => {
       });
   };
 
-  // Fonction pour supprimer un joueur du tournoi
-  const handleDelete = (value) => {
+  // Fonction pour supprimer un joueur du tournoi en attente
+  const handleDeleteAttente = (value) => {
     axios
-      .delete("http://localhost:5000/tournaments/delete_players/" + value)
+      .delete(
+        "http://localhost:5000/tournaments/delete_players_attente/" + value
+      )
+      .then((res) => {
+        setResponseAPI(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
+  };
+
+  // Fonction pour supprimer un joueur du tournoi en valid
+  const handleDeleteValid = (value) => {
+    axios
+      .delete(
+        "http://localhost:5000/tournaments/delete_players_valid/" +
+          idTournament,
+        { data: { numero: value } }
+      )
       .then((res) => {
         setResponseAPI(res.data);
         setTimeout(() => {
@@ -156,7 +174,7 @@ const Tournament = () => {
                     {/* Pseudo du joueur */}
                     <span>{j.pseudo}</span>
                     {/* Bouton pour supprimer ce joueur */}
-                    <button onClick={() => handleDelete(j.id_user)}>
+                    <button onClick={() => handleDeleteAttente(j.id_user)}>
                       Supprimer
                     </button>
                     {/* Bouton pour accepté ce joueur */}
@@ -182,12 +200,13 @@ const Tournament = () => {
               {listPlayers.results
                 .filter((j) => j.valider == 1)
                 .map((j) => (
-                  <li key={j.id_user}>
+                  <li key={j.numero}>
                     <span>{j.pseudo}</span>
-                    <button onClick={() => handleDelete(j.id_user)}>
+                    <span> numéro : {j.numero}</span>
+                    <button onClick={() => handleDeleteValid(j.numero)}>
                       Supprimer
                     </button>
-                    {responseAPI.res == 1 && responseAPI.id == j.id_user && (
+                    {responseAPI.res == 1 && responseAPI.numero == j.numero && (
                       <p>{responseAPI.msg}</p>
                     )}
                   </li>
@@ -219,9 +238,10 @@ const Tournament = () => {
               {listPlayers.results.map((p, i) => (
                 <li key={p.id_user}>
                   <p>
-                    Match {i + 1} : {p.joueurA.pseudo} vs{" "}
+                    Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
+                    {p.joueurA.numero} vs{" "}
                     {p.joueurB
-                      ? p.joueurB.pseudo
+                      ? p.joueurB.pseudo + ", numéro : " + p.joueurB.numero
                       : "Pas encore d'adversaire attribué"}{" "}
                     en 1/{p.class}
                   </p>
@@ -229,14 +249,22 @@ const Tournament = () => {
                     <div>
                       <button
                         onClick={() =>
-                          handleWinner(p.joueurA.id, p.joueurB.id, p.class)
+                          handleWinner(
+                            p.joueurA.numero,
+                            p.joueurB.numero,
+                            p.class
+                          )
                         }
                       >
                         Victoire de {p.joueurA.pseudo}
                       </button>
                       <button
                         onClick={() =>
-                          handleWinner(p.joueurB.id, p.joueurA.id, p.class)
+                          handleWinner(
+                            p.joueurB.numero,
+                            p.joueurA.numero,
+                            p.class
+                          )
                         }
                       >
                         Victoire de {p.joueurB.pseudo}

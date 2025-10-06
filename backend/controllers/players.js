@@ -36,6 +36,7 @@ exports.charge = (req, res) => {
                   res.json({
                     res: 2,
                     pseudo: player.pseudo,
+                    numero: player.numero,
                     tournamentName: tournament.name,
                   });
                   // Sinon ca veut dire que le tournoi a commencé

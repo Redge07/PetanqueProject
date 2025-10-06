@@ -1,5 +1,3 @@
-supprimé un joueur d'un tournoi correctement, en fonction de si il est en attente ou pas (user ou manuellement)
-visualiser les numéros des joueurs dans tournaments et dans participant
 quand un joueur a gagné, il peut se désinscrire lui meme de ce tournoi
 
 Quand c'est fait ---> grosse réflexion pour le long terme et peut encore modifier du code

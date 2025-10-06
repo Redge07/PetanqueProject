@@ -130,7 +130,8 @@ const Participant = ({ player }) => {
       {dataPlayer.res == 2 && (
         <div>
           Votre demande pour participer au tournoi {dataPlayer.tournamentName} a
-          été accepté. Le tournoi va bientot commencer
+          été accepté. Vous etes le numéro {dataPlayer.numero}. Le tournoi va
+          bientot commencer
         </div>
       )}
       {/* On est en plein tournoi mais je n'ai pas encore d'adversaire attribué */}
