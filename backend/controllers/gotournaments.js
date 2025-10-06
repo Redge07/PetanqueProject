@@ -15,53 +15,65 @@ function getRandomElements(arr, n) {
 exports.go_tournament = (req, res) => {
   // Dans un premier temps je supprime les joueurs qui n'ont pas été accepté au tournoi
   connection.query(
-    "delete from players where id_tournament = ? and valider = 0",
+    "select * from players where id_tournament = ? and valider = 1",
     [req.params.id],
     (err, results) => {
-      // Je récupère tous les joueurs qui sont inscrit
-      connection.query(
-        "select * from players where id_tournament = ? and valider = 1",
-        [req.params.id],
-        (err, results) => {
-          // On va attribuer a chaque joueur sont futurs adversaire et a quelle tour du tournoi il va commencer
-          const listPlayers = results;
-          const nb_players = results.length;
-          const p2 = 2 ** Math.floor(Math.log2(nb_players));
-          const prelim = (nb_players - p2) * 2;
-          const tirage = getRandomElements(listPlayers, prelim);
-          // Les joueurs tirés aléatoirement qui vont disputer un match en plus
-          for (let i = 0; i < tirage.length; i++) {
-            connection.query(
-              "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
-              [
-                i % 2 == 0 ? tirage[i + 1].numero : tirage[i - 1].numero,
-                p2,
-                tirage[i].numero,
-                req.params.id,
-              ]
-            );
+      if (results.length > 1) {
+        const listPlayers = results;
+        // Je récupère tous les joueurs qui sont inscrit
+        connection.query(
+          "delete from players where id_tournament = ? and valider = 0",
+          [req.params.id],
+          (err, results) => {
+            // On va attribuer a chaque joueur sont futurs adversaire et a quelle tour du tournoi il va commencer
+
+            const nb_players = listPlayers.length;
+            const p2 = 2 ** Math.floor(Math.log2(nb_players));
+            const prelim = (nb_players - p2) * 2;
+            const tirage = getRandomElements(listPlayers, prelim);
+            // Les joueurs tirés aléatoirement qui vont disputer un match en plus
+            for (let i = 0; i < tirage.length; i++) {
+              connection.query(
+                "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
+                [
+                  i % 2 == 0 ? tirage[i + 1].numero : tirage[i - 1].numero,
+                  p2,
+                  tirage[i].numero,
+                  req.params.id,
+                ]
+              );
+            }
+            // Les joueurs qui vont attendre que les autres finissent leur premeir match
+            for (let i = 0; i < listPlayers.length; i++) {
+              if (i == listPlayers.length - 1 && listPlayers.length % 2 != 0) {
+                connection.query(
+                  "update players set class = ? where numero = ? and id_tournament = ?",
+                  [p2 / 2, listPlayers[i].numero, req.params.id]
+                );
+              } else {
+                connection.query(
+                  "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
+                  [
+                    i % 2 == 0
+                      ? listPlayers[i + 1].numero
+                      : listPlayers[i - 1].numero,
+                    p2 / 2,
+                    listPlayers[i].numero,
+                    req.params.id,
+                  ]
+                );
+              }
+            }
+            // Et forcément j'actualise le fait que le tournoi a commencé
+            connection.query("update tournaments set start = 1 where id = ? ", [
+              req.params.id,
+            ]);
+            res.status(200).send("Tournoi lancé");
           }
-          // Les joueurs qui vont attendre que les autres finissent leur premeir match
-          for (let i = 0; i < listPlayers.length; i++) {
-            connection.query(
-              "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
-              [
-                i % 2 == 0
-                  ? listPlayers[i + 1].numero
-                  : listPlayers[i - 1].numero,
-                p2 / 2,
-                listPlayers[i].numero,
-                req.params.id,
-              ]
-            );
-          }
-          // Et forcément j'actualise le fait que le tournoi a commencé
-          connection.query("update tournaments set start = 1 where id = ? ", [
-            req.params.id,
-          ]);
-          res.status(200).send("Tournoi lancé");
-        }
-      );
+        );
+      } else {
+        res.status(200).send("Il faut au moins 2 joueurs");
+      }
     }
   );
 };
@@ -122,15 +134,21 @@ exports.win_player = (req, res) => {
       } else {
         // Donc on dit que le tournoi est terminé
         connection.query(
-          "update tournaments set start = 2 where id = ?",
-          [req.params.id],
+          "select * from players where numero = ? and id_tournament = ?",
+          [win, req.params.id],
           (err, results) => {
-            // Et on actualise le joueur en tant que vainqueur
             connection.query(
-              "update players set class = 0.5 where numero = ? and id_tournament = ?",
-              [win, req.params.id],
+              "update tournaments set start = 2, vainqueur = ? where id = ?",
+              [results[0].pseudo, req.params.id],
               (err, results) => {
-                res.send("Victoire validé");
+                // Et on actualise le joueur en tant que vainqueur
+                connection.query(
+                  "update players set class = 0.5 where numero = ? and id_tournament = ?",
+                  [win, req.params.id],
+                  (err, results) => {
+                    res.send("Victoire validé");
+                  }
+                );
               }
             );
           }

@@ -52,6 +52,7 @@ exports.charge = (req, res) => {
                           res: 3,
                           pseudo: player.pseudo,
                           tournamentName: tournament.name,
+                          numero: player.numero,
                           pseudoVersus: "Pas d'adversaire encore",
                           class: player.class,
                         });
@@ -61,6 +62,7 @@ exports.charge = (req, res) => {
                         res.json({
                           res: 4,
                           pseudo: player.pseudo,
+                          numero: player.numero,
                           tournamentName: tournament.name,
                           idVersus: playerVersus.numero,
                           pseudoVersus: playerVersus.pseudo,

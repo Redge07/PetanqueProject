@@ -62,10 +62,13 @@ exports.charge = (req, res) => {
         // Le tournoi est fini et il y a un vainqueur
       } else {
         connection.query(
-          "select * from players where id_tournament = ?",
+          "select * from tournaments where id = ?",
           [req.params.id],
           (err, results) => {
-            res.json({ res: 2, msg: "Le vainqueur est " + results[0].pseudo });
+            res.json({
+              res: 2,
+              msg: "Le vainqueur est " + results[0].vainqueur,
+            });
           }
         );
       }

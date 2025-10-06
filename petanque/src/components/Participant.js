@@ -139,7 +139,7 @@ const Participant = ({ player }) => {
         <div>
           <h3>
             Vous participez au tournoi {dataPlayer.tournamentName} et vous etes
-            en 1/{dataPlayer.class} de finale
+            en 1/{dataPlayer.class} de finale. Numero : {dataPlayer.numero}
           </h3>
           <p>Vous n'avez pas encore d'adversaire</p>
         </div>
@@ -149,7 +149,7 @@ const Participant = ({ player }) => {
         <div>
           <h3>
             Vous participez au tournoi {dataPlayer.tournamentName} et vous etes
-            en 1/{dataPlayer.class} de finale
+            en 1/{dataPlayer.class} de finale. Numero : {dataPlayer.numero}
           </h3>
           <p>
             Vous affronter {dataPlayer.pseudoVersus} qui est le numéro{" "}
@@ -161,6 +161,8 @@ const Participant = ({ player }) => {
       {dataPlayer.res == 5 && (
         <div>
           <h1>{dataPlayer.msg}</h1>
+          <button onClick={handleDelete}>Quitter le tournoi</button>
+          <p>{responseDeinscription}</p>
         </div>
       )}
     </div>
