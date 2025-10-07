@@ -114,6 +114,7 @@ exports.valid = (req, res) => {
     "select * from players where id_tournament = ? and valider = 1",
     [req.params.id],
     (err, results) => {
+      console.log(req.body.id_user);
       connection.query(
         "update players set valider = 1, numero = ? where id_user = ?",
         [results.length + 1, req.body.id_user],
