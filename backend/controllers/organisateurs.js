@@ -17,10 +17,10 @@ exports.charge = (req, res) => {
 
 // Api pour crée un tournoi quand on est connecté en tant qu'utilisateur
 exports.create = (req, res) => {
-  const { name } = req.body;
+  const { name, style } = req.body;
   connection.query(
-    "insert into tournaments (name, admin) values(?, ?)",
-    [name, req.params.admin],
+    "insert into tournaments (name, admin, style) values(?, ?, ?)",
+    [name, req.params.admin, style],
     (err, results) => {
       res.send(`Votre tournoi ${name} a bien été crée`);
     }

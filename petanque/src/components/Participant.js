@@ -93,7 +93,9 @@ const Participant = ({ player }) => {
           {/* On a trouvé le tournoi, on propose de s'inscrire en tapant un pseudo et de s'inscrire */}
           {dataTournament.res == 1 && (
             <div>
-              <p>{dataTournament.name} </p>
+              <p>
+                {dataTournament.name} {dataTournament.style}
+              </p>
               <form onSubmit={handleInscrire}>
                 <input
                   type="text"
@@ -119,7 +121,7 @@ const Participant = ({ player }) => {
         <div>
           <p>
             Vous etes en liste d'attente pour le tournoi{" "}
-            {dataPlayer.tournamentName}{" "}
+            {dataPlayer.tournamentName} qui est en {dataPlayer.style}
           </p>
           {/* On laisse le choix au joueur de se désinscrire avant d'etre accepté */}
           <button onClick={handleDelete}>Se retirer</button>
@@ -129,17 +131,18 @@ const Participant = ({ player }) => {
       {/* Notre demande de participation au tournoi a été accepter mais le tournoi n'a pas encore commencé */}
       {dataPlayer.res == 2 && (
         <div>
-          Votre demande pour participer au tournoi {dataPlayer.tournamentName} a
-          été accepté. Vous etes le numéro {dataPlayer.numero}. Le tournoi va
-          bientot commencer
+          Votre demande pour participer au tournoi {dataPlayer.tournamentName}{" "}
+          qui est en {dataPlayer.style} a été accepté. Vous etes le numéro{" "}
+          {dataPlayer.numero}. Le tournoi va bientot commencer
         </div>
       )}
       {/* On est en plein tournoi mais je n'ai pas encore d'adversaire attribué */}
       {dataPlayer.res == 3 && (
         <div>
           <h3>
-            Vous participez au tournoi {dataPlayer.tournamentName} et vous etes
-            en 1/{dataPlayer.class} de finale. Numero : {dataPlayer.numero}
+            Vous participez au tournoi {dataPlayer.tournamentName} qui est en{" "}
+            {dataPlayer.style} et vous etes en 1/{dataPlayer.class} de finale.
+            Numero : {dataPlayer.numero}
           </h3>
           <p>Vous n'avez pas encore d'adversaire</p>
         </div>
@@ -148,8 +151,9 @@ const Participant = ({ player }) => {
       {dataPlayer.res == 4 && (
         <div>
           <h3>
-            Vous participez au tournoi {dataPlayer.tournamentName} et vous etes
-            en 1/{dataPlayer.class} de finale. Numero : {dataPlayer.numero}
+            Vous participez au tournoi {dataPlayer.tournamentName} qui est en{" "}
+            {dataPlayer.style} et vous etes en 1/{dataPlayer.class} de finale.
+            Numero : {dataPlayer.numero}
           </h3>
           <p>
             Vous affronter {dataPlayer.pseudoVersus} qui est le numéro{" "}

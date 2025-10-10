@@ -28,6 +28,7 @@ exports.charge = (req, res) => {
                   res: 1,
                   pseudo: player.pseudo,
                   tournamentName: tournament.name,
+                  style: tournament.style,
                 });
                 // Sinon ca veut dire que sa demande a été accepté et donc il participe a un tournoi
               } else {
@@ -38,6 +39,7 @@ exports.charge = (req, res) => {
                     pseudo: player.pseudo,
                     numero: player.numero,
                     tournamentName: tournament.name,
+                    style: tournament.style,
                   });
                   // Sinon ca veut dire que le tournoi a commencé
                 } else {
@@ -52,6 +54,7 @@ exports.charge = (req, res) => {
                           res: 3,
                           pseudo: player.pseudo,
                           tournamentName: tournament.name,
+                          style: tournament.style,
                           numero: player.numero,
                           pseudoVersus: "Pas d'adversaire encore",
                           class: player.class,
@@ -64,6 +67,7 @@ exports.charge = (req, res) => {
                           pseudo: player.pseudo,
                           numero: player.numero,
                           tournamentName: tournament.name,
+                          style: tournament.style,
                           idVersus: playerVersus.numero,
                           pseudoVersus: playerVersus.pseudo,
                           class: player.class,
@@ -107,6 +111,7 @@ exports.search = (req, res) => {
             res: 1,
             id: tournament.id,
             name: tournament.name,
+            style: tournament.style,
           });
           // Sinon il a deja commencé
         } else {

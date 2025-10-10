@@ -26,6 +26,7 @@ const Organisation = ({ player }) => {
       "http://localhost:5000/organisateurs/create/" + player.id,
       {
         name: e.target.elements.name.value,
+        style: e.target.elements.style_tournament.value,
       }
     );
     recharge();
@@ -35,7 +36,7 @@ const Organisation = ({ player }) => {
   const deleteTournament = async (value) => {
     await axios.delete("http://localhost:5000/organisateurs/delete/" + value);
     recharge();
-  }; 
+  };
   return (
     <div>
       <h1>Organisateur</h1>
@@ -49,7 +50,9 @@ const Organisation = ({ player }) => {
           <ul>
             {tournaments.results.map((t) => (
               <li key={t.id}>
-                <p>{t.name}</p>
+                <p>
+                  {t.name} {t.style}
+                </p>
                 <NavLink to={"/Home/" + t.id}>Voir</NavLink>
                 {/* Bouton pour supprimer ce tournoi précis qui apparait avec le map */}
                 <button onClick={() => deleteTournament(t.id)}>
@@ -71,6 +74,10 @@ const Organisation = ({ player }) => {
             name="name"
             placeholder="Nom du tournoi"
           />
+          <select name="style_tournament">
+            <option value="arbre">Arbre</option>
+            <option value="cascade">Cascade</option>
+          </select>
           <input type="submit" value="Créer" />
           {/* Bouton pour annuler le fait de créer un tournoi et donc reppasser le state "addTournament" a false */}
           <button onClick={() => setAddTournament(false)}>Annuler</button>
