@@ -17,6 +17,7 @@ const Tournament = () => {
   const [responseGoTournament, setResponseGoTournament] = useState("");
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
+  const [infosCascade, setInfosCascade] = useState();
   useEffect(() => {
     if (!login) {
       navigate("/");
@@ -32,6 +33,13 @@ const Tournament = () => {
         console.log(res.data);
         setListPlayers(res.data);
         setResponseWin("");
+        const groupes = [
+          ...new Set(res.data.results.map((match) => match.groupe)),
+        ];
+        const num_match = [
+          ...new Set(res.data.results.map((match) => match.num_match)),
+        ];
+        setInfosCascade([groupes, num_match]);
       });
   };
 
@@ -124,7 +132,7 @@ const Tournament = () => {
   };
 
   // Fonction quand je déclare le vainqueur
-  const handleWinner = (win, lose, tour) => {
+  const handleWinner = (win, lose, tour, groupe, num_match) => {
     console.log(
       "Le gagnant est " +
         win +
@@ -141,6 +149,8 @@ const Tournament = () => {
         win: win,
         lose: lose,
         tour: tour,
+        groupe: groupe,
+        num_match: num_match,
       })
       .then((res) => {
         setResponseWin(res.data);
@@ -231,50 +241,117 @@ const Tournament = () => {
       {listPlayers.res == 1 && (
         <div>
           <h2>Go Tournoi</h2>
-          <div>
-            <p>{responseWin}</p>
-            <ul>
-              {/* Je liste toutes les confrontations */}
-              {listPlayers.results.map((p, i) => (
-                <li key={p.id_user}>
-                  <p>
-                    Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
-                    {p.joueurA.numero} vs{" "}
-                    {p.joueurB
-                      ? p.joueurB.pseudo + ", numéro : " + p.joueurB.numero
-                      : "Pas encore d'adversaire attribué"}{" "}
-                    en 1/{p.class}
-                  </p>
-                  {p.joueurB && (
+          {listPlayers.style == "arbre" && (
+            <div>
+              <h3>Tournoi en Arbre</h3>
+              <p>{responseWin}</p>
+              <ul>
+                {/* Je liste toutes les confrontations */}
+                {listPlayers.results.map((p, i) => (
+                  <li key={p.numero}>
+                    <p>
+                      Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
+                      {p.joueurA.numero} vs{" "}
+                      {p.joueurB
+                        ? p.joueurB.pseudo + ", numéro : " + p.joueurB.numero
+                        : "Pas encore d'adversaire attribué"}{" "}
+                      en 1/{p.class}
+                    </p>
+                    {p.joueurB && (
+                      <div>
+                        <button
+                          onClick={() =>
+                            handleWinner(
+                              p.joueurA.numero,
+                              p.joueurB.numero,
+                              p.class,
+                              p.groupe,
+                              p.num_match
+                            )
+                          }
+                        >
+                          Victoire de {p.joueurA.pseudo}
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleWinner(
+                              p.joueurB.numero,
+                              p.joueurA.numero,
+                              p.class,
+                              p.groupe,
+                              p.num_match
+                            )
+                          }
+                        >
+                          Victoire de {p.joueurB.pseudo}
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {listPlayers.style == "cascade" && (
+            <div>
+              <h3>Tournoi en Cascade</h3>
+              {infosCascade[0].map((g) => (
+                <div>
+                  <h4>Groupe {g}</h4>
+                  {infosCascade[1].map((n) => (
                     <div>
-                      <button
-                        onClick={() =>
-                          handleWinner(
-                            p.joueurA.numero,
-                            p.joueurB.numero,
-                            p.class
-                          )
-                        }
-                      >
-                        Victoire de {p.joueurA.pseudo}
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleWinner(
-                            p.joueurB.numero,
-                            p.joueurA.numero,
-                            p.class
-                          )
-                        }
-                      >
-                        Victoire de {p.joueurB.pseudo}
-                      </button>
+                      <h4>Match numéro {n}</h4>
+                      {listPlayers.results
+                        .filter((m) => m.groupe == g && m.num_match == n)
+                        .map((p, i) => (
+                          <li key={p.numero}>
+                            <p>
+                              Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
+                              {p.joueurA.numero} vs{" "}
+                              {p.joueurB
+                                ? p.joueurB.pseudo +
+                                  ", numéro : " +
+                                  p.joueurB.numero
+                                : "Pas encore d'adversaire attribué"}
+                            </p>
+                            {p.joueurB && (
+                              <div>
+                                <button
+                                  onClick={() =>
+                                    handleWinner(
+                                      p.joueurA.numero,
+                                      p.joueurB.numero,
+                                      p.class,
+                                      p.groupe,
+                                      p.num_match
+                                    )
+                                  }
+                                >
+                                  Victoire de {p.joueurA.pseudo}
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleWinner(
+                                      p.joueurB.numero,
+                                      p.joueurA.numero,
+                                      p.class,
+                                      p.groupe,
+                                      p.num_match
+                                    )
+                                  }
+                                >
+                                  Victoire de {p.joueurB.pseudo}
+                                </button>
+                              </div>
+                            )}
+                          </li>
+                        ))}
                     </div>
-                  )}
-                </li>
+                  ))}
+                </div>
               ))}
-            </ul>
-          </div>
+            </div>
+          )}
         </div>
       )}
       {/* Le tournoi est fini est on affiche le vainqueur */}

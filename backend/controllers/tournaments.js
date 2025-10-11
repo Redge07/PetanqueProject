@@ -19,6 +19,8 @@ exports.charge = (req, res) => {
         );
         // Sinon le tournoi a commencé
       } else if (results[0].start == 1) {
+        const style = results[0].style;
+
         // Je récupère tous les joueurs qui sont inscrits
         connection.query(
           "select * from players where id_tournament = ?",
@@ -41,6 +43,8 @@ exports.charge = (req, res) => {
                   joueurA: null,
                   joueurB: null,
                   class: results[i].class,
+                  num_match: results[i].num_match,
+                  groupe: results[i].groupe,
                 };
                 matches.push(match);
               }
@@ -56,9 +60,10 @@ exports.charge = (req, res) => {
                 };
               }
             }
-            res.json({ res: 1, results: matches });
+            res.json({ res: 1, results: matches, style: style });
           }
         );
+
         // Le tournoi est fini et il y a un vainqueur
       } else {
         connection.query(
