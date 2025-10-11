@@ -1,1 +1,1 @@
-Quand c'est fait ---> grosse réflexion pour le long terme et peut encore modifier du code
+quand le 2eme match est fini, on peut partir en mode tournoi classique en arbre
