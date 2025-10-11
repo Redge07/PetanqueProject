@@ -131,8 +131,8 @@ const Tournament = () => {
       });
   };
 
-  // Fonction quand je déclare le vainqueur
-  const handleWinner = (win, lose, tour, groupe, num_match) => {
+  // Fonction quand je déclare le vainqueur dans un tournoi arbre
+  const handleWinnerArbre = (win, lose, tour) => {
     console.log(
       "Le gagnant est " +
         win +
@@ -145,13 +145,47 @@ const Tournament = () => {
         idTournament
     );
     axios
-      .put("http://localhost:5000/gotournaments/win_player/" + idTournament, {
-        win: win,
-        lose: lose,
-        tour: tour,
-        groupe: groupe,
-        num_match: num_match,
-      })
+      .put(
+        "http://localhost:5000/gotournaments/win_player_arbre/" + idTournament,
+        {
+          win: win,
+          lose: lose,
+          tour: tour,
+        }
+      )
+      .then((res) => {
+        setResponseWin(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
+  };
+
+  // Fonction quand je déclare le vainqueur
+  const handleWinnerCascade = (win, lose, tour, groupe, num_match) => {
+    console.log(
+      "Le gagnant est " +
+        win +
+        " et le perdant est " +
+        lose +
+        " pour ce 1/" +
+        tour +
+        " finale " +
+        "pour le tournoi " +
+        idTournament
+    );
+    axios
+      .put(
+        "http://localhost:5000/gotournaments/win_player_cascade/" +
+          idTournament,
+        {
+          win: win,
+          lose: lose,
+          tour: tour,
+          groupe: groupe,
+          num_match: num_match,
+        }
+      )
       .then((res) => {
         setResponseWin(res.data);
         setTimeout(() => {
@@ -261,12 +295,10 @@ const Tournament = () => {
                       <div>
                         <button
                           onClick={() =>
-                            handleWinner(
+                            handleWinnerArbre(
                               p.joueurA.numero,
                               p.joueurB.numero,
-                              p.class,
-                              p.groupe,
-                              p.num_match
+                              p.class
                             )
                           }
                         >
@@ -274,12 +306,10 @@ const Tournament = () => {
                         </button>
                         <button
                           onClick={() =>
-                            handleWinner(
+                            handleWinnerArbre(
                               p.joueurB.numero,
                               p.joueurA.numero,
-                              p.class,
-                              p.groupe,
-                              p.num_match
+                              p.class
                             )
                           }
                         >
@@ -318,7 +348,7 @@ const Tournament = () => {
                               <div>
                                 <button
                                   onClick={() =>
-                                    handleWinner(
+                                    handleWinnerCascade(
                                       p.joueurA.numero,
                                       p.joueurB.numero,
                                       p.class,
@@ -331,7 +361,7 @@ const Tournament = () => {
                                 </button>
                                 <button
                                   onClick={() =>
-                                    handleWinner(
+                                    handleWinnerCascade(
                                       p.joueurB.numero,
                                       p.joueurA.numero,
                                       p.class,

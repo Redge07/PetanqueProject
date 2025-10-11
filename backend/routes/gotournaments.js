@@ -3,6 +3,7 @@ const router = express.Router();
 const gotournaments = require("../controllers/gotournaments");
 
 router.put("/go_tournament/:id", gotournaments.go_tournament);
-router.put("/win_player/:id", gotournaments.win_player);
+router.put("/win_player_arbre/:id", gotournaments.win_player_arbre);
+router.put("/win_player_cascade/:id", gotournaments.win_player_cascade);
 
 module.exports = router;

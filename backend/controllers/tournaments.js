@@ -72,6 +72,7 @@ exports.charge = (req, res) => {
           (err, results) => {
             res.json({
               res: 2,
+              results: [],
               msg: "Le vainqueur est " + results[0].vainqueur,
             });
           }
