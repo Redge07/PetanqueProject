@@ -1,1 +1,10 @@
 quand le 2eme match est fini, on peut partir en mode tournoi classique en arbre
+Découper l'affichage des matchs par leur catégories (par exemple huitieme entre eux, groupe B 1er match entre eux)
+
+Quand c'est impair et c'est la merde :
+- t'es premier et donc tu feras le barrage
+- t'es entre le 2eme et la moitié donc on on te place sans adversaire
+- t'es le premier de la deuxieme moitié donc tu fais le barrage
+- t'es dans le reste donc on t'attribut un adversaire
+
+- t'as gagné le barrage donc tu complètes le dernier match

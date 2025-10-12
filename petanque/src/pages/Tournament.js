@@ -36,10 +36,10 @@ const Tournament = () => {
         const groupes = [
           ...new Set(res.data.results.map((match) => match.groupe)),
         ];
-        const num_match = [
-          ...new Set(res.data.results.map((match) => match.num_match)),
+        const round = [
+          ...new Set(res.data.results.map((match) => match.round)),
         ];
-        setInfosCascade([groupes, num_match]);
+        setInfosCascade([groupes, round]);
       });
   };
 
@@ -162,7 +162,7 @@ const Tournament = () => {
   };
 
   // Fonction quand je déclare le vainqueur
-  const handleWinnerCascade = (win, lose, tour, groupe, num_match) => {
+  const handleWinnerCascade = (win, lose, tour, groupe, round) => {
     console.log(
       "Le gagnant est " +
         win +
@@ -183,7 +183,7 @@ const Tournament = () => {
           lose: lose,
           tour: tour,
           groupe: groupe,
-          num_match: num_match,
+          round: round,
         }
       )
       .then((res) => {
@@ -332,7 +332,7 @@ const Tournament = () => {
                     <div>
                       <h4>Match numéro {n}</h4>
                       {listPlayers.results
-                        .filter((m) => m.groupe == g && m.num_match == n)
+                        .filter((m) => m.groupe == g && m.round == n)
                         .map((p, i) => (
                           <li key={p.numero}>
                             <p>
@@ -353,7 +353,7 @@ const Tournament = () => {
                                       p.joueurB.numero,
                                       p.class,
                                       p.groupe,
-                                      p.num_match
+                                      p.round
                                     )
                                   }
                                 >
@@ -366,7 +366,7 @@ const Tournament = () => {
                                       p.joueurA.numero,
                                       p.class,
                                       p.groupe,
-                                      p.num_match
+                                      p.round
                                     )
                                   }
                                 >

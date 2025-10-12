@@ -43,7 +43,7 @@ exports.charge = (req, res) => {
                   joueurA: null,
                   joueurB: null,
                   class: results[i].class,
-                  num_match: results[i].num_match,
+                  round: results[i].round,
                   groupe: results[i].groupe,
                 };
                 matches.push(match);

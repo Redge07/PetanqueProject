@@ -40,73 +40,79 @@ exports.go_tournament = (req, res) => {
               "delete from players where id_tournament = ? and valider = 0",
               [req.params.id],
               (err, results) => {
-                if (style == "arbre") {
-                  // On va attribuer a chaque joueur sont futurs adversaire et a quelle tour du tournoi il va commencer
-
-                  const nb_players = listPlayers.length;
-                  const p2 = 2 ** Math.floor(Math.log2(nb_players));
-                  const prelim = (nb_players - p2) * 2;
-                  const tirage = getRandomElements(listPlayers, prelim);
-                  // Les joueurs tirés aléatoirement qui vont disputer un match en plus
-                  for (let i = 0; i < tirage.length; i++) {
-                    connection.query(
-                      "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
-                      [
-                        i % 2 == 0
-                          ? tirage[i + 1].numero
-                          : tirage[i - 1].numero,
-                        p2,
-                        tirage[i].numero,
-                        req.params.id,
-                      ]
-                    );
-                  }
-                  // Les joueurs qui vont attendre que les autres finissent leur premeir match
-                  for (let i = 0; i < listPlayers.length; i++) {
-                    if (
-                      i == listPlayers.length - 1 &&
-                      listPlayers.length % 2 != 0
-                    ) {
-                      connection.query(
-                        "update players set class = ? where numero = ? and id_tournament = ?",
-                        [p2 / 2, listPlayers[i].numero, req.params.id]
-                      );
-                    } else {
-                      connection.query(
-                        "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
-                        [
-                          i % 2 == 0
-                            ? listPlayers[i + 1].numero
-                            : listPlayers[i - 1].numero,
-                          p2 / 2,
-                          listPlayers[i].numero,
-                          req.params.id,
-                        ]
-                      );
-                    }
-                  }
-                } else {
-                  const listPlayersM = shuffleArray(listPlayers);
-                  for (let i = 0; i < listPlayersM.length; i++) {
-                    connection.query(
-                      "update players set id_versus = ?, class = 0, num_match = 1, groupe = ? where numero = ? and id_tournament = ?",
-                      [
-                        i % 2 == 0
-                          ? listPlayersM[i + 1].numero
-                          : listPlayersM[i - 1].numero,
-                        "A",
-                        listPlayersM[i].numero,
-                        req.params.id,
-                      ]
-                    );
-                  }
-                }
-                // Et forcément j'actualise le fait que le tournoi a commencé
                 connection.query(
-                  "update tournaments set start = 1 where id = ? ",
-                  [req.params.id]
+                  "update tournaments set nb_joueurs = ? where id = ?",
+                  [listPlayers.length, req.params.id],
+                  () => {
+                    if (style == "arbre") {
+                      // On va attribuer a chaque joueur sont futurs adversaire et a quelle tour du tournoi il va commencer
+
+                      const nb_players = listPlayers.length;
+                      const p2 = 2 ** Math.floor(Math.log2(nb_players));
+                      const prelim = (nb_players - p2) * 2;
+                      const tirage = getRandomElements(listPlayers, prelim);
+                      // Les joueurs tirés aléatoirement qui vont disputer un match en plus
+                      for (let i = 0; i < tirage.length; i++) {
+                        connection.query(
+                          "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
+                          [
+                            i % 2 == 0
+                              ? tirage[i + 1].numero
+                              : tirage[i - 1].numero,
+                            p2,
+                            tirage[i].numero,
+                            req.params.id,
+                          ]
+                        );
+                      }
+                      // Les joueurs qui vont attendre que les autres finissent leur premeir match
+                      for (let i = 0; i < listPlayers.length; i++) {
+                        if (
+                          i == listPlayers.length - 1 &&
+                          listPlayers.length % 2 != 0
+                        ) {
+                          connection.query(
+                            "update players set class = ? where numero = ? and id_tournament = ?",
+                            [p2 / 2, listPlayers[i].numero, req.params.id]
+                          );
+                        } else {
+                          connection.query(
+                            "update players set id_versus = ?, class = ? where numero = ? and id_tournament = ?",
+                            [
+                              i % 2 == 0
+                                ? listPlayers[i + 1].numero
+                                : listPlayers[i - 1].numero,
+                              p2 / 2,
+                              listPlayers[i].numero,
+                              req.params.id,
+                            ]
+                          );
+                        }
+                      }
+                    } else {
+                      const listPlayersM = shuffleArray(listPlayers);
+                      for (let i = 0; i < listPlayersM.length; i++) {
+                        connection.query(
+                          "update players set id_versus = ?, class = 0, round = 1, groupe = ? where numero = ? and id_tournament = ?",
+                          [
+                            i % 2 == 0
+                              ? listPlayersM[i + 1].numero
+                              : listPlayersM[i - 1].numero,
+                            "A",
+                            listPlayersM[i].numero,
+                            req.params.id,
+                          ]
+                        );
+                      }
+                    }
+                    // Et forcément j'actualise le fait que le tournoi a commencé
+                    connection.query(
+                      "update tournaments set start = 1 where id = ? ",
+                      [req.params.id]
+                    );
+                    res.status(200).send("Tournoi lancé");
+                  }
                 );
-                res.status(200).send("Tournoi lancé");
               }
             );
           }
@@ -204,86 +210,107 @@ exports.win_player_arbre = (req, res) => {
   );
 };
 
-// API qui gère la victoire d'un joueur et donc on doit actualiser les données des joueurs pour un tournoi Cascade
+// // API qui gère la victoire d'un joueur et donc on doit actualiser les données des joueurs pour un tournoi Cascade
+// exports.win_player_cascade = (req, res) => {
+//   // On récupère l'id du vainqueur, l'id du perdant et à quelle tour il est actuellement dans le tournoi
+//   const { win, lose, tour, round, groupe } = req.body;
+//   if (round < 3) {
+//     connection.query(
+//       "select * from players where id_tournament = ?",
+//       [req.params.id],
+//       (err, results) => {
+//         const player_waiting = results.find(
+//           (p) =>
+//             p.id_versus == 0 &&
+//             p.id_tournament == req.params.id &&
+//             p.round == round + 1 &&
+//             p.groupe == groupe
+//         );
+//         if (!player_waiting) {
+//           connection.query(
+//             "update players set id_versus = 0, round = ? where numero = ? and id_tournament = ?",
+//             [round + 1, win, req.params.id],
+//             () => handleLooser()
+//           );
+//         } else {
+//           connection.query(
+//             "update players set id_versus = ?, round = ? where numero = ? and id_tournament = ?",
+//             [player_waiting.numero, round + 1, win, req.params.id],
+//             (err, results) => {
+//               connection.query(
+//                 "update players set id_versus = ? where numero = ? and id_tournament = ?",
+//                 [win, player_waiting.numero, req.params.id],
+//                 () => handleLooser()
+//               );
+//             }
+//           );
+//         }
+//         const handleLooser = () => {
+//           let new_groupe;
+//           if (groupe == "A") {
+//             if (round == 1) {
+//               new_groupe = "B";
+//             } else {
+//               new_groupe = "B2";
+//             }
+//           } else {
+//             new_groupe = "C";
+//           }
+//           const player_waiting2 = results.find(
+//             (p) =>
+//               p.id_versus == 0 &&
+//               p.id_tournament == req.params.id &&
+//               p.round == round + 1 &&
+//               p.groupe == new_groupe
+//           );
+//           if (!player_waiting2) {
+//             connection.query(
+//               "update players set id_versus = 0, round = ?, groupe = ? where numero = ? and id_tournament = ?",
+//               [round + 1, new_groupe, lose, req.params.id],
+//               () => res.send("Victoire validé")
+//             );
+//           } else {
+//             connection.query(
+//               "update players set id_versus = ?, round = ?, groupe = ? where numero = ? and id_tournament = ?",
+//               [
+//                 player_waiting2.numero,
+//                 round + 1,
+//                 new_groupe,
+//                 lose,
+//                 req.params.id,
+//               ],
+//               (err, results) => {
+//                 connection.query(
+//                   "update players set id_versus = ? where numero = ? and id_tournament = ?",
+//                   [lose, player_waiting2.numero, req.params.id],
+//                   () => res.send("Victoire validé")
+//                 );
+//               }
+//             );
+//           }
+//         };
+//       }
+//     );
+//   }
+// };
+
 exports.win_player_cascade = (req, res) => {
-  // On récupère l'id du vainqueur, l'id du perdant et à quelle tour il est actuellement dans le tournoi
-  const { win, lose, tour, num_match, groupe } = req.body;
-  if (num_match < 3) {
-    connection.query(
-      "select * from players where id_tournament = ?",
-      [req.params.id],
-      (err, results) => {
-        const player_waiting = results.find(
-          (p) =>
-            p.id_versus == 0 &&
-            p.id_tournament == req.params.id &&
-            p.num_match == num_match + 1 &&
-            p.groupe == groupe
-        );
-        if (!player_waiting) {
-          connection.query(
-            "update players set id_versus = 0, num_match = ? where numero = ? and id_tournament = ?",
-            [num_match + 1, win, req.params.id],
-            () => handleLooser()
-          );
-        } else {
-          connection.query(
-            "update players set id_versus = ?, num_match = ? where numero = ? and id_tournament = ?",
-            [player_waiting.numero, num_match + 1, win, req.params.id],
-            (err, results) => {
-              connection.query(
-                "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                [win, player_waiting.numero, req.params.id],
-                () => handleLooser()
-              );
-            }
-          );
+  const { win, lose, tour, round, groupe } = req.body;
+  connection.query(
+    "select * from tournaments where id = ?",
+    [req.params.id],
+    (err, results) => {
+      const nb_matchs = results[0].nb_joueurs / 2;
+      connection.query(
+        "select * from players where id_tournament = ?",
+        [req.params.id],
+        (err, results) => {
+          const listPlayers = results;
+          const PlayerWin = listPlayers.find((p) => p.numero == win);
+          const test = listPlayers.map((p) => p.numero);
+          console.log(Math.max(...test));
         }
-        const handleLooser = () => {
-          let new_groupe;
-          if (groupe == "A") {
-            if (num_match == 1) {
-              new_groupe = "B";
-            } else {
-              new_groupe = "B2";
-            }
-          } else {
-            new_groupe = "C";
-          }
-          const player_waiting2 = results.find(
-            (p) =>
-              p.id_versus == 0 &&
-              p.id_tournament == req.params.id &&
-              p.num_match == num_match + 1 &&
-              p.groupe == new_groupe
-          );
-          if (!player_waiting2) {
-            connection.query(
-              "update players set id_versus = 0, num_match = ?, groupe = ? where numero = ? and id_tournament = ?",
-              [num_match + 1, new_groupe, lose, req.params.id],
-              () => res.send("Victoire validé")
-            );
-          } else {
-            connection.query(
-              "update players set id_versus = ?, num_match = ?, groupe = ? where numero = ? and id_tournament = ?",
-              [
-                player_waiting2.numero,
-                num_match + 1,
-                new_groupe,
-                lose,
-                req.params.id,
-              ],
-              (err, results) => {
-                connection.query(
-                  "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                  [lose, player_waiting2.numero, req.params.id],
-                  () => res.send("Victoire validé")
-                );
-              }
-            );
-          }
-        };
-      }
-    );
-  }
+      );
+    }
+  );
 };
