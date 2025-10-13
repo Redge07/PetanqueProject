@@ -294,21 +294,68 @@ exports.win_player_arbre = (req, res) => {
 //   }
 // };
 
+const verif_impaire = (groupe, round, nb_joueurs) => {
+  if (groupe == "A" && round == 1) {
+    if ((nb_joueurs / 2) % 2 != 0) {
+      return [true, Math.ceil(nb_joueurs / 2 / 2)];
+    } else {
+      return [false, Math.ceil(nb_joueurs / 2 / 2)];
+    }
+  } else if (groupe == "A" && round == 2) {
+    nb_joueurs = nb_joueurs / 2;
+    if (nb_joueurs % 2 != 0) {
+      nb_joueurs = (nb_joueurs - 1) / 2;
+      if (nb_joueurs % 2 != 0) {
+        return [true, Math.ceil(nb_joueurs / 2)];
+      } else {
+        return [false, Math.ceil(nb_joueurs / 2)];
+      }
+    } else {
+      nb_joueurs = nb_joueurs / 2;
+      if (nb_joueurs % 2 != 0) {
+        return [true, Math.ceil(nb_joueurs / 2)];
+      } else {
+        return [false, Math.ceil(nb_joueurs / 2)];
+      }
+    }
+  } else if (groupe == "B" && round == 2) {
+    nb_joueurs = nb_joueurs / 2;
+    if (nb_joueurs % 2 != 0) {
+      nb_joueurs = (nb_joueurs + 1) / 2;
+      if (nb_joueurs % 2 != 0) {
+        return [true, Math.ceil(nb_joueurs / 2)];
+      } else {
+        return [false, Math.ceil(nb_joueurs / 2)];
+      }
+    } else {
+      nb_joueurs = nb_joueurs / 2;
+      if (nb_joueurs % 2 != 0) {
+        return [true, Math.ceil(nb_joueurs / 2)];
+      } else {
+        return [false, Math.ceil(nb_joueurs / 2)];
+      }
+    }
+  } else {
+    let nb_matchs = nb_joueurs / 2;
+    for (let i = 0; i < round; i++) {
+      nb_matchs = nb_matchs / 2;
+    }
+    return [false, nb_matchs];
+  }
+};
+
 exports.win_player_cascade = (req, res) => {
   const { win, lose, tour, round, groupe } = req.body;
   connection.query(
     "select * from tournaments where id = ?",
     [req.params.id],
     (err, results) => {
-      const nb_matchs = results[0].nb_joueurs / 2;
+      const nb_joueurs = results[0].nb_joueurs;
       connection.query(
         "select * from players where id_tournament = ?",
         [req.params.id],
         (err, results) => {
           const listPlayers = results;
-          const PlayerWin = listPlayers.find((p) => p.numero == win);
-          const test = listPlayers.map((p) => p.numero);
-          console.log(Math.max(...test));
         }
       );
     }
