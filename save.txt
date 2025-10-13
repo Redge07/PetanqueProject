@@ -8,3 +8,5 @@ Quand c'est impair et c'est la merde :
 - t'es dans le reste donc on t'attribut un adversaire
 
 - t'as gagné le barrage donc tu complètes le dernier match
+
+changé les valeurs de celui qui trouvé un adversaire
