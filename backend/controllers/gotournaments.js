@@ -335,12 +335,6 @@ const verif_impaire = (groupe, round, nb_joueurs) => {
         return [false, Math.ceil(nb_joueurs / 2)];
       }
     }
-  } else {
-    let nb_matchs = nb_joueurs / 2;
-    for (let i = 0; i < round; i++) {
-      nb_matchs = nb_matchs / 2;
-    }
-    return [false, nb_matchs];
   }
 };
 
@@ -356,6 +350,50 @@ exports.win_player_cascade = (req, res) => {
         [req.params.id],
         (err, results) => {
           const listPlayers = results;
+          const impair = verif_impaire(groupe, round, nb_joueurs);
+          console.log(impair);
+          const nb_joueurs_suite = listPlayers.filter(
+            (p) => p.groupe == groupe && p.round == parseInt(round) + 1
+          );
+          console.log(nb_joueurs_suite);
+          if (
+            (impair[0] && nb_joueurs_suite.length == 0) ||
+            nb_joueurs_suite.length == impair[1]
+          ) {
+            const adversaire = nb_joueurs_suite.find(
+              (p) =>
+                p.barrage == 1 &&
+                p.num_match == parseInt(round) + 1 &&
+                p.groupe == groupe &&
+                p.id_tournament == req.params.id
+            );
+            connection.query(
+              "update players set id_versus = 0, round = ?, num_match = 1, barrage = 1 where numero = ? and id_tournament = ?",
+              [parseInt(round) + 1, win, req.params.id],
+              () => res.json({ res: "Barrage", results: nb_joueurs_suite })
+            );
+          } else {
+            const num_match =
+              nb_joueurs_suite.length > impair[1]
+                ? nb_joueurs_suite.length + 1 - impair[1]
+                : nb_joueurs_suite.length + 1;
+            const adversaire = nb_joueurs_suite.find(
+              (p) => p.num_match == num_match
+            );
+            console.log(adversaire);
+
+            connection.query(
+              "update players set id_versus = ?, round = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
+              [
+                adversaire ? adversaire.numero : 0,
+                parseInt(round) + 1,
+                num_match,
+                win,
+                req.params.id,
+              ],
+              () => res.json({ res: "Non Barrage", results: nb_joueurs_suite })
+            );
+          }
         }
       );
     }
