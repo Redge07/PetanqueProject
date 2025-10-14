@@ -294,28 +294,28 @@ exports.win_player_arbre = (req, res) => {
 //   }
 // };
 
-const verif_impaire = (groupe, round, nb_joueurs) => {
+const verif_impaire = (groupe, round, nb_joueurs, lose) => {
   if (groupe == "A" && round == 1) {
     if ((nb_joueurs / 2) % 2 != 0) {
-      return [true, Math.ceil(nb_joueurs / 2 / 2)];
+      return [lose == 1 ? "B" : true, Math.ceil(nb_joueurs / 2 / 2)];
     } else {
-      return [false, Math.ceil(nb_joueurs / 2 / 2)];
+      return [lose == 1 ? "B" : false, Math.ceil(nb_joueurs / 2 / 2)];
     }
   } else if (groupe == "A" && round == 2) {
     nb_joueurs = nb_joueurs / 2;
     if (nb_joueurs % 2 != 0) {
       nb_joueurs = (nb_joueurs - 1) / 2;
       if (nb_joueurs % 2 != 0) {
-        return [true, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "B2" : true, Math.ceil(nb_joueurs / 2)];
       } else {
-        return [false, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "B2" : false, Math.ceil(nb_joueurs / 2)];
       }
     } else {
       nb_joueurs = nb_joueurs / 2;
       if (nb_joueurs % 2 != 0) {
-        return [true, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "B2" : true, Math.ceil(nb_joueurs / 2)];
       } else {
-        return [false, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "B2" : false, Math.ceil(nb_joueurs / 2)];
       }
     }
   } else if (groupe == "B" && round == 2) {
@@ -323,24 +323,19 @@ const verif_impaire = (groupe, round, nb_joueurs) => {
     if (nb_joueurs % 2 != 0) {
       nb_joueurs = (nb_joueurs + 1) / 2;
       if (nb_joueurs % 2 != 0) {
-        return [true, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "C" : true, Math.ceil(nb_joueurs / 2)];
       } else {
-        return [false, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "C" : false, Math.ceil(nb_joueurs / 2)];
       }
     } else {
       nb_joueurs = nb_joueurs / 2;
       if (nb_joueurs % 2 != 0) {
-        return [true, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "C" : true, Math.ceil(nb_joueurs / 2)];
       } else {
-        return [false, Math.ceil(nb_joueurs / 2)];
+        return [lose == 1 ? "C" : false, Math.ceil(nb_joueurs / 2)];
       }
     }
   }
-};
-
-const changeGroupe = (groupe, round) => {
-  const logic = { A1: "B", A2: "B2", B2: "C" };
-  return logic[`${groupe}${round}`];
 };
 
 exports.win_player_cascade = (req, res) => {
@@ -361,7 +356,7 @@ exports.win_player_cascade = (req, res) => {
               p.round == parseInt(round) + (barrage == 1 ? 0 : 1) &&
               p.id_tournament == req.params.id
           );
-          const impair = verif_impaire(groupe, round, nb_joueurs);
+          const impair = verif_impaire(groupe, round, nb_joueurs, 0);
           console.log(impair);
           if (barrage == 1) {
             const num_match = nb_joueurs_suite.length + 1 - impair[1] * 2;
@@ -375,7 +370,7 @@ exports.win_player_cascade = (req, res) => {
                 connection.query(
                   "update players set id_versus = ? where numero = ? and id_tournament = ?",
                   [win, adversaire.numero, req.params.id],
-                  () => handleLooser()
+                  () => handleLooser(listPlayers, nb_joueurs)
                 );
               }
             );
@@ -407,7 +402,7 @@ exports.win_player_cascade = (req, res) => {
                       () => handleLooser()
                     );
                   } else {
-                    handleLooser();
+                    handleLooser(listPlayers, nb_joueurs);
                   }
                 }
               );
@@ -433,10 +428,10 @@ exports.win_player_cascade = (req, res) => {
                     connection.query(
                       "update players set id_versus = ? where numero = ? and id_tournament = ?",
                       [win, adversaire.numero, req.params.id],
-                      () => handleLooser()
+                      () => handleLooser(listPlayers, nb_joueurs)
                     );
                   } else {
-                    handleLooser();
+                    handleLooser(listPlayers, nb_joueurs);
                   }
                 }
               );
@@ -446,5 +441,54 @@ exports.win_player_cascade = (req, res) => {
       );
     }
   );
-  const handleLooser = () => {};
+  const handleLooser = (listPlayers, nb_joueurs) => {
+    const looser = listPlayers.find(
+      (p) => p.numero == lose && p.id_tournament == req.params.id
+    );
+    const verif_looser = verif_impaire(
+      looser.groupe,
+      looser.round,
+      nb_joueurs,
+      1
+    );
+    const nb_joueurs_suite = listPlayers.filter(
+      (p) =>
+        p.id_tournament == req.params.id &&
+        p.round == parseInt(looser.round) + 1 &&
+        p.groupe == verif_looser[0]
+    );
+    const num_match =
+      nb_joueurs_suite.length >= verif_looser[1]
+        ? nb_joueurs_suite.length + 1 - verif_looser[1]
+        : nb_joueurs_suite.length + 1;
+    const adversaire = nb_joueurs_suite.find(
+      (p) =>
+        p.id_tournament == req.params.id &&
+        p.round == parseInt(looser.round) + 1 &&
+        p.groupe == verif_looser[0] &&
+        p.num_match == num_match
+    );
+    connection.query(
+      "update players set id_versus = ?, round = ?, groupe = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
+      [
+        adversaire ? adversaire.numero : 0,
+        parseInt(looser.round) + 1,
+        verif_looser[0],
+        num_match,
+        lose,
+        req.params.id,
+      ],
+      () => {
+        if (adversaire) {
+          connection.query(
+            "update players set id_versus = ? where numero = ? and id_tournament = ?",
+            [lose, adversaire.numero, req.params.id],
+            () => res.send("Victoire validé")
+          );
+        } else {
+          res.send("Victoire validé");
+        }
+      }
+    );
+  };
 };
