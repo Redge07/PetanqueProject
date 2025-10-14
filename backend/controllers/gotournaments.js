@@ -359,7 +359,7 @@ exports.win_player_cascade = (req, res) => {
           const impair = verif_impaire(groupe, round, nb_joueurs, 0);
           console.log(impair);
           if (barrage == 1) {
-            const num_match = nb_joueurs_suite.length + 1 - impair[1] * 2;
+            const num_match = nb_joueurs_suite.length + 1 - impair[1] * 2 + 1;
             const adversaire = nb_joueurs_suite.find(
               (p) => p.num_match == num_match
             );
@@ -376,8 +376,9 @@ exports.win_player_cascade = (req, res) => {
             );
           } else {
             if (
-              (impair[0] && nb_joueurs_suite.length == 0) ||
-              nb_joueurs_suite.length == impair[1]
+              impair[0] &&
+              (nb_joueurs_suite.length == 0 ||
+                nb_joueurs_suite.length == impair[1])
             ) {
               const adversaire = nb_joueurs_suite.find(
                 (p) =>
@@ -399,7 +400,7 @@ exports.win_player_cascade = (req, res) => {
                     connection.query(
                       "update players set id_versus = ? where numero = ? and id_tournament = ?",
                       [win, adversaire.numero, req.params.id],
-                      () => handleLooser()
+                      () => handleLooser(listPlayers, nb_joueurs)
                     );
                   } else {
                     handleLooser(listPlayers, nb_joueurs);
@@ -408,7 +409,7 @@ exports.win_player_cascade = (req, res) => {
               );
             } else {
               const num_match =
-                nb_joueurs_suite.length > impair[1]
+                nb_joueurs_suite.length >= impair[1]
                   ? nb_joueurs_suite.length + 1 - impair[1]
                   : nb_joueurs_suite.length + 1;
               const adversaire = nb_joueurs_suite.find(
