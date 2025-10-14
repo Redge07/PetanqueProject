@@ -376,7 +376,7 @@ exports.win_player_cascade = (req, res) => {
                 connection.query(
                   "update players set id_versus = ? where numero = ? and id_tournament = ?",
                   [win, adversaire.numero, req.params.id],
-                  () => handleLooser(listPlayers, nb_joueurs)
+                  () => handleLooser(listPlayers, nb_joueurs, 1)
                 );
               }
             );
@@ -448,20 +448,25 @@ exports.win_player_cascade = (req, res) => {
       );
     }
   );
-  const handleLooser = (listPlayers, nb_joueurs) => {
+  const handleLooser = (listPlayers, nb_joueurs, barrage = 0) => {
     const looser = listPlayers.find(
       (p) => p.numero == lose && p.id_tournament == req.params.id
     );
-    const verif_looser = verif_impaire(
-      looser.groupe,
-      looser.round,
-      nb_joueurs,
-      1
-    );
+    let verif_looser;
+    if (barrage == 1) {
+      verif_looser = verif_impaire(
+        looser.groupe,
+        parseInt(looser.round) - 1,
+        nb_joueurs,
+        1
+      );
+    } else {
+      verif_looser = verif_impaire(looser.groupe, looser.round, nb_joueurs, 1);
+    }
     const nb_joueurs_suite = listPlayers.filter(
       (p) =>
         p.id_tournament == req.params.id &&
-        p.round == parseInt(looser.round) + 1 &&
+        p.round == parseInt(looser.round) + (barrage == 1 ? 0 : 1) &&
         p.groupe == verif_looser[0]
     );
     const num_match =
@@ -471,7 +476,7 @@ exports.win_player_cascade = (req, res) => {
     const adversaire = nb_joueurs_suite.find(
       (p) =>
         p.id_tournament == req.params.id &&
-        p.round == parseInt(looser.round) + 1 &&
+        p.round == parseInt(looser.round) + (barrage == 1 ? 0 : 1) &&
         p.groupe == verif_looser[0] &&
         p.num_match == num_match
     );
@@ -479,7 +484,7 @@ exports.win_player_cascade = (req, res) => {
       "update players set id_versus = ?, round = ?, groupe = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
       [
         adversaire ? adversaire.numero : 0,
-        parseInt(looser.round) + 1,
+        parseInt(looser.round) + (barrage == 1 ? 0 : 1),
         verif_looser[0],
         num_match,
         lose,
