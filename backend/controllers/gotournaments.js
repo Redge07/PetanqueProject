@@ -359,7 +359,13 @@ exports.win_player_cascade = (req, res) => {
           const impair = verif_impaire(groupe, round, nb_joueurs, 0);
           console.log(impair);
           if (barrage == 1) {
-            const num_match = nb_joueurs_suite.length + 1 - impair[1] * 2 + 1;
+            const impairBarrage = verif_impaire(
+              groupe,
+              round - 1,
+              nb_joueurs,
+              0
+            );
+            const num_match = nb_joueurs_suite.length + 1 - impairBarrage[1];
             const adversaire = nb_joueurs_suite.find(
               (p) => p.num_match == num_match
             );
