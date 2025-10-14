@@ -294,8 +294,12 @@ exports.win_player_arbre = (req, res) => {
 //   }
 // };
 
+// Fonction qui nous donne des infos utile sur le gagnant ou le perdant
+// Pour le gagnant on retourne l'information si le prochain tour va necessité un barrage et le nombre de matchs du prochain tour
+// Pour le perdant on retourne le nouveau groupe puisqu'il descend et aussi le nombre de match de son prochain tour
 const verif_impaire = (groupe, round, nb_joueurs, lose) => {
   if (groupe == "A" && round == 1) {
+    // Si le 2 eme tour aura un nombre pair ou impair de joueur
     if ((nb_joueurs / 2) % 2 != 0) {
       return [lose == 1 ? "B" : true, Math.ceil(nb_joueurs / 2 / 2)];
     } else {
@@ -303,8 +307,10 @@ const verif_impaire = (groupe, round, nb_joueurs, lose) => {
     }
   } else if (groupe == "A" && round == 2) {
     nb_joueurs = nb_joueurs / 2;
+    // Si le 2 eme tour aura un nombre pair ou impair de joueur
     if (nb_joueurs % 2 != 0) {
       nb_joueurs = (nb_joueurs - 1) / 2;
+      // Si le 3 eme tour aura un nombre pair ou impair de joueur
       if (nb_joueurs % 2 != 0) {
         return [lose == 1 ? "B2" : true, Math.ceil(nb_joueurs / 2)];
       } else {
@@ -312,6 +318,7 @@ const verif_impaire = (groupe, round, nb_joueurs, lose) => {
       }
     } else {
       nb_joueurs = nb_joueurs / 2;
+      // Si le 3 eme tour aura un nombre pair ou impair de joueur
       if (nb_joueurs % 2 != 0) {
         return [lose == 1 ? "B2" : true, Math.ceil(nb_joueurs / 2)];
       } else {
@@ -320,8 +327,10 @@ const verif_impaire = (groupe, round, nb_joueurs, lose) => {
     }
   } else if (groupe == "B" && round == 2) {
     nb_joueurs = nb_joueurs / 2;
+    // Si le 2 eme tour aura un nombre pair ou impair de joueur
     if (nb_joueurs % 2 != 0) {
       nb_joueurs = (nb_joueurs + 1) / 2;
+      // Si le 3 eme tour aura un nombre pair ou impair de joueur
       if (nb_joueurs % 2 != 0) {
         return [lose == 1 ? "C" : true, Math.ceil(nb_joueurs / 2)];
       } else {
@@ -329,6 +338,7 @@ const verif_impaire = (groupe, round, nb_joueurs, lose) => {
       }
     } else {
       nb_joueurs = nb_joueurs / 2;
+      // Si le 3 eme tour aura un nombre pair ou impair de joueur
       if (nb_joueurs % 2 != 0) {
         return [lose == 1 ? "C" : true, Math.ceil(nb_joueurs / 2)];
       } else {
@@ -338,26 +348,33 @@ const verif_impaire = (groupe, round, nb_joueurs, lose) => {
   }
 };
 
+// Fonction qui gère le fait qu'un joueur est gagné son match dans un tournoi cascade
 exports.win_player_cascade = (req, res) => {
+  // On récupère le numéro du gagnant et du perdant, le round du match qu'il a gagné (donc si c'est son premier par exemple)
   const { win, lose, round, groupe, barrage } = req.body;
   connection.query(
     "select * from tournaments where id = ?",
     [req.params.id],
     (err, results) => {
+      // On récupère le nombre de joueurs dans le tournoi
       const nb_joueurs = results[0].nb_joueurs;
       connection.query(
         "select * from players where id_tournament = ?",
         [req.params.id],
         (err, results) => {
+          // On récupère tous les joueurs du tournoi
           const listPlayers = results;
+          // On récupère les joueurs qui représente les futurs adversaire du gagnant en fonction de ses caractéristiques, exception pour un joueur qui est en barrage car il est dans une situation ou si ils gagnent il reste dans le meme round au final
           const nb_joueurs_suite = listPlayers.filter(
             (p) =>
               p.groupe == groupe &&
               p.round == parseInt(round) + (barrage == 1 ? 0 : 1) &&
               p.id_tournament == req.params.id
           );
+          // On récupère l'info si le prochain round du gagnant nécessitera un barrage ou pas et aussi le nombre de match du prochain round concerné
           const impair = verif_impaire(groupe, round, nb_joueurs, 0);
           console.log(impair);
+          // Si le gagnant a gagné un barrage c'est un cadre spécifique
           if (barrage == 1) {
             const impairBarrage = verif_impaire(
               groupe,
@@ -365,14 +382,18 @@ exports.win_player_cascade = (req, res) => {
               nb_joueurs,
               0
             );
+            // On récupère le numéro de match qui sera attribué au gagnant
             const num_match = nb_joueurs_suite.length + 1 - impairBarrage[1];
+            // Et donc on essaye de trouver un adversaire qui correspond a ce numéro de match
             const adversaire = nb_joueurs_suite.find(
               (p) => p.num_match == num_match
             );
+            // On actualise les données du gagnant
             connection.query(
               "update players set id_versus = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
               [adversaire.numero, num_match, win, req.params.id],
               () => {
+                // Mais aussi les données du joueur qui va recevoir ce gagnant en question
                 connection.query(
                   "update players set id_versus = ? where numero = ? and id_tournament = ?",
                   [win, adversaire.numero, req.params.id],
@@ -380,7 +401,9 @@ exports.win_player_cascade = (req, res) => {
                 );
               }
             );
+            // Sinon le cas normal ou le gagnant n'a pas gagné un barrage
           } else {
+            // Si le prochain tour est un tour qui nécessite un barrage et que le joueur sera placé sur le match qui concerne le barrage
             if (
               impair[0] &&
               (nb_joueurs_suite.length == 0 ||
