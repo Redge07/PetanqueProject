@@ -1,2 +1,3 @@
 phase de pule fini, mettre au propre pour l'interface et bien commenter
 prendre le temps que tout soit clean
+Bilan avec ChatGpt
