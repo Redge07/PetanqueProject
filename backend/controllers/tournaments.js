@@ -45,6 +45,8 @@ exports.charge = (req, res) => {
                   class: results[i].class,
                   round: results[i].round,
                   groupe: results[i].groupe,
+                  num_match: results[i].num_match,
+                  barrage: results[i].barrage,
                 };
                 matches.push(match);
               }

@@ -33,13 +33,6 @@ const Tournament = () => {
         console.log(res.data);
         setListPlayers(res.data);
         setResponseWin("");
-        const groupes = [
-          ...new Set(res.data.results.map((match) => match.groupe)),
-        ];
-        const round = [
-          ...new Set(res.data.results.map((match) => match.round)),
-        ];
-        setInfosCascade([groupes, round]);
       });
   };
 
@@ -325,61 +318,6 @@ const Tournament = () => {
           {listPlayers.style == "cascade" && (
             <div>
               <h3>Tournoi en Cascade</h3>
-              {infosCascade[0].map((g) => (
-                <div>
-                  <h4>Groupe {g}</h4>
-                  {infosCascade[1].map((n) => (
-                    <div>
-                      <h4>Match numéro {n}</h4>
-                      {listPlayers.results
-                        .filter((m) => m.groupe == g && m.round == n)
-                        .map((p, i) => (
-                          <li key={p.numero}>
-                            <p>
-                              Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
-                              {p.joueurA.numero} vs{" "}
-                              {p.joueurB
-                                ? p.joueurB.pseudo +
-                                  ", numéro : " +
-                                  p.joueurB.numero
-                                : "Pas encore d'adversaire attribué"}
-                            </p>
-                            {p.joueurB && (
-                              <div>
-                                <button
-                                  onClick={() =>
-                                    handleWinnerCascade(
-                                      p.joueurA.numero,
-                                      p.joueurB.numero,
-                                      p.class,
-                                      p.groupe,
-                                      p.round
-                                    )
-                                  }
-                                >
-                                  Victoire de {p.joueurA.pseudo}
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleWinnerCascade(
-                                      p.joueurB.numero,
-                                      p.joueurA.numero,
-                                      p.class,
-                                      p.groupe,
-                                      p.round
-                                    )
-                                  }
-                                >
-                                  Victoire de {p.joueurB.pseudo}
-                                </button>
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                    </div>
-                  ))}
-                </div>
-              ))}
             </div>
           )}
         </div>
