@@ -139,6 +139,7 @@ const Participant = ({ player }) => {
       {/* On est en plein tournoi */}
       {dataPlayer.res == 3 && (
         <div>
+          {/* Si le joueur participe a un tournoi en mode arbre */}
           {dataPlayer.style == "arbre" && (
             <div>
               <h3>
@@ -155,6 +156,7 @@ const Participant = ({ player }) => {
               </p>
             </div>
           )}
+          {/* Si le joueur participe a un tournoi en mode arbre */}
           {dataPlayer.style == "cascade" && (
             <div>
               <h3>

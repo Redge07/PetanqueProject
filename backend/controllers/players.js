@@ -47,8 +47,8 @@ exports.charge = (req, res) => {
                   connection.query(
                     "select * from players where numero = ? and id_tournament = ?",
                     [player.id_versus, player.id_tournament],
+                    // On renvoie la situation du joueur, avec son adversaire ou pas
                     (err, results) => {
-                      // Si ca retourne rien alors il n'a pas encore d'adversaire attribué
                       res.json({
                         res: 3,
                         ...player,

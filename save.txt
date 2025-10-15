@@ -1,6 +1,4 @@
-Bien commenter
-Bilan avec ChatGpt
-Ordre croissant les groupes
+Pour la cascade gérer les victoires trop rapides
 
 Certain useState en useRef
 Pour les tournois, les mettre en components

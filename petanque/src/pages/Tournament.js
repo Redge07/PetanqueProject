@@ -17,6 +17,7 @@ const Tournament = () => {
   const [responseGoTournament, setResponseGoTournament] = useState("");
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
+  // State qui va nous aider faudra afficher les matchs trié par leurs catégories
   const [pairesInfos, setPaireInfos] = useState({});
   useEffect(() => {
     if (!login) {
@@ -27,6 +28,7 @@ const Tournament = () => {
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
     setResponseAPI({ res: 0 });
+    // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
     const createPaires = (matches) => {
       let groupes = [];
       let rounds = [];
@@ -274,13 +276,14 @@ const Tournament = () => {
               <h3>Tournoi en Arbre</h3>
               <p>{responseWin}</p>
               <div>
-                {/* Je liste toutes les confrontations */}
+                {/* Je vais trier les affichage par les tours des joueurs */}
                 {pairesInfos.tours
                   .sort((a, b) => a - b)
                   .map((t) => {
                     return (
                       <div key={t}>
                         <h2>Matchs de 1/{t}</h2>
+                        {/* Une fois que c'est trier, j'affiche les matches qui correspondent aux filtres */}
                         {listPlayers.results
                           .filter((versus) => versus.class == t)
                           .map((p, i) => (
@@ -335,6 +338,7 @@ const Tournament = () => {
               <h3>Tournoi en Cascade</h3>
               <p>{responseWin}</p>
               <div>
+                {/* On tri par les groupes */}
                 {pairesInfos.groupes
                   .sort(
                     (a, b) =>
@@ -345,16 +349,19 @@ const Tournament = () => {
                     return (
                       <div key={g}>
                         <h2>Groupe {g}</h2>
+                        {/* Ensuite on tri par les rounds */}
                         {pairesInfos.rounds.map((r) => {
                           const versusMain = listPlayers.results.filter(
                             (versus) => versus.groupe == g && versus.round == r
                           );
+                          // Si le groupe en question ne contient de matchs a ce round la, ça sert a rien d'afficher
                           if (versusMain.length == 0) {
                             return null;
                           } else {
                             return (
                               <div key={r}>
                                 <h3>Round {r}</h3>
+                                {/* J'affiche les confrontations qui respectent les filtres */}
                                 {versusMain.map((versus) => {
                                   return (
                                     <div key={versus.key}>
@@ -364,6 +371,7 @@ const Tournament = () => {
                                         {versus.joueurB
                                           ? `affronte le joueur numéro ${versus.joueurB.numero} (${versus.joueurB.pseudo})`
                                           : "n'a pas encore d'adversaire attitré"}
+                                        {/* Précise si s'agit d'un match de barrage */}
                                         {versus.barrage == 1 && (
                                           <span style={{ color: "red" }}>
                                             {" "}
