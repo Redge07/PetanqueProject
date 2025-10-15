@@ -17,7 +17,7 @@ const Tournament = () => {
   const [responseGoTournament, setResponseGoTournament] = useState("");
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
-  const [infosCascade, setInfosCascade] = useState();
+  const [pairesInfos, setPaireInfos] = useState([]);
   useEffect(() => {
     if (!login) {
       navigate("/");
@@ -27,12 +27,28 @@ const Tournament = () => {
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
     setResponseAPI({ res: 0 });
+    const createPaires = (matches) => {
+      let paires = [];
+      matches.forEach((match) => {
+        const paire = `${match.round}-${match.groupe}`;
+        if (!paires.includes(paire)) {
+          paires.push(paire);
+        }
+      });
+      paires = paires.map((paire) => {
+        const [round, groupe] = paire.split("-");
+        return [parseInt(round), groupe];
+      });
+      console.log(paires);
+      return paires;
+    };
     axios
       .get("http://localhost:5000/tournaments/charge/" + idTournament)
       .then((res) => {
         console.log(res.data);
         setListPlayers(res.data);
         setResponseWin("");
+        setPaireInfos(createPaires(res.data.results));
       });
   };
 
@@ -318,6 +334,33 @@ const Tournament = () => {
           {listPlayers.style == "cascade" && (
             <div>
               <h3>Tournoi en Cascade</h3>
+              <div>
+                {pairesInfos.map((info, i) => {
+                  return (
+                    <div key={i}>
+                      <h3>
+                        Groupe {info[1]} et round {info[0]}
+                      </h3>
+                      {listPlayers.results
+                        .filter(
+                          (versus) =>
+                            versus.round == info[0] && versus.groupe == info[1]
+                        )
+                        .map((versus) => (
+                          <li key={versus.key}>
+                            <p>
+                              Le joueur numéro {versus.joueurA.numero} (
+                              {versus.joueurA.pseudo}) affronte le joueur numéro{" "}
+                              {versus.joueurB
+                                ? `${versus.joueurB.numero} (${versus.joueurB.pseudo})`
+                                : "Pas d'adversaire"}
+                            </p>
+                          </li>
+                        ))}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
