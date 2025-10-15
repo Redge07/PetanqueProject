@@ -49,30 +49,16 @@ exports.charge = (req, res) => {
                     [player.id_versus, player.id_tournament],
                     (err, results) => {
                       // Si ca retourne rien alors il n'a pas encore d'adversaire attribué
-                      if (results.length == 0) {
-                        res.json({
-                          res: 3,
-                          pseudo: player.pseudo,
-                          tournamentName: tournament.name,
-                          style: tournament.style,
-                          numero: player.numero,
-                          pseudoVersus: "Pas d'adversaire encore",
-                          class: player.class,
-                        });
-                        // Sinon il a bien un adversaire attribué
-                      } else {
-                        const playerVersus = results[0];
-                        res.json({
-                          res: 4,
-                          pseudo: player.pseudo,
-                          numero: player.numero,
-                          tournamentName: tournament.name,
-                          style: tournament.style,
-                          idVersus: playerVersus.numero,
-                          pseudoVersus: playerVersus.pseudo,
-                          class: player.class,
-                        });
-                      }
+                      res.json({
+                        res: 3,
+                        ...player,
+                        tournamentName: tournament.name,
+                        style: tournament.style,
+                        idVersus:
+                          results.length === 0 ? null : results[0].numero,
+                        pseudoVersus:
+                          results.length === 0 ? null : results[0].pseudo,
+                      });
                     }
                   );
                 }
@@ -82,7 +68,7 @@ exports.charge = (req, res) => {
           // Le joueur a déjà gagné le tournoi
         } else {
           res.json({
-            res: 5,
+            res: 4,
             msg: "Félicitations vous etes le grand vainqueur",
           });
         }

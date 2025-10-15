@@ -136,33 +136,49 @@ const Participant = ({ player }) => {
           {dataPlayer.numero}. Le tournoi va bientot commencer
         </div>
       )}
-      {/* On est en plein tournoi mais je n'ai pas encore d'adversaire attribué */}
+      {/* On est en plein tournoi */}
       {dataPlayer.res == 3 && (
         <div>
-          <h3>
-            Vous participez au tournoi {dataPlayer.tournamentName} qui est en{" "}
-            {dataPlayer.style} et vous etes en 1/{dataPlayer.class} de finale.
-            Numero : {dataPlayer.numero}
-          </h3>
-          <p>Vous n'avez pas encore d'adversaire</p>
-        </div>
-      )}
-      {/* On est en plein tournoi et je connais mon prochain adversaire */}
-      {dataPlayer.res == 4 && (
-        <div>
-          <h3>
-            Vous participez au tournoi {dataPlayer.tournamentName} qui est en{" "}
-            {dataPlayer.style} et vous etes en 1/{dataPlayer.class} de finale.
-            Numero : {dataPlayer.numero}
-          </h3>
-          <p>
-            Vous affronter {dataPlayer.pseudoVersus} qui est le numéro{" "}
-            {dataPlayer.idVersus}
-          </p>
+          {dataPlayer.style == "arbre" && (
+            <div>
+              <h3>
+                Vous participez au tournoi {dataPlayer.tournamentName} qui est
+                en {dataPlayer.style} et vous etes {dataPlayer.style} en 1/
+                {dataPlayer.class} de finale. Numero : {dataPlayer.numero}
+              </h3>
+              <p>
+                {" "}
+                {dataPlayer.idVersus
+                  ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
+                ${dataPlayer.idVersus}`
+                  : "Vous n'avez pas d'adversaire"}
+              </p>
+            </div>
+          )}
+          {dataPlayer.style == "cascade" && (
+            <div>
+              <h3>
+                Vous participez au tournoi {dataPlayer.tournamentName} qui est
+                en {dataPlayer.style} et vous etes dans le groupe{" "}
+                {dataPlayer.groupe} au round {dataPlayer.round}. Numero :{" "}
+                {dataPlayer.numero}
+              </h3>
+              <p>
+                {" "}
+                {dataPlayer.idVersus
+                  ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
+                ${dataPlayer.idVersus}`
+                  : "Vous n'avez pas d'adversaire"}
+              </p>
+              {dataPlayer.barrage == 1 && (
+                <p style={{ color: "red" }}>Vous faites un barrage</p>
+              )}
+            </div>
+          )}
         </div>
       )}
       {/* Le joueur a gagné le tournoi */}
-      {dataPlayer.res == 5 && (
+      {dataPlayer.res == 4 && (
         <div>
           <h1>{dataPlayer.msg}</h1>
           <button onClick={handleDelete}>Quitter le tournoi</button>

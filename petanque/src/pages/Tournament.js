@@ -17,7 +17,7 @@ const Tournament = () => {
   const [responseGoTournament, setResponseGoTournament] = useState("");
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
-  const [pairesInfos, setPaireInfos] = useState([]);
+  const [pairesInfos, setPaireInfos] = useState({});
   useEffect(() => {
     if (!login) {
       navigate("/");
@@ -28,19 +28,24 @@ const Tournament = () => {
   const recharge = () => {
     setResponseAPI({ res: 0 });
     const createPaires = (matches) => {
-      let paires = [];
+      let groupes = [];
+      let rounds = [];
+      let tours = [];
       matches.forEach((match) => {
-        const paire = `${match.round}-${match.groupe}`;
-        if (!paires.includes(paire)) {
-          paires.push(paire);
+        const groupe = match.groupe;
+        if (!groupes.includes(groupe)) {
+          groupes.push(groupe);
+        }
+        const round = match.round;
+        if (!rounds.includes(parseInt(round))) {
+          rounds.push(parseInt(round));
+        }
+        const tour = match.class;
+        if (!tours.includes(parseInt(tour))) {
+          tours.push(parseInt(tour));
         }
       });
-      paires = paires.map((paire) => {
-        const [round, groupe] = paire.split("-");
-        return [parseInt(round), groupe];
-      });
-      console.log(paires);
-      return paires;
+      return { rounds, groupes, tours };
     };
     axios
       .get("http://localhost:5000/tournaments/charge/" + idTournament)
@@ -48,7 +53,8 @@ const Tournament = () => {
         console.log(res.data);
         setListPlayers(res.data);
         setResponseWin("");
-        setPaireInfos(createPaires(res.data.results));
+        const { rounds, groupes, tours } = createPaires(res.data.results);
+        setPaireInfos({ rounds, groupes, tours });
       });
   };
 
@@ -142,17 +148,6 @@ const Tournament = () => {
 
   // Fonction quand je déclare le vainqueur dans un tournoi arbre
   const handleWinnerArbre = (win, lose, tour) => {
-    console.log(
-      "Le gagnant est " +
-        win +
-        " et le perdant est " +
-        lose +
-        " pour ce 1/" +
-        tour +
-        " finale " +
-        "pour le tournoi " +
-        idTournament
-    );
     axios
       .put(
         "http://localhost:5000/gotournaments/win_player_arbre/" + idTournament,
@@ -171,28 +166,17 @@ const Tournament = () => {
   };
 
   // Fonction quand je déclare le vainqueur
-  const handleWinnerCascade = (win, lose, tour, groupe, round) => {
-    console.log(
-      "Le gagnant est " +
-        win +
-        " et le perdant est " +
-        lose +
-        " pour ce 1/" +
-        tour +
-        " finale " +
-        "pour le tournoi " +
-        idTournament
-    );
+  const handleWinnerCascade = (win, lose, round, groupe, barrage) => {
     axios
       .put(
         "http://localhost:5000/gotournaments/win_player_cascade/" +
           idTournament,
         {
-          win: win,
-          lose: lose,
-          tour: tour,
-          groupe: groupe,
-          round: round,
+          win,
+          lose,
+          round,
+          groupe,
+          barrage,
         }
       )
       .then((res) => {
@@ -284,82 +268,149 @@ const Tournament = () => {
       {listPlayers.res == 1 && (
         <div>
           <h2>Go Tournoi</h2>
+          {/* Le tournoi en question est en arbre */}
           {listPlayers.style == "arbre" && (
             <div>
               <h3>Tournoi en Arbre</h3>
               <p>{responseWin}</p>
-              <ul>
+              <div>
                 {/* Je liste toutes les confrontations */}
-                {listPlayers.results.map((p, i) => (
-                  <li key={p.numero}>
-                    <p>
-                      Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
-                      {p.joueurA.numero} vs{" "}
-                      {p.joueurB
-                        ? p.joueurB.pseudo + ", numéro : " + p.joueurB.numero
-                        : "Pas encore d'adversaire attribué"}{" "}
-                      en 1/{p.class}
-                    </p>
-                    {p.joueurB && (
-                      <div>
-                        <button
-                          onClick={() =>
-                            handleWinnerArbre(
-                              p.joueurA.numero,
-                              p.joueurB.numero,
-                              p.class
-                            )
-                          }
-                        >
-                          Victoire de {p.joueurA.pseudo}
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleWinnerArbre(
-                              p.joueurB.numero,
-                              p.joueurA.numero,
-                              p.class
-                            )
-                          }
-                        >
-                          Victoire de {p.joueurB.pseudo}
-                        </button>
+                {pairesInfos.tours
+                  .sort((a, b) => a - b)
+                  .map((t) => {
+                    return (
+                      <div key={t}>
+                        <h2>Matchs de 1/{t}</h2>
+                        {listPlayers.results
+                          .filter((versus) => versus.class == t)
+                          .map((p, i) => (
+                            <div key={p.key}>
+                              <p>
+                                Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
+                                {p.joueurA.numero} vs{" "}
+                                {p.joueurB
+                                  ? p.joueurB.pseudo +
+                                    ", numéro : " +
+                                    p.joueurB.numero
+                                  : "Pas encore d'adversaire attribué"}{" "}
+                                en 1/{p.class}
+                              </p>
+                              {p.joueurB && (
+                                <div>
+                                  <button
+                                    onClick={() =>
+                                      handleWinnerArbre(
+                                        p.joueurA.numero,
+                                        p.joueurB.numero,
+                                        p.class
+                                      )
+                                    }
+                                  >
+                                    Victoire de {p.joueurA.pseudo}
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleWinnerArbre(
+                                        p.joueurB.numero,
+                                        p.joueurA.numero,
+                                        p.class
+                                      )
+                                    }
+                                  >
+                                    Victoire de {p.joueurB.pseudo}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                       </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
+                    );
+                  })}
+              </div>
             </div>
           )}
+          {/* Le tournoi en question est en cascade */}
           {listPlayers.style == "cascade" && (
             <div>
               <h3>Tournoi en Cascade</h3>
+              <p>{responseWin}</p>
               <div>
-                {pairesInfos.map((info, i) => {
-                  return (
-                    <div key={i}>
-                      <h3>
-                        Groupe {info[1]} et round {info[0]}
-                      </h3>
-                      {listPlayers.results
-                        .filter(
-                          (versus) =>
-                            versus.round == info[0] && versus.groupe == info[1]
-                        )
-                        .map((versus) => (
-                          <li key={versus.key}>
-                            <p>
-                              Le joueur numéro {versus.joueurA.numero} (
-                              {versus.joueurA.pseudo}) affronte le joueur numéro{" "}
-                              {versus.joueurB
-                                ? `${versus.joueurB.numero} (${versus.joueurB.pseudo})`
-                                : "Pas d'adversaire"}
-                            </p>
-                          </li>
-                        ))}
-                    </div>
-                  );
-                })}
+                {pairesInfos.groupes
+                  .sort(
+                    (a, b) =>
+                      ["A", "B", "B2", "C"].indexOf(a) -
+                      ["A", "B", "B2", "C"].indexOf(b)
+                  )
+                  .map((g) => {
+                    return (
+                      <div key={g}>
+                        <h2>Groupe {g}</h2>
+                        {pairesInfos.rounds.map((r) => {
+                          const versusMain = listPlayers.results.filter(
+                            (versus) => versus.groupe == g && versus.round == r
+                          );
+                          if (versusMain.length == 0) {
+                            return null;
+                          } else {
+                            return (
+                              <div key={r}>
+                                <h3>Round {r}</h3>
+                                {versusMain.map((versus) => {
+                                  return (
+                                    <div key={versus.key}>
+                                      <p>
+                                        Le joueur numéro {versus.joueurA.numero}{" "}
+                                        ({versus.joueurA.pseudo}){" "}
+                                        {versus.joueurB
+                                          ? `affronte le joueur numéro ${versus.joueurB.numero} (${versus.joueurB.pseudo})`
+                                          : "n'a pas encore d'adversaire attitré"}
+                                        {versus.barrage == 1 && (
+                                          <span style={{ color: "red" }}>
+                                            {" "}
+                                            Il s'agit d'un match de barrage
+                                          </span>
+                                        )}
+                                      </p>
+                                      {versus.joueurB && (
+                                        <div>
+                                          <button
+                                            onClick={() =>
+                                              handleWinnerCascade(
+                                                versus.joueurA.numero,
+                                                versus.joueurB.numero,
+                                                r,
+                                                g,
+                                                versus.barrage
+                                              )
+                                            }
+                                          >
+                                            Victoire de {versus.joueurA.pseudo}
+                                          </button>
+                                          <button
+                                            onClick={() =>
+                                              handleWinnerCascade(
+                                                versus.joueurB.numero,
+                                                versus.joueurA.numero,
+                                                r,
+                                                g,
+                                                versus.barrage
+                                              )
+                                            }
+                                          >
+                                            Victoire de {versus.joueurB.pseudo}
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           )}

@@ -1,3 +1,6 @@
-phase de pule fini, mettre au propre pour l'interface et bien commenter
-prendre le temps que tout soit clean
+Bien commenter
 Bilan avec ChatGpt
+Ordre croissant les groupes
+
+Certain useState en useRef
+Pour les tournois, les mettre en components
