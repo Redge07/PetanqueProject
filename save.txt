@@ -1,4 +1,4 @@
-Pour la cascade gérer les victoires trop rapides
+pour le tournoi, regarder ceux au-dessus
 
 Certain useState en useRef
 Pour les tournois, les mettre en components

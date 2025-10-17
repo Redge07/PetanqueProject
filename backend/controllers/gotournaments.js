@@ -93,11 +93,12 @@ exports.go_tournament = (req, res) => {
                       const listPlayersM = shuffleArray(listPlayers);
                       for (let i = 0; i < listPlayersM.length; i++) {
                         connection.query(
-                          "update players set id_versus = ?, class = 0, round = 1, groupe = ? where numero = ? and id_tournament = ?",
+                          "update players set id_versus = ?, class = ?, round = 1, groupe = ? where numero = ? and id_tournament = ?",
                           [
                             i % 2 == 0
                               ? listPlayersM[i + 1].numero
                               : listPlayersM[i - 1].numero,
+                            listPlayers.length,
                             "A",
                             listPlayersM[i].numero,
                             req.params.id,
@@ -294,7 +295,7 @@ const returnAdversaire = (infos, nb_joueurs_suite, max_num) => {
 // Fonction qui gère le fait qu'un joueur est gagné son match dans un tournoi cascade
 exports.win_player_cascade = (req, res) => {
   // On récupère le numéro du gagnant et du perdant, le round du match qu'il a gagné (donc si c'est son premier par exemple)
-  const { win, lose, round, groupe, barrage } = req.body;
+  const { win, lose, round, groupe, barrage, tour } = req.body;
   connection.query(
     "select * from tournaments where id = ?",
     [req.params.id],
@@ -307,91 +308,99 @@ exports.win_player_cascade = (req, res) => {
         (err, results) => {
           // On récupère tous les joueurs du tournoi
           const listPlayers = results;
-          // On récupère les joueurs qui représente les futurs adversaire du gagnant en fonction de ses caractéristiques, exception pour un joueur qui est en barrage car il est dans une situation ou si ils gagnent il reste dans le meme round au final
-          const nb_joueurs_suite = listPlayers.filter(
-            (p) =>
-              p.groupe == groupe &&
-              p.round == parseInt(round) + (barrage == 1 ? 0 : 1) &&
-              p.id_tournament == req.params.id
-          );
-          const max_num = Math.max(...nb_joueurs_suite.map((p) => p.num_match));
-          // On récupère l'info si le prochain round du gagnant nécessitera un barrage ou pas et aussi le nombre de match du prochain round concerné
-          const impair = verif_impaire(
-            groupe,
-            barrage == 1 ? parseInt(round) - 1 : round,
-            nb_joueurs,
-            0
-          );
-
-          // Si le prochain tour est un tour qui nécessite un barrage et que le joueur sera placé sur le match qui concerne le barrage
-          if (
-            impair[0] &&
-            (nb_joueurs_suite.length == 0 ||
-              nb_joueurs_suite.filter((p) => p.id_versus == 0).length ==
-                impair[1]) &&
-            barrage != 1
-          ) {
-            // Alors on essaye de trouver un adversaire qui est aussi dans le barrage pour le round d'après
-            const adversaire = nb_joueurs_suite.find(
+          if (round != 3) {
+            // On récupère les joueurs qui représente les futurs adversaire du gagnant en fonction de ses caractéristiques, exception pour un joueur qui est en barrage car il est dans une situation ou si ils gagnent il reste dans le meme round au final
+            const nb_joueurs_suite = listPlayers.filter(
               (p) =>
-                p.barrage == 1 &&
-                p.round == parseInt(round) + 1 &&
                 p.groupe == groupe &&
+                p.round == parseInt(round) + (barrage == 1 ? 0 : 1) &&
                 p.id_tournament == req.params.id
             );
-            // Actualisé les données du gagnant et le faire affronter potentiellement un adversaire de barrage
-            connection.query(
-              "update players set id_versus = ?, round = ?, num_match = 1, barrage = 1 where numero = ? and id_tournament = ?",
-              [
-                // Sinon on dit qui l'aura pas d'adversaire encore
-                adversaire ? adversaire.numero : 0,
-                parseInt(round) + 1,
-                win,
-                req.params.id,
-              ],
-              () => {
-                // Si y'a bien un adversaire on actualise son nouveau adversaire
-                if (adversaire) {
-                  connection.query(
-                    "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                    [win, adversaire.numero, req.params.id],
-                    () => handleLooser(listPlayers, nb_joueurs)
-                  );
-                } else {
-                  handleLooser(listPlayers, nb_joueurs);
-                }
-              }
+            const max_num = Math.max(
+              ...nb_joueurs_suite.map((p) => p.num_match)
             );
-            // Sinon ça n'a rien avoir avec le barrage donc on continue normalement
+            // On récupère l'info si le prochain round du gagnant nécessitera un barrage ou pas et aussi le nombre de match du prochain round concerné
+            const impair = verif_impaire(
+              groupe,
+              barrage == 1 ? parseInt(round) - 1 : round,
+              nb_joueurs,
+              0
+            );
+
+            // Si le prochain tour est un tour qui nécessite un barrage et que le joueur sera placé sur le match qui concerne le barrage
+            if (
+              impair[0] &&
+              (nb_joueurs_suite.length == 0 ||
+                nb_joueurs_suite.filter((p) => p.id_versus == 0).length ==
+                  impair[1]) &&
+              barrage != 1
+            ) {
+              // Alors on essaye de trouver un adversaire qui est aussi dans le barrage pour le round d'après
+              const adversaire = nb_joueurs_suite.find(
+                (p) =>
+                  p.barrage == 1 &&
+                  p.round == parseInt(round) + 1 &&
+                  p.groupe == groupe &&
+                  p.id_tournament == req.params.id
+              );
+              // Actualisé les données du gagnant et le faire affronter potentiellement un adversaire de barrage
+              connection.query(
+                "update players set id_versus = ?, round = ?, num_match = 1, barrage = 1 where numero = ? and id_tournament = ?",
+                [
+                  // Sinon on dit qui l'aura pas d'adversaire encore
+                  adversaire ? adversaire.numero : 0,
+                  parseInt(round) + 1,
+                  win,
+                  req.params.id,
+                ],
+                () => {
+                  // Si y'a bien un adversaire on actualise son nouveau adversaire
+                  if (adversaire) {
+                    connection.query(
+                      "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                      [win, adversaire.numero, req.params.id],
+                      () => handleLooser(listPlayers, nb_joueurs)
+                    );
+                  } else {
+                    handleLooser(listPlayers, nb_joueurs);
+                  }
+                }
+              );
+              // Sinon ça n'a rien avoir avec le barrage donc on continue normalement
+            } else {
+              const { adversaire, num_match } = returnAdversaire(
+                impair,
+                nb_joueurs_suite,
+                max_num
+              );
+              // On actualise les données du gagnant
+              connection.query(
+                "update players set id_versus = ?, round = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
+                [
+                  adversaire ? adversaire.numero : 0,
+                  parseInt(round) + (barrage == 1 ? 0 : 1),
+                  num_match,
+                  win,
+                  req.params.id,
+                ],
+                () => {
+                  // Et les données de l'adversaire
+                  if (adversaire) {
+                    connection.query(
+                      "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                      [win, adversaire.numero, req.params.id],
+                      () =>
+                        handleLooser(listPlayers, nb_joueurs, barrage == 1 && 1)
+                    );
+                  } else {
+                    handleLooser(listPlayers, nb_joueurs, barrage == 1 && 1);
+                  }
+                }
+              );
+            }
           } else {
-            const { adversaire, num_match } = returnAdversaire(
-              impair,
-              nb_joueurs_suite,
-              max_num
-            );
-            // On actualise les données du gagnant
-            connection.query(
-              "update players set id_versus = ?, round = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
-              [
-                adversaire ? adversaire.numero : 0,
-                parseInt(round) + (barrage == 1 ? 0 : 1),
-                num_match,
-                win,
-                req.params.id,
-              ],
-              () => {
-                // Et les données de l'adversaire
-                if (adversaire) {
-                  connection.query(
-                    "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                    [win, adversaire.numero, req.params.id],
-                    () =>
-                      handleLooser(listPlayers, nb_joueurs, barrage == 1 && 1)
-                  );
-                } else {
-                  handleLooser(listPlayers, nb_joueurs, barrage == 1 && 1);
-                }
-              }
+            const nb_joueurs_arbre = listPlayers.filter(
+              (p) => p.class <= tour && p.class == groupe
             );
           }
         }
