@@ -264,6 +264,33 @@ const verif_impaire = (groupe, round, nb_joueurs, lose) => {
   }
 };
 
+// Fonction pour récupérer le potentiel nouveaux adversaire du gagnant ou du perdant
+const returnAdversaire = (infos, nb_joueurs_suite, max_num) => {
+  let adversaire;
+  let num_match;
+  // Si tous les matchs ont deja été comblé au moins une fois par un joueur
+  if (max_num == infos[1]) {
+    // On récupère un adversaire qui n'a pas encore d'adversaire, et parmieux on prend celui qui le num_match le plus petit
+    adversaire = nb_joueurs_suite.find(
+      (p) =>
+        p.num_match ==
+        Math.min(
+          ...nb_joueurs_suite
+            .filter((p) => p.id_versus == 0)
+            .map((p) => p.num_match)
+        )
+    );
+
+    num_match = adversaire.num_match;
+  } else {
+    // On récupère le numéro de match qui sera attribué au gagnant
+    num_match = nb_joueurs_suite.length + 1;
+    // Et donc on essaye de trouver un adversaire qui correspond a ce numéro de match
+    adversaire = nb_joueurs_suite.find((p) => p.num_match == num_match);
+  }
+  return { adversaire, num_match };
+};
+
 // Fonction qui gère le fait qu'un joueur est gagné son match dans un tournoi cascade
 exports.win_player_cascade = (req, res) => {
   // On récupère le numéro du gagnant et du perdant, le round du match qu'il a gagné (donc si c'est son premier par exemple)
@@ -337,28 +364,11 @@ exports.win_player_cascade = (req, res) => {
             );
             // Sinon ça n'a rien avoir avec le barrage donc on continue normalement
           } else {
-            let num_match;
-            let adversaire;
-            if (max_num == impair[1]) {
-              adversaire = nb_joueurs_suite.find(
-                (p) =>
-                  p.num_match ==
-                  Math.min(
-                    ...nb_joueurs_suite
-                      .filter((p) => p.id_versus == 0)
-                      .map((p) => p.num_match)
-                  )
-              );
-
-              num_match = adversaire.num_match;
-            } else {
-              // On récupère le numéro de match qui sera attribué au gagnant
-              num_match = nb_joueurs_suite.length + 1;
-              // Et donc on essaye de trouver un adversaire qui correspond a ce numéro de match
-              adversaire = nb_joueurs_suite.find(
-                (p) => p.num_match == num_match
-              );
-            }
+            const { adversaire, num_match } = returnAdversaire(
+              impair,
+              nb_joueurs_suite,
+              max_num
+            );
             // On actualise les données du gagnant
             connection.query(
               "update players set id_versus = ?, round = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
@@ -411,27 +421,11 @@ exports.win_player_cascade = (req, res) => {
         p.groupe == verif_looser[0]
     );
     const max_num = Math.max(...nb_joueurs_suite.map((p) => p.num_match));
-    let num_match;
-    let adversaire;
-
-    if (max_num == verif_looser[1]) {
-      adversaire = nb_joueurs_suite.find(
-        (p) =>
-          p.num_match ==
-          Math.min(
-            ...nb_joueurs_suite
-              .filter((p) => p.id_versus == 0)
-              .map((p) => p.num_match)
-          )
-      );
-
-      num_match = adversaire.num_match;
-    } else {
-      // On récupère le numéro de match qui sera attribué au gagnant
-      num_match = nb_joueurs_suite.length + 1;
-      // Et donc on essaye de trouver un adversaire qui correspond a ce numéro de match
-      adversaire = nb_joueurs_suite.find((p) => p.num_match == num_match);
-    }
+    const { adversaire, num_match } = returnAdversaire(
+      verif_looser,
+      nb_joueurs_suite,
+      max_num
+    );
     // On actualise les données du perdant
     connection.query(
       "update players set id_versus = ?, round = ?, groupe = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
