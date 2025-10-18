@@ -278,7 +278,7 @@ const returnAdversaire = (infos, nb_joueurs_suite, max_num) => {
 // Fonction qui gère le fait qu'un joueur est gagné son match dans un tournoi cascade
 exports.win_player_cascade = (req, res) => {
   // On récupère le numéro du gagnant et du perdant, le round du match qu'il a gagné (donc si c'est son premier par exemple)
-  const { win, lose, round, groupe, barrage, tour } = req.body;
+  const { win, lose, round, groupe, barrage } = req.body;
   connection.query(
     "select * from tournaments where id = ?",
     [req.params.id],
@@ -291,7 +291,8 @@ exports.win_player_cascade = (req, res) => {
         (err, results) => {
           // On récupère tous les joueurs du tournoi
           const listPlayers = results;
-          if (round == 3 && barrage == 0) {
+          if (round == 4) {
+          } else if (round == 3 && barrage == 0) {
             const infosArbre = verif_impaire(groupe, round, nb_joueurs, 0);
             const nb_joueurs_suite = listPlayers.filter(
               (p) => p.groupe == groupe && p.class < nb_joueurs && p.class != 0
@@ -304,18 +305,20 @@ exports.win_player_cascade = (req, res) => {
                   infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1),
                   win,
                   req.params.id,
-                ]
+                ],
+                () => handleLooser()
               );
               // Sinon un joueur a deja intégré l'arbre
             } else {
               // Si y'a une phase de pechage
               if (infosArbre[1] != 0) {
-                // Si y'a plus de joueur dans la phase de pechage alors faut passer a la phase au-dessus
+                // Si il n'y a plus de joueur dans la phase de pechage alors faut passer a la phase au-dessus
                 if (
                   nb_joueurs_suite.filter((p) => p.class == infosArbre[2])
                     .length == 0
                 ) {
                   const num_max = Math.max(
+                    0,
                     ...nb_joueurs_suite
                       .filter((p) => p.class == infosArbre[2] / 2)
                       .map((p) => p.num_match)
@@ -335,9 +338,169 @@ exports.win_player_cascade = (req, res) => {
                         )
                     );
                     connection.query(
-                      "update players set id_versus = ?, class = ?, round = 4, num_match"
+                      "update players set id_versus = ?, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                      [
+                        adversaire.numero,
+                        infosArbre[2] / 2,
+                        adversaire.num_match,
+                        win,
+                        req.params.id,
+                      ],
+                      () => {
+                        connection.query(
+                          "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                          [win, adversaire.numero, req.params.id],
+                          () => handleLooser()
+                        );
+                      }
+                    );
+                  } else {
+                    connection.query(
+                      "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                      [infosArbre[2] / 2, num_max + 1, win, req.params.id],
+                      () => handleLooser()
                     );
                   }
+                } else {
+                  const num_max = Math.max(
+                    0,
+                    ...nb_joueurs_suite
+                      .filter((p) => p.class == infosArbre[2])
+                      .map((p) => p.num_match)
+                  );
+                  // Si la moitié des places ont été comblé
+                  if (num_max == infosArbre[1] / 2) {
+                    if (
+                      nb_joueurs_suite.filter((p) => p.class == infosArbre[2])
+                        .length == infosArbre[1]
+                    ) {
+                      const num_max = Math.max(
+                        0,
+                        ...nb_joueurs_suite
+                          .filter((p) => p.class == infosArbre[2] / 2)
+                          .map((p) => p.num_match)
+                      );
+                      if (num_max == infosArbre[2] / 2) {
+                        const adversaire = nb_joueurs_suite.find(
+                          (p) =>
+                            p.num_match ==
+                            Math.min(
+                              ...nb_joueurs_suite
+                                .filter(
+                                  (p) =>
+                                    p.class == infosArbre[2] / 2 &&
+                                    p.id_versus == 0
+                                )
+                                .map((p) => p.num_match)
+                            )
+                        );
+                        connection.query(
+                          "update players set id_versus = ?, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                          [
+                            adversaire.numero,
+                            infosArbre[2] / 2,
+                            adversaire.num_match,
+                            win,
+                            req.params.id,
+                          ],
+                          () => {
+                            connection.query(
+                              "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                              [win, adversaire.numero, req.params.id],
+                              () => handleLooser()
+                            );
+                          }
+                        );
+                      } else {
+                        connection.query(
+                          "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                          [infosArbre[2] / 2, num_max + 1, win, req.params.id],
+                          () => handleLooser()
+                        );
+                      }
+                    } else {
+                      const adversaire = nb_joueurs_suite.find(
+                        (p) =>
+                          p.num_match ==
+                          Math.min(
+                            ...nb_joueurs_suite
+                              .filter(
+                                (p) =>
+                                  p.class == infosArbre[2] && p.id_versus == 0
+                              )
+                              .map((p) => p.num_match)
+                          )
+                      );
+                      connection.query(
+                        "update players set id_versus = ?, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                        [
+                          adversaire.numero,
+                          infosArbre[2],
+                          adversaire.num_match,
+                          win,
+                          req.params.id,
+                        ],
+                        () => {
+                          connection.query(
+                            "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                            [win, adversaire.numero, req.params.id],
+                            () => handleLooser()
+                          );
+                        }
+                      );
+                    }
+                  } else {
+                    connection.query(
+                      "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                      [infosArbre[2], num_max + 1, win, req.params.id],
+                      () => handleLooser()
+                    );
+                  }
+                }
+              } else {
+                const num_max = Math.max(
+                  0,
+                  ...nb_joueurs_suite
+                    .filter((p) => p.class == infosArbre[2] / 2)
+                    .map((p) => p.num_match)
+                );
+                // Si la moitié des places ont été comblé
+                if (num_max == infosArbre[2] / 2) {
+                  const adversaire = nb_joueurs_suite.find(
+                    (p) =>
+                      p.num_match ==
+                      Math.min(
+                        ...nb_joueurs_suite
+                          .filter(
+                            (p) =>
+                              p.class == infosArbre[2] / 2 && p.id_versus == 0
+                          )
+                          .map((p) => p.num_match)
+                      )
+                  );
+                  connection.query(
+                    "update players set id_versus = ?, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                    [
+                      adversaire.numero,
+                      infosArbre[2] / 2,
+                      adversaire.num_match,
+                      win,
+                      req.params.id,
+                    ],
+                    () => {
+                      connection.query(
+                        "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                        [win, adversaire.numero, req.params.id],
+                        () => handleLooser()
+                      );
+                    }
+                  );
+                } else {
+                  connection.query(
+                    "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+                    [infosArbre[2] / 2, num_max + 1, win, req.params.id],
+                    () => handleLooser()
+                  );
                 }
               }
             }
@@ -438,55 +601,63 @@ exports.win_player_cascade = (req, res) => {
   );
 
   // Fonction qui s'enchaine quand les données du gagnant ont bien été mise a jour, et la on actualise les données du perdant
-  const handleLooser = (listPlayers, nb_joueurs, barrage = 0) => {
-    // On récupère le joueurs qui a perdu
-    const looser = listPlayers.find(
-      (p) => p.numero == lose && p.id_tournament == req.params.id
-    );
-    // On récupère le prochain groupe du perdant puisqu'il a perdu et le nombre de mmatch du prochain round, change en fonction si le gars a perdu en barrage ou pas
-    const verif_looser = verif_impaire(
-      looser.groupe,
-      barrage == 1 ? parseInt(looser.round) - 1 : looser.round,
-      nb_joueurs,
-      1
-    );
+  const handleLooser = (listPlayers = 0, nb_joueurs = 0, barrage = 0) => {
+    if (round >= 3) {
+      connection.query(
+        "delete from players where numero = ? and id_tournament = ?",
+        [lose, req.params.id],
+        () => res.send("Victoire validé")
+      );
+    } else {
+      // On récupère le joueurs qui a perdu
+      const looser = listPlayers.find(
+        (p) => p.numero == lose && p.id_tournament == req.params.id
+      );
+      // On récupère le prochain groupe du perdant puisqu'il a perdu et le nombre de mmatch du prochain round, change en fonction si le gars a perdu en barrage ou pas
+      const verif_looser = verif_impaire(
+        looser.groupe,
+        barrage == 1 ? parseInt(looser.round) - 1 : looser.round,
+        nb_joueurs,
+        1
+      );
 
-    // Les joueurs qui peuvent etre potentiellement l'adversaire de celui qui a perdu
-    const nb_joueurs_suite = listPlayers.filter(
-      (p) =>
-        p.id_tournament == req.params.id &&
-        p.round == parseInt(looser.round) + (barrage == 1 ? 0 : 1) &&
-        p.groupe == verif_looser[0]
-    );
-    const max_num = Math.max(...nb_joueurs_suite.map((p) => p.num_match));
-    const { adversaire, num_match } = returnAdversaire(
-      verif_looser,
-      nb_joueurs_suite,
-      max_num
-    );
-    // On actualise les données du perdant
-    connection.query(
-      "update players set id_versus = ?, round = ?, groupe = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
-      [
-        adversaire ? adversaire.numero : 0,
-        parseInt(looser.round) + (barrage == 1 ? 0 : 1),
-        verif_looser[0],
-        num_match,
-        lose,
-        req.params.id,
-      ],
-      () => {
-        // Et on adresse le perdant comme nouvelle adversaire pour l'adversaire du perdant
-        if (adversaire) {
-          connection.query(
-            "update players set id_versus = ? where numero = ? and id_tournament = ?",
-            [lose, adversaire.numero, req.params.id],
-            () => res.send("Victoire validé")
-          );
-        } else {
-          res.send("Victoire validé");
+      // Les joueurs qui peuvent etre potentiellement l'adversaire de celui qui a perdu
+      const nb_joueurs_suite = listPlayers.filter(
+        (p) =>
+          p.id_tournament == req.params.id &&
+          p.round == parseInt(looser.round) + (barrage == 1 ? 0 : 1) &&
+          p.groupe == verif_looser[0]
+      );
+      const max_num = Math.max(...nb_joueurs_suite.map((p) => p.num_match));
+      const { adversaire, num_match } = returnAdversaire(
+        verif_looser,
+        nb_joueurs_suite,
+        max_num
+      );
+      // On actualise les données du perdant
+      connection.query(
+        "update players set id_versus = ?, round = ?, groupe = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
+        [
+          adversaire ? adversaire.numero : 0,
+          parseInt(looser.round) + (barrage == 1 ? 0 : 1),
+          verif_looser[0],
+          num_match,
+          lose,
+          req.params.id,
+        ],
+        () => {
+          // Et on adresse le perdant comme nouvelle adversaire pour l'adversaire du perdant
+          if (adversaire) {
+            connection.query(
+              "update players set id_versus = ? where numero = ? and id_tournament = ?",
+              [lose, adversaire.numero, req.params.id],
+              () => res.send("Victoire validé")
+            );
+          } else {
+            res.send("Victoire validé");
+          }
         }
-      }
-    );
+      );
+    }
   };
 };
