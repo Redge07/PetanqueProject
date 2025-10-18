@@ -214,55 +214,38 @@ exports.win_player_arbre = (req, res) => {
 // Fonction qui nous donne des infos utile sur le gagnant ou le perdant
 // Pour le gagnant on retourne l'information si le prochain tour va necessité un barrage et le nombre de matchs du prochain tour
 // Pour le perdant on retourne le nouveau groupe puisqu'il descend et aussi le nombre de match de son prochain tour
-const verif_impaire = (groupe, round, nb_joueurs, lose) => {
-  if (groupe == "A" && round == 1) {
-    // Si le 2 eme tour aura un nombre pair ou impair de joueur
-    if ((nb_joueurs / 2) % 2 != 0) {
-      return [lose == 1 ? "B" : true, Math.ceil(nb_joueurs / 2 / 2)];
-    } else {
-      return [lose == 1 ? "B" : false, Math.ceil(nb_joueurs / 2 / 2)];
-    }
-  } else if (groupe == "A" && round == 2) {
-    nb_joueurs = nb_joueurs / 2;
-    // Si le 2 eme tour aura un nombre pair ou impair de joueur
-    if (nb_joueurs % 2 != 0) {
-      nb_joueurs = (nb_joueurs - 1) / 2;
-      // Si le 3 eme tour aura un nombre pair ou impair de joueur
-      if (nb_joueurs % 2 != 0) {
-        return [lose == 1 ? "B2" : true, Math.ceil(nb_joueurs / 2)];
-      } else {
-        return [lose == 1 ? "B2" : false, Math.ceil(nb_joueurs / 2)];
-      }
-    } else {
-      nb_joueurs = nb_joueurs / 2;
-      // Si le 3 eme tour aura un nombre pair ou impair de joueur
-      if (nb_joueurs % 2 != 0) {
-        return [lose == 1 ? "B2" : true, Math.ceil(nb_joueurs / 2)];
-      } else {
-        return [lose == 1 ? "B2" : false, Math.ceil(nb_joueurs / 2)];
-      }
-    }
-  } else if (groupe == "B" && round == 2) {
-    nb_joueurs = nb_joueurs / 2;
-    // Si le 2 eme tour aura un nombre pair ou impair de joueur
-    if (nb_joueurs % 2 != 0) {
-      nb_joueurs = (nb_joueurs + 1) / 2;
-      // Si le 3 eme tour aura un nombre pair ou impair de joueur
-      if (nb_joueurs % 2 != 0) {
-        return [lose == 1 ? "C" : true, Math.ceil(nb_joueurs / 2)];
-      } else {
-        return [lose == 1 ? "C" : false, Math.ceil(nb_joueurs / 2)];
-      }
-    } else {
-      nb_joueurs = nb_joueurs / 2;
-      // Si le 3 eme tour aura un nombre pair ou impair de joueur
-      if (nb_joueurs % 2 != 0) {
-        return [lose == 1 ? "C" : true, Math.ceil(nb_joueurs / 2)];
-      } else {
-        return [lose == 1 ? "C" : false, Math.ceil(nb_joueurs / 2)];
-      }
+const verif_impaire = (groupe, round, nb_joueurs, lose = 0) => {
+  const groupes = {
+    A: [0, 0, 0, 1],
+    B: [1, 0, 0, 2],
+    B2: [0, 1, 0, 3],
+    C: [1, 1, 0, 4],
+  };
+  const newGroupes = { 1: "A", 2: "B", 3: "B2", 4: "C" };
+  let nb_qualif = nb_joueurs / 2;
+  let situation;
+  for (let i = 0; i < round; i++) {
+    situation = {
+      nb_matchs: (nb_qualif % 2 == 0 ? nb_qualif : nb_qualif + 1) / 2,
+      impair: nb_qualif % 2 == 0 ? false : true,
+    };
+    nb_qualif =
+      (situation.impair
+        ? groupes[groupe][i] == 1
+          ? nb_qualif + 1
+          : nb_qualif - 1
+        : nb_qualif) / 2;
+    if (i == 1 && round == 3) {
+      const p2 = 2 ** Math.floor(Math.log2(nb_qualif));
+      const prelim = (nb_qualif - p2) * 2;
+      return [nb_qualif, prelim, p2];
     }
   }
+  const newGroupe =
+    newGroupes[groupes[groupe][groupes[groupe].length - 1] + round];
+  return lose == 1
+    ? [newGroupe, situation.nb_matchs]
+    : [situation.impair, situation.nb_matchs];
 };
 
 // Fonction pour récupérer le potentiel nouveaux adversaire du gagnant ou du perdant
@@ -308,7 +291,57 @@ exports.win_player_cascade = (req, res) => {
         (err, results) => {
           // On récupère tous les joueurs du tournoi
           const listPlayers = results;
-          if (round != 3) {
+          if (round == 3 && barrage == 0) {
+            const infosArbre = verif_impaire(groupe, round, nb_joueurs, 0);
+            const nb_joueurs_suite = listPlayers.filter(
+              (p) => p.groupe == groupe && p.class < nb_joueurs && p.class != 0
+            );
+            // Si y'a pas de joueur dans le tournoi en arbre encore alors c'est le premier a entré dans l'arbre
+            if (nb_joueurs_suite.length == 0) {
+              connection.query(
+                "update players set id_versus = 0, class = ?, round = 4, num_match = 1 where numero = ? and id_tournament",
+                [
+                  infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1),
+                  win,
+                  req.params.id,
+                ]
+              );
+              // Sinon un joueur a deja intégré l'arbre
+            } else {
+              // Si y'a une phase de pechage
+              if (infosArbre[1] != 0) {
+                // Si y'a plus de joueur dans la phase de pechage alors faut passer a la phase au-dessus
+                if (
+                  nb_joueurs_suite.filter((p) => p.class == infosArbre[2])
+                    .length == 0
+                ) {
+                  const num_max = Math.max(
+                    ...nb_joueurs_suite
+                      .filter((p) => p.class == infosArbre[2] / 2)
+                      .map((p) => p.num_match)
+                  );
+                  // Si la moitié des places ont été comblé
+                  if (num_max == infosArbre[2] / 2) {
+                    const adversaire = nb_joueurs_suite.find(
+                      (p) =>
+                        p.num_match ==
+                        Math.min(
+                          ...nb_joueurs_suite
+                            .filter(
+                              (p) =>
+                                p.class == infosArbre[2] / 2 && p.id_versus == 0
+                            )
+                            .map((p) => p.num_match)
+                        )
+                    );
+                    connection.query(
+                      "update players set id_versus = ?, class = ?, round = 4, num_match"
+                    );
+                  }
+                }
+              }
+            }
+          } else {
             // On récupère les joueurs qui représente les futurs adversaire du gagnant en fonction de ses caractéristiques, exception pour un joueur qui est en barrage car il est dans une situation ou si ils gagnent il reste dans le meme round au final
             const nb_joueurs_suite = listPlayers.filter(
               (p) =>
@@ -398,10 +431,6 @@ exports.win_player_cascade = (req, res) => {
                 }
               );
             }
-          } else {
-            const nb_joueurs_arbre = listPlayers.filter(
-              (p) => p.class <= tour && p.class == groupe
-            );
           }
         }
       );

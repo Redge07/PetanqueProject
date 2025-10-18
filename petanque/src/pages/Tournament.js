@@ -169,6 +169,9 @@ const Tournament = () => {
 
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = (win, lose, round, groupe, barrage) => {
+    console.log("salut");
+    console.log(`${win} ${lose} ${round} ${groupe} ${barrage}`);
+
     axios
       .put(
         "http://localhost:5000/gotournaments/win_player_cascade/" +
