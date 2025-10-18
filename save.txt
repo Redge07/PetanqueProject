@@ -1,4 +1,7 @@
-pour le tournoi, regarder ceux au-dessus
+Finir le tournoi cascade
+Optimiser correctement le code
+Mettre a jour l'affichage participant et tournament
+Bien commenter
 
 Certain useState en useRef
 Pour les tournois, les mettre en components
