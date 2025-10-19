@@ -168,10 +168,7 @@ const Tournament = () => {
   };
 
   // Fonction quand je déclare le vainqueur
-  const handleWinnerCascade = (win, lose, round, groupe, barrage) => {
-    console.log("salut");
-    console.log(`${win} ${lose} ${round} ${groupe} ${barrage}`);
-
+  const handleWinnerCascade = (win, lose, round, groupe, barrage, tour) => {
     axios
       .put(
         "http://localhost:5000/gotournaments/win_player_cascade/" +
@@ -182,6 +179,7 @@ const Tournament = () => {
           round,
           groupe,
           barrage,
+          tour,
         }
       )
       .then((res) => {
@@ -391,7 +389,8 @@ const Tournament = () => {
                                                 versus.joueurB.numero,
                                                 r,
                                                 g,
-                                                versus.barrage
+                                                versus.barrage,
+                                                versus.class
                                               )
                                             }
                                           >
@@ -404,7 +403,8 @@ const Tournament = () => {
                                                 versus.joueurA.numero,
                                                 r,
                                                 g,
-                                                versus.barrage
+                                                versus.barrage,
+                                                versus.class
                                               )
                                             }
                                           >
