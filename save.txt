@@ -1,5 +1,6 @@
-Finir le tournoi cascade
-Optimiser correctement le code
+Bug round 3 souvent
+Optimiser le updatePlayers avec les barrages et éliminé
+donc en gros optimiser le barrage (returnAd et update), le update du non barrage et le update de lose
 Mettre a jour l'affichage participant et tournament
 Bien commenter
 
