@@ -254,7 +254,7 @@ const returnAdversaire = (infos, nb_joueurs_suite) => {
   let num_match;
   const num_max = Math.max(0, ...nb_joueurs_suite.map((p) => p.num_match));
   // Si tous les matchs ont deja été comblé au moins une fois par un joueur
-  if (max_num == infos) {
+  if (num_max == infos) {
     // On récupère un adversaire qui n'a pas encore d'adversaire, et parmieux on prend celui qui le num_match le plus petit
     adversaire = nb_joueurs_suite.find(
       (p) =>
@@ -299,35 +299,12 @@ exports.win_player_cascade = (req, res) => {
               nb_matchs,
               nb_joueurs_suite
             );
-            if (adversaire) {
-              connection.query(
-                "update players set id_versus = ?, class = ?, num_match = ? where numero = ? and id_tournament = ?",
-                [
-                  adversaire.numero,
-                  tour / 2,
-                  adversaire.num_match,
-                  win,
-                  req.params.id,
-                ],
-                () => {
-                  connection.query(
-                    "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                    [win, adversaire.numero, req.params.id],
-                    () => handleLooser()
-                  );
-                }
-              );
-            } else {
-              connection.query(
-                "update players set id_versus = 0, class = ?, num_match = ? where numero = ? and id_tournament = ?",
-                [tour / 2, num_match, win, req.params.id],
-                () => handleLooser()
-              );
-            }
+            const newTour = tour / 2;
+            updatePlayers(adversaire, newTour, num_match);
           } else if (round == 3 && barrage == 0) {
             const infosArbre = verif_impaire(groupe, round, nb_joueurs, 0);
-            const nb_joueurs_suite = listPlayers.filter(
-              (p) => p.groupe == groupe && p.class < nb_joueurs && p.class != 0
+            let nb_joueurs_suite = listPlayers.filter(
+              (p) => p.groupe == groupe && p.class < nb_joueurs
             );
             // Si y'a pas de joueur dans le tournoi en arbre encore alors c'est le premier a entré dans l'arbre
             if (nb_joueurs_suite.length == 0) {
@@ -357,31 +334,9 @@ exports.win_player_cascade = (req, res) => {
                     nb_matchs,
                     nb_joueurs_suite
                   );
-                  if (adversaire) {
-                    connection.query(
-                      "update players set id_versus = ?, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
-                      [
-                        adversaire.numero,
-                        infosArbre[2] / 2,
-                        adversaire.num_match,
-                        win,
-                        req.params.id,
-                      ],
-                      () => {
-                        connection.query(
-                          "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                          [win, adversaire.numero, req.params.id],
-                          () => handleLooser()
-                        );
-                      }
-                    );
-                  } else {
-                    connection.query(
-                      "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
-                      [nb_matchs, num_match, win, req.params.id],
-                      () => handleLooser()
-                    );
-                  }
+                  const newTour = infosArbre[2] / 2;
+                  updatePlayers(adversaire, newTour, num_match);
+                  // Passer a la phase au dessus
                 } else {
                   const num_max = Math.max(
                     0,
@@ -391,54 +346,21 @@ exports.win_player_cascade = (req, res) => {
                   );
                   // Si la moitié des places ont été comblé
                   if (num_max == infosArbre[1] / 2) {
+                    // Si toutes les places en pechages sont prises
                     if (
                       nb_joueurs_suite.filter((p) => p.class == infosArbre[2])
                         .length == infosArbre[1]
                     ) {
-                      const num_max = Math.max(
-                        0,
-                        ...nb_joueurs_suite
-                          .filter((p) => p.class == infosArbre[2] / 2)
-                          .map((p) => p.num_match)
+                      nb_joueurs_suite = nb_joueurs_suite.filter(
+                        (p) => p.class == infosArbre[2] / 2
                       );
-                      if (num_max == infosArbre[2] / 2) {
-                        const adversaire = nb_joueurs_suite.find(
-                          (p) =>
-                            p.num_match ==
-                            Math.min(
-                              ...nb_joueurs_suite
-                                .filter(
-                                  (p) =>
-                                    p.class == infosArbre[2] / 2 &&
-                                    p.id_versus == 0
-                                )
-                                .map((p) => p.num_match)
-                            )
-                        );
-                        connection.query(
-                          "update players set id_versus = ?, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
-                          [
-                            adversaire.numero,
-                            infosArbre[2] / 2,
-                            adversaire.num_match,
-                            win,
-                            req.params.id,
-                          ],
-                          () => {
-                            connection.query(
-                              "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                              [win, adversaire.numero, req.params.id],
-                              () => handleLooser()
-                            );
-                          }
-                        );
-                      } else {
-                        connection.query(
-                          "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
-                          [infosArbre[2] / 2, num_max + 1, win, req.params.id],
-                          () => handleLooser()
-                        );
-                      }
+                      const nb_matchs = infosArbre[2] / 2;
+                      const { adversaire, num_match } = returnAdversaire(
+                        nb_matchs,
+                        nb_joueurs_suite
+                      );
+                      const newTour = infosArbre[2] / 2;
+                      updatePlayers(adversaire, newTour, num_match);
                     } else {
                       const adversaire = nb_joueurs_suite.find(
                         (p) =>
@@ -479,50 +401,16 @@ exports.win_player_cascade = (req, res) => {
                   }
                 }
               } else {
-                const num_max = Math.max(
-                  0,
-                  ...nb_joueurs_suite
-                    .filter((p) => p.class == infosArbre[2] / 2)
-                    .map((p) => p.num_match)
+                nb_joueurs_suite = nb_joueurs_suite.filter(
+                  (p) => p.class == infosArbre[2] / 2
                 );
-                // Si la moitié des places ont été comblé
-                if (num_max == infosArbre[2] / 2) {
-                  const adversaire = nb_joueurs_suite.find(
-                    (p) =>
-                      p.num_match ==
-                      Math.min(
-                        ...nb_joueurs_suite
-                          .filter(
-                            (p) =>
-                              p.class == infosArbre[2] / 2 && p.id_versus == 0
-                          )
-                          .map((p) => p.num_match)
-                      )
-                  );
-                  connection.query(
-                    "update players set id_versus = ?, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
-                    [
-                      adversaire.numero,
-                      infosArbre[2] / 2,
-                      adversaire.num_match,
-                      win,
-                      req.params.id,
-                    ],
-                    () => {
-                      connection.query(
-                        "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                        [win, adversaire.numero, req.params.id],
-                        () => handleLooser()
-                      );
-                    }
-                  );
-                } else {
-                  connection.query(
-                    "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
-                    [infosArbre[2] / 2, num_max + 1, win, req.params.id],
-                    () => handleLooser()
-                  );
-                }
+                const nb_matchs = infosArbre[2] / 2;
+                const { adversaire, num_match } = returnAdversaire(
+                  nb_matchs,
+                  nb_joueurs_suite
+                );
+                const newTour = infosArbre[2] / 2;
+                updatePlayers(adversaire, newTour, num_match);
               }
             }
           } else {
@@ -621,6 +509,35 @@ exports.win_player_cascade = (req, res) => {
     }
   );
 
+  const updatePlayers = (adversaire, tour, num_match) => {
+    if (adversaire) {
+      connection.query(
+        "update players set id_versus = ?, class = ?, round = ?, num_match = ? where numero = ? and id_tournament = ?",
+        [
+          adversaire.numero,
+          adversaire.class,
+          adversaire.round,
+          adversaire.num_match,
+          win,
+          req.params.id,
+        ],
+        () => {
+          connection.query(
+            "update players set id_versus = ? where numero = ? and id_tournament = ?",
+            [win, adversaire.numero, req.params.id],
+            () => handleLooser()
+          );
+        }
+      );
+    } else {
+      connection.query(
+        "update players set id_versus = 0, class = ?, round = 4, num_match = ? where numero = ? and id_tournament = ?",
+        [tour, num_match, win, req.params.id],
+        () => handleLooser()
+      );
+    }
+  };
+
   // Fonction qui s'enchaine quand les données du gagnant ont bien été mise a jour, et la on actualise les données du perdant
   const handleLooser = (listPlayers = 0, nb_joueurs = 0, barrage = 0) => {
     if (round >= 3 && barrage == 0) {
@@ -649,11 +566,9 @@ exports.win_player_cascade = (req, res) => {
           p.round == parseInt(looser.round) + (barrage == 1 ? 0 : 1) &&
           p.groupe == verif_looser[0]
       );
-      const max_num = Math.max(...nb_joueurs_suite.map((p) => p.num_match));
       const { adversaire, num_match } = returnAdversaire(
         verif_looser[1],
-        nb_joueurs_suite,
-        max_num
+        nb_joueurs_suite
       );
       // On actualise les données du perdant
       connection.query(
