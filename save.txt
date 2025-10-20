@@ -1,4 +1,4 @@
-Bug round 3 souvent
+Quand un tournoi a des pechages, il faut voir le cas ou peut etre la phase de pechage est rempli ou alors les matchs ont déjà eu lieu et faire passer le gagnant direct dans la phase au dessus (ligne 376) (enregistre le fait que le pechage est fini en BD
 Optimiser le updatePlayers avec les barrages et éliminé
 donc en gros optimiser le barrage (returnAd et update), le update du non barrage et le update de lose
 Mettre a jour l'affichage participant et tournament

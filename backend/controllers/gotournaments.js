@@ -1,5 +1,47 @@
 const connection = require("../config/db");
 
+// API pour créer automatiquement X joueurs dans un tournoi donné
+exports.create_players = (req, res) => {
+  const idTournament = req.params.id;
+  const { nbPlayers, groupe = "A" } = req.body; // ex : { nbPlayers: 30 }
+
+  if (!nbPlayers || nbPlayers < 2)
+    return res.status(400).json({ message: "Nombre de joueurs invalide" });
+
+  const players = [];
+  for (let i = 1; i <= nbPlayers; i++) {
+    players.push([
+      `Test${i}`, // pseudo
+      0, // id_versus
+      nbPlayers, // class
+      idTournament, // id_tournament
+      -1, // id_user
+      1, // valider
+      i, // numero
+      1, // round
+      groupe, // groupe
+      null, // num_match
+      null, // barrage
+    ]);
+  }
+
+  const sql = `
+    INSERT INTO players
+    (pseudo, id_versus, class, id_tournament, id_user, valider, numero, round, groupe, num_match, barrage)
+    VALUES ?
+  `;
+
+  connection.query(sql, [players], (err) => {
+    if (err) {
+      console.error("Erreur SQL :", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({
+      message: `${nbPlayers} joueurs créés pour le tournoi ${idTournament}`,
+    });
+  });
+};
+
 function getRandomElements(arr, n) {
   const result = [];
 
@@ -321,7 +363,7 @@ exports.win_player_cascade = (req, res) => {
                   nb_joueurs_suite.filter((p) => p.class == infosArbre[2])
                     .length == 0
                 ) {
-                  const nb_joueurs_suite = nb_joueurs_suite.filter(
+                  nb_joueurs_suite = nb_joueurs_suite.filter(
                     (p) => p.class == infosArbre[2] / 2
                   );
                   const nb_matchs = infosArbre[2] / 2;
@@ -340,11 +382,11 @@ exports.win_player_cascade = (req, res) => {
                   );
                   // Si la moitié des places ont été comblé
                   if (num_max == infosArbre[1] / 2) {
+                    const longueur = nb_joueurs_suite.filter(
+                      (p) => p.class == infosArbre[2] && p.num_match == num_max
+                    ).length;
                     // Si toutes les places en pechages sont prises
-                    if (
-                      nb_joueurs_suite.filter((p) => p.class == infosArbre[2])
-                        .length == infosArbre[1]
-                    ) {
+                    if (longueur == 2 || longueur == 0) {
                       nb_joueurs_suite = nb_joueurs_suite.filter(
                         (p) => p.class == infosArbre[2] / 2
                       );
@@ -360,7 +402,7 @@ exports.win_player_cascade = (req, res) => {
                         (p) => p.class == infosArbre[2]
                       );
                       const { adversaire, num_match } = returnAdversaire(
-                        infosArbre[2] / 2,
+                        infosArbre[1] / 2,
                         nb_joueurs_suite
                       );
                       updatePlayers(adversaire, infosArbre[2], num_match);

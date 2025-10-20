@@ -5,5 +5,5 @@ const gotournaments = require("../controllers/gotournaments");
 router.put("/go_tournament/:id", gotournaments.go_tournament);
 router.put("/win_player_arbre/:id", gotournaments.win_player_arbre);
 router.put("/win_player_cascade/:id", gotournaments.win_player_cascade);
-
+router.post("/create_players/:id", gotournaments.create_players);
 module.exports = router;
