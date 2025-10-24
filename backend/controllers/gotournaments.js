@@ -341,7 +341,16 @@ exports.win_player_cascade = (req, res) => {
               nb_joueurs_suite
             );
             const newTour = tour / 2;
-            updatePlayers(adversaire, newTour, num_match);
+            updatePlayers(
+              adversaire,
+              newTour,
+              num_match,
+              4,
+              groupe,
+              0,
+              listPlayers,
+              nb_joueurs
+            );
           } else if (round == 3 && barrage == 0) {
             const infosArbre = verif_impaire(groupe, round, nb_joueurs, 0);
             let nb_joueurs_suite = listPlayers.filter(
@@ -352,7 +361,12 @@ exports.win_player_cascade = (req, res) => {
               updatePlayers(
                 false,
                 infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1),
-                1
+                1,
+                4,
+                groupe,
+                0,
+                listPlayers,
+                nb_joueurs
               );
               if (infosArbre[1] != 0) {
                 connection.query(
@@ -381,7 +395,16 @@ exports.win_player_cascade = (req, res) => {
                       );
                     }
                     const newTour = infosArbre[2];
-                    updatePlayers(adversaire, newTour, num_match);
+                    updatePlayers(
+                      adversaire,
+                      newTour,
+                      num_match,
+                      4,
+                      groupe,
+                      0,
+                      listPlayers,
+                      nb_joueurs
+                    );
                   } else {
                     nb_joueurs_suite = nb_joueurs_suite.filter(
                       (p) => p.class == infosArbre[2] / 2
@@ -392,7 +415,16 @@ exports.win_player_cascade = (req, res) => {
                       nb_joueurs_suite
                     );
                     const newTour = infosArbre[2] / 2;
-                    updatePlayers(adversaire, newTour, num_match);
+                    updatePlayers(
+                      adversaire,
+                      newTour,
+                      num_match,
+                      4,
+                      groupe,
+                      0,
+                      listPlayers,
+                      nb_joueurs
+                    );
                   }
                 }
               );
@@ -412,7 +444,6 @@ exports.win_player_cascade = (req, res) => {
               nb_joueurs,
               0
             );
-
             // Si le prochain tour est un tour qui nécessite un barrage et que le joueur sera placé sur le match qui concerne le barrage
             if (
               impair[0] &&
@@ -434,8 +465,9 @@ exports.win_player_cascade = (req, res) => {
                 adversaire,
                 nb_joueurs,
                 1,
-                1,
                 round + 1,
+                groupe,
+                1,
                 listPlayers,
                 nb_joueurs
               );
@@ -444,29 +476,16 @@ exports.win_player_cascade = (req, res) => {
                 impair[1],
                 nb_joueurs_suite
               );
-              // On actualise les données du gagnant
-              connection.query(
-                "update players set id_versus = ?, round = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
-                [
-                  adversaire ? adversaire.numero : 0,
-                  parseInt(round) + (barrage == 1 ? 0 : 1),
-                  num_match,
-                  win,
-                  req.params.id,
-                ],
-                () => {
-                  // Et les données de l'adversaire
-                  if (adversaire) {
-                    connection.query(
-                      "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                      [win, adversaire.numero, req.params.id],
-                      () =>
-                        handleLooser(listPlayers, nb_joueurs, barrage == 1 && 1)
-                    );
-                  } else {
-                    handleLooser(listPlayers, nb_joueurs, barrage == 1 && 1);
-                  }
-                }
+              updatePlayers(
+                adversaire,
+                nb_joueurs,
+                num_match,
+                parseInt(round) + (barrage == 1 ? 0 : 1),
+                groupe,
+                0,
+                listPlayers,
+                nb_joueurs,
+                barrage == 1 && 1
               );
             }
           }
@@ -479,50 +498,60 @@ exports.win_player_cascade = (req, res) => {
     adversaire,
     tour,
     num_match,
-    barrage = 0,
-    round = 0,
+    round,
+    groupe,
+    barrage,
     listPlayers = false,
-    nb_joueurs = false
+    nb_joueurs = false,
+    goBarrage = 0,
+    looser = 0
   ) => {
     if (adversaire) {
       connection.query(
-        "update players set id_versus = ?, class = ?, round = ?, num_match = ?, barrage = ? where numero = ? and id_tournament = ?",
+        "update players set id_versus = ?, class = ?, round = ?, groupe = ?, num_match = ?, barrage = ? where numero = ? and id_tournament = ?",
         [
           adversaire.numero,
           adversaire.class,
           adversaire.round,
+          adversaire.groupe,
           adversaire.num_match,
-          barrage == 1 ? 1 : 0,
-          win,
+          adversaire.barrage,
+          looser == 1 ? lose : win,
           req.params.id,
         ],
         () => {
           connection.query(
             "update players set id_versus = ? where numero = ? and id_tournament = ?",
-            [win, adversaire.numero, req.params.id],
+            [looser == 1 ? lose : win, adversaire.numero, req.params.id],
             () =>
-              handleLooser(listPlayers && listPlayers, nb_joueurs && nb_joueurs)
+              looser == 1
+                ? res.send("Victoire validé")
+                : handleLooser(listPlayers, nb_joueurs, goBarrage == 1 ? 1 : 0)
           );
         }
       );
     } else {
       connection.query(
-        "update players set id_versus = 0, class = ?, round = ?, num_match = ?, barrage = ? where numero = ? and id_tournament = ?",
+        "update players set id_versus = 0, class = ?, round = ?, groupe = ?, num_match = ?, barrage = ? where numero = ? and id_tournament = ?",
         [
           tour,
-          barrage == 1 ? round : 4,
+          round,
+          groupe,
           num_match,
-          barrage == 1 ? 1 : 0,
-          win,
+          barrage,
+          looser == 1 ? lose : win,
           req.params.id,
         ],
-        () => handleLooser(listPlayers, nb_joueurs)
+        () =>
+          looser == 1
+            ? res.send("Victoire validé")
+            : handleLooser(listPlayers, nb_joueurs, goBarrage == 1 ? 1 : 0)
       );
     }
   };
 
   // Fonction qui s'enchaine quand les données du gagnant ont bien été mise a jour, et la on actualise les données du perdant
-  const handleLooser = (listPlayers = 0, nb_joueurs = 0, barrage = 0) => {
+  const handleLooser = (listPlayers, nb_joueurs, barrage) => {
     if (round >= 3 && barrage == 0) {
       connection.query(
         "delete from players where numero = ? and id_tournament = ?",
@@ -541,7 +570,6 @@ exports.win_player_cascade = (req, res) => {
         nb_joueurs,
         1
       );
-
       // Les joueurs qui peuvent etre potentiellement l'adversaire de celui qui a perdu
       const nb_joueurs_suite = listPlayers.filter(
         (p) =>
@@ -553,29 +581,19 @@ exports.win_player_cascade = (req, res) => {
         verif_looser[1],
         nb_joueurs_suite
       );
-      // On actualise les données du perdant
-      connection.query(
-        "update players set id_versus = ?, round = ?, groupe = ?, num_match = ?, barrage = 0 where numero = ? and id_tournament = ?",
-        [
-          adversaire ? adversaire.numero : 0,
-          parseInt(looser.round) + (barrage == 1 ? 0 : 1),
-          verif_looser[0],
-          num_match,
-          lose,
-          req.params.id,
-        ],
-        () => {
-          // Et on adresse le perdant comme nouvelle adversaire pour l'adversaire du perdant
-          if (adversaire) {
-            connection.query(
-              "update players set id_versus = ? where numero = ? and id_tournament = ?",
-              [lose, adversaire.numero, req.params.id],
-              () => res.send("Victoire validé")
-            );
-          } else {
-            res.send("Victoire validé");
-          }
-        }
+      console.log(adversaire);
+      console.log(verif_looser);
+      updatePlayers(
+        adversaire,
+        nb_joueurs,
+        num_match,
+        parseInt(looser.round) + (barrage == 1 ? 0 : 1),
+        verif_looser[0],
+        0,
+        0,
+        0,
+        0,
+        1
       );
     }
   };
