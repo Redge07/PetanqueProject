@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { data } from "react-router-dom";
 
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
@@ -162,8 +161,13 @@ const Participant = ({ player }) => {
               <h3>
                 Vous participez au tournoi {dataPlayer.tournamentName} qui est
                 en {dataPlayer.style} et vous etes dans le groupe{" "}
-                {dataPlayer.groupe} au round {dataPlayer.round}. Numero :{" "}
-                {dataPlayer.numero}
+                {dataPlayer.groupe}{" "}
+                {dataPlayer.round == 4 ? (
+                  <span>en 1/{dataPlayer.class} de finale</span>
+                ) : (
+                  <span>au round {dataPlayer.round}</span>
+                )}
+                . Numero : {dataPlayer.numero}
               </h3>
               <p>
                 {" "}
