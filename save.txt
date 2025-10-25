@@ -1,3 +1,5 @@
-select from tour pechage
-Mettre a jour l'affichage participant et tournament
-Bien commenter
+Passer les fonctions looser et update en dehors
+Préciser les colonne voulu en requete SQL
+Faire gaffe au map qui ont des useState pas rempli encore
+Découper en plusieurs composant (comme match)
+Vainqueurs des groupes pour cascade

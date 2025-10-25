@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, use } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { UsersContext } from "../App";
 import axios from "axios";
@@ -56,9 +56,6 @@ const Tournament = () => {
         setListPlayers(res.data);
         setResponseWin("");
         const { rounds, groupes, tours } = createPaires(res.data.results);
-        console.log(rounds);
-        console.log(groupes);
-        console.log(tours);
         setPaireInfos({ rounds, groupes, tours });
       });
   };
@@ -350,6 +347,7 @@ const Tournament = () => {
                       ["A", "B", "B2", "C"].indexOf(b)
                   )
                   .map((g) => {
+                    // Si y'a personne dans ce groupe on peut arreter la et ne rien n'afficher
                     if (
                       listPlayers.results.filter((v) => v.groupe == g).length ==
                       0
@@ -363,6 +361,7 @@ const Tournament = () => {
                           {pairesInfos.rounds
                             .sort((a, b) => b - a)
                             .map((r) => {
+                              // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
                               if (
                                 listPlayers.results.filter(
                                   (v) => v.groupe == g && v.round == r
@@ -376,6 +375,7 @@ const Tournament = () => {
                                     {pairesInfos.tours
                                       .sort((a, b) => a - b)
                                       .map((t) => {
+                                        // On récupère tous les matchs qui correspondent a ce groupe, ce round et ce tour la
                                         const versusMain =
                                           listPlayers.results.filter(
                                             (versus) =>
@@ -383,7 +383,7 @@ const Tournament = () => {
                                               versus.round == r &&
                                               versus.class == t
                                           );
-                                        // Si le groupe en question ne contient de matchs a ce round la, ça sert a rien d'afficher
+                                        // Si y'a aucun match dans ce round, ce groupe et ce tour on peut arreter la et ne rien n'afficher
                                         if (versusMain.length == 0) {
                                           return null;
                                         } else {
@@ -408,6 +408,7 @@ const Tournament = () => {
                                                 } else {
                                                   return (
                                                     <div key={versus.key}>
+                                                      {/* Montre infos entre joueur A et joueur B potentiel */}
                                                       <p>
                                                         Le joueur numéro{" "}
                                                         {versus.joueurA.numero}{" "}
@@ -430,6 +431,7 @@ const Tournament = () => {
                                                           </span>
                                                         )}
                                                       </p>
+                                                      {/* Si y'a bien joueur B pour le match alors on peut déclarer un vainqueur et donc afficher les boutons*/}
                                                       {versus.joueurB && (
                                                         <div>
                                                           <button

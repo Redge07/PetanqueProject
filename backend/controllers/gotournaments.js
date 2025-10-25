@@ -257,6 +257,8 @@ exports.win_player_arbre = (req, res) => {
 // Pour le gagnant on retourne l'information si le prochain tour va necessité un barrage et le nombre de matchs du prochain tour
 // Pour le perdant on retourne le nouveau groupe puisqu'il descend et aussi le nombre de match de son prochain tour
 const verif_impaire = (groupe, round, nb_joueurs, lose = 0) => {
+  // Objet qui présente le potentiel parcourt d'un joueur, donc pour le C c'est un gars qui a perdu les 2 premiers et a gagné le dernier, et la dernière valeur représente le groupe mets sous forme d'entier, donc A = 1
+  // Des l'entrée on connait le parcours du joueur grace a son groupe
   const groupes = {
     A: [0, 0, 0, 1],
     B: [1, 0, 0, 2],
@@ -264,27 +266,43 @@ const verif_impaire = (groupe, round, nb_joueurs, lose = 0) => {
     C: [1, 1, 0, 4],
   };
   const newGroupes = { 1: "A", 2: "B", 3: "B2", 4: "C" };
+  // On récupère le nombre de gagnant qu'il y aura a un certain tour, on commence toujours avec le nombre de joueurs inscrit au tournoi de base
+  // Donc la on connait deja le nombre de joueurs qui seront au round 2
   let nb_qualif = nb_joueurs / 2;
+  // Variable situation pour connaitre le nombre de match et si on aura besoin d'un barrage pour le prochain round
   let situation;
+  // i représentera le round, i = 0 veut dire round 1
   for (let i = 0; i < round; i++) {
     situation = {
+      // Si un nombre de gagnant impair alors un match de plus pour faire le barrage
       nb_matchs: (nb_qualif % 2 == 0 ? nb_qualif : nb_qualif + 1) / 2,
       impair: nb_qualif % 2 == 0 ? false : true,
     };
+
+    // On connait donc la situation pour le prochain round
+    // Maintenant on calcul le nombre de qualifier pour la prochaine boucle, pour le premier tour de boucle on connait deja le nombre de joueurs qui seront censé etre au 3eme round
     nb_qualif =
       (situation.impair
-        ? groupes[groupe][i] == 1
-          ? nb_qualif + 1
-          : nb_qualif - 1
+        ? // En connaissant son parcours, on peut savoir si au round i il gagne ou perd par rapport a son groupe, par exemple dans tous les cas un i = 0 (round 1) qui est groupe C a perdu au premier match (forcément, je refait l'arbre de probabilité en gros)
+          groupes[groupe][i] == 1
+          ? // + 1 car on va récupérer le perdant du barrage du groupe d'au-dessus
+            nb_qualif + 1
+          : // - 1 car on va perdre le perdant du barrage
+            nb_qualif - 1
         : nb_qualif) / 2;
+    // en finissant le 2eme tour de boucle on connait deja le nombre de joueurs qui sont censé se qualifier apres le 3eme match de poule (donc le nombre de joueurs qui vont rejoindre l'arbre)
+    // Et donc on enverra l'info au gagnant du 3eme round comment il doit se placer pour la suite (combien en pechage et tout)
     if (i == 1 && round == 3) {
       const p2 = 2 ** Math.floor(Math.log2(nb_qualif));
       const prelim = (nb_qualif - p2) * 2;
       return [nb_qualif, prelim, p2];
     }
   }
+  // Calcul du groupe pour le perdant
   const newGroupe =
+    // En ayant mis les groupes sous forme de numéro on peut trouver le prochain groupe du perdant avecune simple addition du round auquel il a perdu
     newGroupes[groupes[groupe][groupes[groupe].length - 1] + round];
+  // En fonction de si il s'agit d'une défaite ou d'une victoire on renvoie pas la meme réponse
   return lose == 1
     ? [newGroupe, situation.nb_matchs]
     : [situation.impair, situation.nb_matchs];
@@ -325,6 +343,7 @@ exports.win_player_cascade = (req, res) => {
     (err, results) => {
       // On récupère le nombre de joueurs dans le tournoi
       const nb_joueurs = results[0].nb_joueurs;
+      // On récupère l'info de si les arbres de chaque groupe ont une phase de pechage en cours ou fini
       const pechage = {
         PA: results[0].PA,
         PB: results[0].PB,
@@ -337,10 +356,13 @@ exports.win_player_cascade = (req, res) => {
         (err, results) => {
           // On récupère tous les joueurs du tournoi
           const listPlayers = results;
+          // Si il s'agit d'un match qui est dans l'arbre
           if (round == 4) {
+            // On récupère les joueurs qui sont dans le meme groupe et dans le tour d'au-dessus
             const nb_joueurs_suite = listPlayers.filter(
               (p) => p.groupe == groupe && p.class == tour / 2
             );
+            // Ensuite on récupère l'adversaire potentiel et on met a jour les infos du gagnant, du perdant et du potentiel adversaire
             const nb_matchs = tour / 2;
             const { adversaire, num_match } = returnAdversaire(
               nb_matchs,
@@ -357,8 +379,11 @@ exports.win_player_cascade = (req, res) => {
               listPlayers,
               nb_joueurs
             );
+            // Si il s'agit d'un match qui conclut la phase de poules pour les 2 joueurs (donc passer au faits que le gagnant passe a l'arbre)
           } else if (round == 3 && barrage == 0) {
+            // Récupérer les infos de l'arbre pour savoir le nombre de qualifiers (en géneral) pour l'arbre du groupe en question, le nombre de joueurs qui seront en pechage et le nombre de joueurs souhaité pour passer a un arbre classique (puissance de 2)
             const infosArbre = verif_impaire(groupe, round, nb_joueurs, 0);
+            // Les joueurs qui sont deja dans l'arbre
             let nb_joueurs_suite = listPlayers.filter(
               (p) => p.groupe == groupe && p.class < nb_joueurs
             );
@@ -374,6 +399,7 @@ exports.win_player_cascade = (req, res) => {
                 listPlayers,
                 nb_joueurs
               );
+              // Le premier joueur qui rentre permet de savoir si le groupe en question a une phase de pechage en cours (donc la le premier joueur déclenche le fait qu'il faut une phase de pechage)
               if (infosArbre[1] != 0) {
                 connection.query(
                   `update tournaments set P${groupe} = 1 where id = ${req.params.id}`
@@ -381,7 +407,7 @@ exports.win_player_cascade = (req, res) => {
               }
               // Sinon un joueur a deja intégré l'arbre
             } else {
-              // Si y'a une phase de pechage
+              // Si y'a une phase de pechage en cours, alors le joueur vas y passer
               if (pechage["P" + groupe] == 1) {
                 nb_joueurs_suite = nb_joueurs_suite.filter(
                   (p) => p.class == infosArbre[2]
@@ -391,6 +417,7 @@ exports.win_player_cascade = (req, res) => {
                   nb_matchs,
                   nb_joueurs_suite
                 );
+                // Si le joueur prend la dernière place qui avait dans la phase de pechage alors il l'a cloture (plus personne ne pourra intégré cette phase et passera directement au tour suivant)
                 if (adversaire && num_match == infosArbre[1] / 2) {
                   connection.query(
                     `update tournaments set P${groupe} = 0 where id = ${req.params.id}`
@@ -407,6 +434,7 @@ exports.win_player_cascade = (req, res) => {
                   listPlayers,
                   nb_joueurs
                 );
+                // Il n'y a pas de phase de pechage en cours (soit y'en a pas de base soit un joueur a deja pris la dernière place qui restait), mettre le joueur dans la phase d'au-dessus (au final le tour classique pour débuter l'arbre)
               } else {
                 nb_joueurs_suite = nb_joueurs_suite.filter(
                   (p) => p.class == infosArbre[2] / 2
@@ -429,6 +457,7 @@ exports.win_player_cascade = (req, res) => {
                 );
               }
             }
+            // Sinon c'est un match qui s'est fini dans la phase de poules et le gagnant et perdant vont continuer le tournoi dans leur groupes respectif
           } else {
             // On récupère les joueurs qui représente les futurs adversaire du gagnant en fonction de ses caractéristiques, exception pour un joueur qui est en barrage car il est dans une situation ou si ils gagnent il reste dans le meme round au final
             const nb_joueurs_suite = listPlayers.filter(
@@ -444,7 +473,7 @@ exports.win_player_cascade = (req, res) => {
               nb_joueurs,
               0
             );
-            // Si le prochain tour est un tour qui nécessite un barrage et que le joueur sera placé sur le match qui concerne le barrage
+            // Si le prochain tour est un tour qui nécessite un barrage et que le joueur sera placé sur le match qui concerne le barrage (concerne uniquement les joueurs qui ont gagné un match qui n'est pas un barrage evidemment)
             if (
               impair[0] &&
               (nb_joueurs_suite.length == 0 ||
@@ -471,6 +500,7 @@ exports.win_player_cascade = (req, res) => {
                 listPlayers,
                 nb_joueurs
               );
+              // Sinon le gagnant sera placés dans un match normal au prochain tour
             } else {
               const { adversaire, num_match } = returnAdversaire(
                 impair[1],
@@ -494,6 +524,8 @@ exports.win_player_cascade = (req, res) => {
     }
   );
 
+  // Fonction qui met a jour les données du gagnant ou du perdant et change les données du potentiel adversaire
+  // Si il s'agit d'un gagnant la fonction renverra vers une nouvelle fonction pour gérer le cas du perdant, si il s'agit du perdant ca veut dire que les données du perdant et du gagnant ont été changer et donc on peut renvoyer la réponse de l'API a l'utilisateur
   const updatePlayers = (
     adversaire,
     tour,
@@ -503,6 +535,7 @@ exports.win_player_cascade = (req, res) => {
     barrage,
     listPlayers = false,
     nb_joueurs = false,
+    // dit que le joueur vient d'un match de barrage (fromBarrage plutot)
     goBarrage = 0,
     looser = 0
   ) => {
@@ -552,12 +585,14 @@ exports.win_player_cascade = (req, res) => {
 
   // Fonction qui s'enchaine quand les données du gagnant ont bien été mise a jour, et la on actualise les données du perdant
   const handleLooser = (listPlayers, nb_joueurs, barrage) => {
+    // Si le perdant a perdu son dernier match ou il a perdu dans l'arbre alors on le supprime
     if (round >= 3 && barrage == 0) {
       connection.query(
         "delete from players where numero = ? and id_tournament = ?",
         [lose, req.params.id],
         () => res.send("Victoire validé")
       );
+      // Sinon on va le faire rétrograder au groupe d'en-dessous
     } else {
       // On récupère le joueurs qui a perdu
       const looser = listPlayers.find(
