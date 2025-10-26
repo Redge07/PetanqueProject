@@ -77,6 +77,7 @@ const Organisation = ({ player }) => {
           <select name="style_tournament">
             <option value="arbre">Arbre</option>
             <option value="cascade">Cascade</option>
+            <option value="classement">Classement</option>
           </select>
           <input type="submit" value="Créer" />
           {/* Bouton pour annuler le fait de créer un tournoi et donc reppasser le state "addTournament" a false */}

@@ -1,5 +1,9 @@
 Passer les fonctions looser et update en dehors
+Comme les connections sont asynchrones, il faut faire gaffe ca attend pas que les autres finissent
 Préciser les colonne voulu en requete SQL
 Faire gaffe au map qui ont des useState pas rempli encore
 Découper en plusieurs composant (comme match)
-Vainqueurs des groupes pour cascade
+Vainqueurs des groupes pour cascade, garder le vainqueur en BD, préciser + pour la 
+page participant (quel tournoi gagné et quelle groupe)
+Quand j'utilise une API, directement faire des connections pour récupérer les données des bases
+et ensuite les manipulé avec les fonctions JS

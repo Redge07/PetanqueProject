@@ -34,10 +34,18 @@ exports.delete = (req, res) => {
     [req.params.id],
     (err, results) => {
       connection.query(
-        "delete from tournaments where id = ?",
+        "delete from matches where id_tournament = ?",
         [req.params.id],
-        (err, results) => {
-          res.send(`Le tournoi numéro ${req.params.id} à bien été supprimé`);
+        () => {
+          connection.query(
+            "delete from tournaments where id = ?",
+            [req.params.id],
+            (err, results) => {
+              res.send(
+                `Le tournoi numéro ${req.params.id} à bien été supprimé`
+              );
+            }
+          );
         }
       );
     }

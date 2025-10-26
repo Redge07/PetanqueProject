@@ -62,6 +62,55 @@ function shuffleArray(array) {
   return arr;
 }
 
+// Génère les paires de chaque tour (méthode du cercle)
+function roundRobinPairs(ids) {
+  const n = ids.length;
+  const arr = [...ids];
+  const rounds = [];
+
+  for (let r = 0; r < n - 1; r++) {
+    const pairs = [];
+    for (let i = 0; i < n / 2; i++) {
+      pairs.push([arr[i], arr[n - 1 - i]]);
+    }
+    rounds.push(pairs);
+
+    // Rotation des joueurs sauf le premier
+    const fixed = arr[0];
+    const rest = arr.slice(1);
+    rest.unshift(rest.pop());
+    arr.splice(0, arr.length, fixed, ...rest);
+  }
+  return rounds;
+}
+
+// Sélectionne nbAdversaires tours aléatoires et construit la map joueur -> adversaires
+function generateMatches(players, nbAdversaires = 3) {
+  const ids = players.map((p) => p.numero);
+
+  // Tous les tours possibles sans doublons
+  const allRounds = roundRobinPairs(ids);
+
+  // On choisit nbAdversaires tours au hasard
+  const chosen = [...allRounds]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, nbAdversaires);
+
+  // Initialise la map joueur -> [adv1, adv2, adv3]
+  const matches = {};
+  ids.forEach((id) => (matches[id] = Array(nbAdversaires).fill(null)));
+
+  // Remplit les adversaires symétriquement
+  chosen.forEach((pairs, roundIdx) => {
+    pairs.forEach(([a, b]) => {
+      matches[a][roundIdx] = b;
+      matches[b][roundIdx] = a;
+    });
+  });
+
+  return matches;
+}
+
 // API pour lancer le tournoi
 exports.go_tournament = (req, res) => {
   // Dans un premier temps je supprime les joueurs qui n'ont pas été accepté au tournoi
@@ -131,7 +180,7 @@ exports.go_tournament = (req, res) => {
                           );
                         }
                       }
-                    } else {
+                    } else if (style == "cascade") {
                       const listPlayersM = shuffleArray(listPlayers);
                       for (let i = 0; i < listPlayersM.length; i++) {
                         connection.query(
@@ -147,6 +196,52 @@ exports.go_tournament = (req, res) => {
                           ]
                         );
                       }
+                    } else {
+                      const result = generateMatches(listPlayers, 3);
+                      const matches = [];
+                      for (let i = 1; i <= listPlayers.length; i++) {
+                        result[i].forEach((a, index) => {
+                          const key = `${Math.min(i, a)}-${Math.max(i, a)}`;
+                          if (!matches.find((m) => m.key == key)) {
+                            matches.push({
+                              key,
+                              idA: i,
+                              idB: a,
+                              pseudoA: listPlayers.find((p) => p.numero == i)
+                                .pseudo,
+                              pseudoB: listPlayers.find((p) => p.numero == a)
+                                .pseudo,
+                              round: index + 1,
+                            });
+                          }
+                        });
+                      }
+                      listPlayers.forEach((p) => {
+                        connection.query(
+                          "update players set id_versus = ?, class = ?, round = 1, groupe = ?, matches = ? where numero = ? and id_tournament = ?",
+                          [
+                            [result[p.numero][0]],
+                            listPlayers.length,
+                            null,
+                            result[p.numero].join("-"),
+                            p.numero,
+                            p.id_tournament,
+                          ]
+                        );
+                      });
+                      matches.forEach((m) => {
+                        connection.query(
+                          "insert into matches (id_tournament, round, id_playerA, id_playerB, pseudoA, pseudoB, scoreA, scoreB, id_winner) values(?,?,?,?,?,?,0,0,0)",
+                          [
+                            req.params.id,
+                            m.round,
+                            m.idA,
+                            m.idB,
+                            m.pseudoA,
+                            m.pseudoB,
+                          ]
+                        );
+                      });
                     }
                     // Et forcément j'actualise le fait que le tournoi a commencé
                     connection.query(
@@ -630,4 +725,8 @@ exports.win_player_cascade = (req, res) => {
       );
     }
   };
+};
+
+exports.win_player_classement = (req, res) => {
+  const { win, lose } = req.body;
 };
