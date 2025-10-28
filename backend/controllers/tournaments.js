@@ -54,11 +54,13 @@ exports.charge = (req, res) => {
                 match.joueurA = {
                   numero: results[i].numero,
                   pseudo: results[i].pseudo,
+                  matches: results[i].matches,
                 };
               } else {
                 match.joueurB = {
                   numero: results[i].numero,
                   pseudo: results[i].pseudo,
+                  matches: results[i].matches,
                 };
               }
             }

@@ -190,6 +190,45 @@ const Tournament = () => {
       });
   };
 
+  const handleWinnerClassement = (e, numeroA, numeroB) => {
+    e.preventDefault();
+    if (e.target.elements.scoreA.value == e.target.elements.scoreB.value) {
+      setResponseWin("Il ne peut pas y avoir d'égalité ou de cases vides");
+    } else {
+      const [win, lose, scoreWin, scoreLose] =
+        e.target.elements.scoreA.value > e.target.elements.scoreB.value
+          ? [
+              numeroA,
+              numeroB,
+              e.target.elements.scoreA.value,
+              e.target.elements.scoreB.value,
+            ]
+          : [
+              numeroB,
+              numeroA,
+              e.target.elements.scoreB.value,
+              e.target.elements.scoreA.value,
+            ];
+      axios
+        .put(
+          "http://localhost:5000/gotournaments/win_player_classement/" +
+            idTournament,
+          {
+            win,
+            lose,
+            scoreWin,
+            scoreLose,
+          }
+        )
+        .then((res) => {
+          setResponseWin(res.data);
+          setTimeout(() => {
+            recharge();
+          }, 1000);
+        });
+    }
+  };
+
   useEffect(() => {
     recharge();
   }, []);
@@ -493,6 +532,80 @@ const Tournament = () => {
                     }
                   })}
               </div>
+            </div>
+          )}
+          {listPlayers.style == "classement" && (
+            <div>
+              <h3>Tournoi en Classement</h3>
+              <p>{responseWin}</p>
+              {pairesInfos.rounds
+                .sort((a, b) => b - a)
+                .map((r) => {
+                  if (r == 4) {
+                    return <h3>On verra plus tard round 4 (arbre)</h3>;
+                  } else {
+                    return (
+                      <div key={r}>
+                        <h3>Round {r}</h3>
+                        {listPlayers.results
+                          .filter((m) => m.round == r)
+                          .map((m) => {
+                            const number =
+                              m.joueurA.matches.split("-")[m.round - 1];
+                            const potentielAdversaire =
+                              listPlayers.results.find(
+                                (m) =>
+                                  m.joueurA.numero == number ||
+                                  (m.joueurB
+                                    ? m.joueurB.numero == number
+                                    : m.joueurA.numero == number)
+                              );
+                            const pseudo =
+                              potentielAdversaire.joueurA.numero == number
+                                ? potentielAdversaire.joueurA.pseudo
+                                : potentielAdversaire.joueurB.pseudo;
+                            return (
+                              <div key={m.key}>
+                                <p>
+                                  {m.joueurA.pseudo} vs{" "}
+                                  {m.joueurB ? m.joueurB.pseudo : pseudo}
+                                </p>
+                                <form
+                                  onSubmit={(e) =>
+                                    handleWinnerClassement(
+                                      e,
+                                      m.joueurA.numero,
+                                      m.joueurB.numero
+                                    )
+                                  }
+                                >
+                                  <input
+                                    type="number"
+                                    placeholder={`Entrer le score de ${m.joueurA.pseudo}`}
+                                    disabled={!m.joueurB}
+                                    name="scoreA"
+                                  />
+                                  <input
+                                    type="number"
+                                    placeholder={`Entrer le score de ${
+                                      m.joueurB ? m.joueurB.pseudo : pseudo
+                                    }`}
+                                    disabled={!m.joueurB}
+                                    name="scoreB"
+                                  />
+                                  <input
+                                    type="submit"
+                                    value="Valider"
+                                    disabled={!m.joueurB}
+                                  />
+                                </form>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    );
+                  }
+                })}
             </div>
           )}
         </div>

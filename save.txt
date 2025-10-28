@@ -1,5 +1,3 @@
-Optimiser le code (win_classement répétitif)
-Interface Tournament (Entrer le score et valider le match)
 Visualisation classement (crée un components)
 Backend Mise en tournoi (les 8 premiers en A pour l'arbre)
 

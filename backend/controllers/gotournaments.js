@@ -734,19 +734,11 @@ exports.win_player_classement = (req, res) => {
     [req.params.id],
     (err, results) => {
       const listPlayers = results;
-      const playersWin = listPlayers.find(
-        (p) => p.numero == win && p.id_tournament == req.params.id
-      );
-      const adversaireWin = listPlayers.find(
-        (p) => p.numero == playersWin.matches.split("-")[playersWin.round]
-      );
       connection.query(
         "SELECT * FROM matches WHERE ((id_PlayerA = ? AND id_PlayerB = ?) OR (id_PlayerA = ? AND id_PlayerB = ?)) AND id_tournament = ?",
         [win, lose, lose, win, req.params.id],
         (err, results) => {
           const match = results[0];
-          console.log(match);
-
           connection.query(
             "update matches set scoreA = ?, scoreB = ?, id_winner = ? where ((id_PlayerA = ? AND id_PlayerB = ?) OR (id_PlayerA = ? AND id_PlayerB = ?)) AND id_tournament = ?",
             [
@@ -760,9 +752,11 @@ exports.win_player_classement = (req, res) => {
               req.params.id,
             ],
             () => {
-              if (playersWin.round == 3) {
-                console.log(win);
-
+              if (
+                listPlayers.find(
+                  (p) => p.numero == win && p.id_tournament == req.params.id
+                ).round == 3
+              ) {
                 connection.query(
                   "update players set id_versus = 0, round = 4 where numero = ? and id_tournament = ?",
                   [win, req.params.id],
@@ -775,28 +769,7 @@ exports.win_player_classement = (req, res) => {
                   }
                 );
               } else {
-                connection.query(
-                  "update players set id_versus = ?, round = ? where numero = ? and id_tournament = ?",
-                  [
-                    playersWin.round == adversaireWin.round - 1
-                      ? adversaireWin.numero
-                      : 0,
-                    playersWin.round + 1,
-                    win,
-                    req.params.id,
-                  ],
-                  () => {
-                    if (playersWin.round == adversaireWin.round - 1) {
-                      connection.query(
-                        "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                        [win, adversaireWin.numero, req.params.id],
-                        () => handleLooser(listPlayers)
-                      );
-                    } else {
-                      handleLooser(listPlayers);
-                    }
-                  }
-                );
+                updatePlayers(listPlayers, win);
               }
             }
           );
@@ -804,32 +777,36 @@ exports.win_player_classement = (req, res) => {
       );
     }
   );
-  const handleLooser = (listPlayers) => {
-    const playersLose = listPlayers.find(
-      (p) => p.numero == lose && p.id_tournament == req.params.id
+
+  const updatePlayers = (listPlayers, numero) => {
+    const players = listPlayers.find(
+      (p) => p.numero == numero && p.id_tournament == req.params.id
     );
-    const adversaireLose = listPlayers.find(
-      (p) => p.numero == playersLose.matches.split("-")[playersLose.round]
+    const adversaire = listPlayers.find(
+      (p) => p.numero == players.matches.split("-")[players.round]
     );
     connection.query(
       "update players set id_versus = ?, round = ? where numero = ? and id_tournament = ?",
       [
-        playersLose.round == adversaireLose.round - 1
-          ? adversaireLose.numero
-          : 0,
-        playersLose.round + 1,
-        lose,
+        players.round == adversaire.round - 1 ? adversaire.numero : 0,
+        players.round + 1,
+        numero,
         req.params.id,
       ],
       () => {
-        if (playersLose.round == adversaireLose.round - 1) {
+        if (players.round == adversaire.round - 1) {
           connection.query(
             "update players set id_versus = ? where numero = ? and id_tournament = ?",
-            [lose, adversaireLose.numero, req.params.id],
-            () => res.send("Victoire validé")
+            [numero, adversaire.numero, req.params.id],
+            () =>
+              numero == win
+                ? updatePlayers(listPlayers, lose)
+                : res.send("Victoire validé")
           );
         } else {
-          res.send("Victoire validé");
+          numero == win
+            ? updatePlayers(listPlayers, lose)
+            : res.send("Victoire validé");
         }
       }
     );
