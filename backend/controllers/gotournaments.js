@@ -464,6 +464,9 @@ exports.win_player_cascade = (req, res) => {
               nb_joueurs_suite
             );
             const newTour = tour / 2;
+            console.log(newTour);
+            console.log(adversaire);
+
             updatePlayers(
               adversaire,
               newTour,
@@ -659,6 +662,8 @@ exports.win_player_cascade = (req, res) => {
         }
       );
     } else {
+      console.log("test" + tour);
+
       connection.query(
         "update players set id_versus = 0, class = ?, round = ?, groupe = ?, num_match = ?, barrage = ? where numero = ? and id_tournament = ?",
         [
