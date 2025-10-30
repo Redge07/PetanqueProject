@@ -817,3 +817,73 @@ exports.win_player_classement = (req, res) => {
     );
   };
 };
+
+exports.charge_classement = (req, res) => {
+  connection.query(
+    "select * from matches where id_tournament = ? and round < 4",
+    [req.params.id],
+    (err, results) => {
+      let players = [];
+      results.forEach((m) => {
+        let playerA = players.find((p) => p.numero == m.id_playerA);
+        if (!playerA) {
+          players.push({
+            numero: m.id_playerA,
+            pseudo: m.pseudoA,
+            points: m.id_winner == m.id_playerA ? m.scoreA + 5 : m.scoreA,
+            nb_matchs_jouer: m.id_winner > 0 ? 1 : 0,
+          });
+        } else if (m.id_winner > 0) {
+          const points = playerA.points;
+          const nb_matchs_jouer = playerA.nb_matchs_jouer;
+          playerA.points =
+            points + (m.id_winner == playerA.numero ? m.scoreA + 5 : m.scoreA);
+          playerA.nb_matchs_jouer = nb_matchs_jouer + 1;
+        }
+        let playerB = players.find((p) => p.numero == m.id_playerB);
+        if (!playerB) {
+          players.push({
+            numero: m.id_playerB,
+            pseudo: m.pseudoB,
+            points: m.id_winner == m.id_playerB ? m.scoreB + 5 : m.scoreB,
+            nb_matchs_jouer: m.id_winner > 0 ? 1 : 0,
+          });
+        } else if (m.id_winner > 0) {
+          const points = playerB.points;
+          const nb_matchs_jouer = playerB.nb_matchs_jouer;
+          playerB.points =
+            points + (m.id_winner == playerB.numero ? m.scoreB + 5 : m.scoreB);
+          playerB.nb_matchs_jouer = nb_matchs_jouer + 1;
+        }
+      });
+      res.json(players);
+    }
+  );
+};
+
+function melanger(array) {
+  const shuffled = [...array]; // on copie pour ne pas modifier l’original
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)); // index aléatoire
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // on échange
+  }
+  return shuffled;
+}
+
+exports.create_arbre_classement = (req, res) => {
+  let { listPlayersA } = req.body;
+  listPlayersA = melanger(listPlayersA);
+  listPlayersA.forEach((p, i) => {
+    connection.query(
+      "update players set id_versus = ?, class = ?, groupe = ? where numero = ? and id_tournament = ?",
+      [
+        i % 2 == 0 ? listPlayersA[i + 1].numero : listPlayersA[i - 1].numero,
+        listPlayersA.length / 2,
+        "A",
+        p.numero,
+        req.params.id,
+      ]
+    );
+  });
+  res.send("Le tournoi est lancé");
+};

@@ -1,5 +1,8 @@
-Visualisation classement (crée un components)
 Backend Mise en tournoi (les 8 premiers en A pour l'arbre)
+Tournoi A et B, enlever bouton lancé tournoi comme si au final y'a 2 start
+et donc y'a un affichage poule et un affichage arbre
+Faudra bien faire l'ecran participant
+Bien commenter comme dab
 
 
 Passer les fonctions looser et update en dehors

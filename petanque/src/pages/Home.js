@@ -17,10 +17,10 @@ const Home = () => {
     setLogin(false);
     navigate("/");
   };
-  // useEffect(() => {
-  //   setLogin(true);
-  //   setPlayer({ player: { id: 6, pseudo: "Admin" } });
-  // }, []);
+  useEffect(() => {
+    setLogin(true);
+    setPlayer({ player: { id: 1, pseudo: "Régis" } });
+  }, []);
   if (!login) {
     return (
       <div>
@@ -28,7 +28,6 @@ const Home = () => {
         <NavLink to={"/"}>Se connecter</NavLink>
       </div>
     );
-  } else {
   }
   return (
     <div>

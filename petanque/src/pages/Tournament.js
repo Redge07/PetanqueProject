@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { UsersContext } from "../App";
 import axios from "axios";
+import Order from "../components/Order";
 
 const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
@@ -19,11 +20,21 @@ const Tournament = () => {
   const [responseWin, setResponseWin] = useState("");
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
   const [pairesInfos, setPaireInfos] = useState({});
+  const [order, setOrder] = useState(false);
+  // useEffect(() => {
+  //   if (!login) {
+  //     navigate("/");
+  //   }
+  // }, []);
+
+  const [dataOrder, setDataOrder] = useState([]);
   useEffect(() => {
-    if (!login) {
-      navigate("/");
-    }
-  }, []);
+    axios
+      .get(
+        "http://localhost:5000/gotournaments/charge_classement/" + idTournament
+      )
+      .then((res) => setDataOrder(res.data));
+  }, [order]);
 
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
@@ -196,7 +207,8 @@ const Tournament = () => {
       setResponseWin("Il ne peut pas y avoir d'égalité ou de cases vides");
     } else {
       const [win, lose, scoreWin, scoreLose] =
-        e.target.elements.scoreA.value > e.target.elements.scoreB.value
+        Number(e.target.elements.scoreA.value) >
+        Number(e.target.elements.scoreB.value)
           ? [
               numeroA,
               numeroB,
@@ -209,6 +221,13 @@ const Tournament = () => {
               e.target.elements.scoreB.value,
               e.target.elements.scoreA.value,
             ];
+      console.log(`numero : ${numeroA} ${numeroB}`);
+      console.log(
+        `score : ${e.target.elements.scoreA.value} ${e.target.elements.scoreB.value}`
+      );
+
+      console.log(`données : ${win} ${lose} ${scoreWin} ${scoreLose}`);
+
       axios
         .put(
           "http://localhost:5000/gotournaments/win_player_classement/" +
@@ -227,6 +246,19 @@ const Tournament = () => {
           }, 1000);
         });
     }
+  };
+
+  const handleGoArbreClassement = () => {
+    const listPlayersA = dataOrder
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 8);
+    axios
+      .put(
+        "http://localhost:5000/gotournaments/create_arbre_classement/" +
+          idTournament,
+        { listPlayersA }
+      )
+      .then((res) => setResponseWin(res.data));
   };
 
   useEffect(() => {
@@ -536,76 +568,94 @@ const Tournament = () => {
           )}
           {listPlayers.style == "classement" && (
             <div>
-              <h3>Tournoi en Classement</h3>
-              <p>{responseWin}</p>
-              {pairesInfos.rounds
-                .sort((a, b) => b - a)
-                .map((r) => {
-                  if (r == 4) {
-                    return <h3>On verra plus tard round 4 (arbre)</h3>;
-                  } else {
-                    return (
-                      <div key={r}>
-                        <h3>Round {r}</h3>
-                        {listPlayers.results
-                          .filter((m) => m.round == r)
-                          .map((m) => {
-                            const number =
-                              m.joueurA.matches.split("-")[m.round - 1];
-                            const potentielAdversaire =
-                              listPlayers.results.find(
-                                (m) =>
-                                  m.joueurA.numero == number ||
-                                  (m.joueurB
-                                    ? m.joueurB.numero == number
-                                    : m.joueurA.numero == number)
-                              );
-                            const pseudo =
-                              potentielAdversaire.joueurA.numero == number
-                                ? potentielAdversaire.joueurA.pseudo
-                                : potentielAdversaire.joueurB.pseudo;
-                            return (
-                              <div key={m.key}>
-                                <p>
-                                  {m.joueurA.pseudo} vs{" "}
-                                  {m.joueurB ? m.joueurB.pseudo : pseudo}
-                                </p>
-                                <form
-                                  onSubmit={(e) =>
-                                    handleWinnerClassement(
-                                      e,
-                                      m.joueurA.numero,
-                                      m.joueurB.numero
-                                    )
-                                  }
-                                >
-                                  <input
-                                    type="number"
-                                    placeholder={`Entrer le score de ${m.joueurA.pseudo}`}
-                                    disabled={!m.joueurB}
-                                    name="scoreA"
-                                  />
-                                  <input
-                                    type="number"
-                                    placeholder={`Entrer le score de ${
-                                      m.joueurB ? m.joueurB.pseudo : pseudo
-                                    }`}
-                                    disabled={!m.joueurB}
-                                    name="scoreB"
-                                  />
-                                  <input
-                                    type="submit"
-                                    value="Valider"
-                                    disabled={!m.joueurB}
-                                  />
-                                </form>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    );
-                  }
-                })}
+              <button onClick={() => setOrder(false)}>Matchs</button>
+              <button onClick={() => setOrder(true)}>Classement</button>
+              {dataOrder.length != 0 &&
+                dataOrder.filter((j) => j.nb_matchs_jouer == 3).length ==
+                  dataOrder.length && (
+                  <button onClick={handleGoArbreClassement}>
+                    Go Tournoi en arbre
+                  </button>
+                )}
+              {!order && (
+                <div>
+                  <h3>Tournoi en Classement</h3>
+                  <p>{responseWin}</p>
+                  {pairesInfos.rounds
+                    .sort((a, b) => b - a)
+                    .map((r) => {
+                      if (r == 4) {
+                        return <h3>On verra plus tard round 4 (arbre)</h3>;
+                      } else {
+                        return (
+                          <div key={r}>
+                            <h3>Round {r}</h3>
+                            {listPlayers.results
+                              .filter((m) => m.round == r)
+                              .map((m) => {
+                                const number =
+                                  m.joueurA.matches.split("-")[m.round - 1];
+                                const potentielAdversaire =
+                                  listPlayers.results.find(
+                                    (m) =>
+                                      m.joueurA.numero == number ||
+                                      (m.joueurB
+                                        ? m.joueurB.numero == number
+                                        : m.joueurA.numero == number)
+                                  );
+                                const pseudo =
+                                  potentielAdversaire.joueurA.numero == number
+                                    ? potentielAdversaire.joueurA.pseudo
+                                    : potentielAdversaire.joueurB.pseudo;
+                                return (
+                                  <div key={m.key}>
+                                    <p>
+                                      {m.joueurA.pseudo} vs{" "}
+                                      {m.joueurB ? m.joueurB.pseudo : pseudo}
+                                    </p>
+                                    <form
+                                      onSubmit={(e) =>
+                                        handleWinnerClassement(
+                                          e,
+                                          m.joueurA.numero,
+                                          m.joueurB.numero
+                                        )
+                                      }
+                                    >
+                                      <input
+                                        type="number"
+                                        placeholder={`Entrer le score de ${m.joueurA.pseudo}`}
+                                        disabled={!m.joueurB}
+                                        name="scoreA"
+                                      />
+                                      <input
+                                        type="number"
+                                        placeholder={`Entrer le score de ${
+                                          m.joueurB ? m.joueurB.pseudo : pseudo
+                                        }`}
+                                        disabled={!m.joueurB}
+                                        name="scoreB"
+                                      />
+                                      <input
+                                        type="submit"
+                                        value="Valider"
+                                        disabled={!m.joueurB}
+                                      />
+                                    </form>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        );
+                      }
+                    })}
+                </div>
+              )}
+              {order && (
+                <div>
+                  <Order dataOrder={dataOrder} />
+                </div>
+              )}
             </div>
           )}
         </div>
