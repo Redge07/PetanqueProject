@@ -21,11 +21,11 @@ const Tournament = () => {
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
   const [pairesInfos, setPaireInfos] = useState({});
   const [order, setOrder] = useState(false);
-  // useEffect(() => {
-  //   if (!login) {
-  //     navigate("/");
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (!login) {
+      navigate("/");
+    }
+  }, []);
 
   const [dataOrder, setDataOrder] = useState([]);
   useEffect(() => {
@@ -248,6 +248,21 @@ const Tournament = () => {
     }
   };
 
+  const handleWinnerClassementArbre = (win, lose, tour, groupe) => {
+    axios
+      .put(
+        "http://localhost:5000/gotournaments/win_player_classement_arbre/" +
+          idTournament,
+        { win, lose, tour, groupe }
+      )
+      .then((res) => {
+        setResponseWin(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
+  };
+
   const handleGoArbreClassement = () => {
     const listPlayersA = dataOrder
       .sort((a, b) => b.points - a.points)
@@ -258,7 +273,12 @@ const Tournament = () => {
           idTournament,
         { listPlayersA }
       )
-      .then((res) => setResponseWin(res.data));
+      .then((res) => {
+        setResponseWin(res.data);
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      });
   };
 
   useEffect(() => {
@@ -572,9 +592,11 @@ const Tournament = () => {
               <button onClick={() => setOrder(true)}>Classement</button>
               {dataOrder.length != 0 &&
                 dataOrder.filter((j) => j.nb_matchs_jouer == 3).length ==
-                  dataOrder.length && (
+                  dataOrder.length &&
+                listPlayers.results.filter((m) => m.joueurB).length == 0 &&
+                listPlayers.results.filter((m) => m.class != 0).length != 1 && (
                   <button onClick={handleGoArbreClassement}>
-                    Go Tournoi en arbre
+                    Go Tournoi en arbres
                   </button>
                 )}
               {!order && (
@@ -585,7 +607,111 @@ const Tournament = () => {
                     .sort((a, b) => b - a)
                     .map((r) => {
                       if (r == 4) {
-                        return <h3>On verra plus tard round 4 (arbre)</h3>;
+                        return (
+                          <div>
+                            {pairesInfos.groupes
+                              .sort(
+                                (a, b) =>
+                                  ["A", "B", "C"].indexOf(a) -
+                                  ["A", "B", "C"].indexOf(b)
+                              )
+                              .map((g) => {
+                                return (
+                                  <div>
+                                    {g ? <h2>Groupe {g}</h2> : null}
+                                    {pairesInfos.tours
+                                      .sort((a, b) => a - b)
+                                      .map((t) => {
+                                        if (
+                                          listPlayers.results.filter(
+                                            (m) => m.groupe == g && m.class == t
+                                          ).length == 0 ||
+                                          !g
+                                        ) {
+                                          return null;
+                                        } else {
+                                          return (
+                                            <div>
+                                              {t == 1 ? (
+                                                "La finale"
+                                              ) : t == 0.5 ? null : (
+                                                <h3>1/{t} de finale</h3>
+                                              )}
+                                              {listPlayers.results
+                                                .filter(
+                                                  (m) =>
+                                                    m.groupe == g &&
+                                                    m.class == t
+                                                )
+                                                .map((m) => {
+                                                  if (m.class == 0.5) {
+                                                    return (
+                                                      <p>
+                                                        Le gagnant est{" "}
+                                                        {m.joueurA.pseudo}
+                                                      </p>
+                                                    );
+                                                  } else {
+                                                    return (
+                                                      <div key={m.key}>
+                                                        {/* Montre infos entre joueur A et joueur B potentiel */}
+                                                        <p>
+                                                          Le joueur numéro{" "}
+                                                          {m.joueurA.numero} (
+                                                          {m.joueurA.pseudo}){" "}
+                                                          {m.joueurB
+                                                            ? `affronte le joueur numéro ${m.joueurB.numero} (${m.joueurB.pseudo})`
+                                                            : "n'a pas encore d'adversaire attitré"}
+                                                        </p>
+                                                        {/* Si y'a bien joueur B pour le match alors on peut déclarer un vainqueur et donc afficher les boutons*/}
+                                                        {m.joueurB && (
+                                                          <div>
+                                                            <button
+                                                              onClick={() =>
+                                                                handleWinnerClassementArbre(
+                                                                  m.joueurA
+                                                                    .numero,
+                                                                  m.joueurB
+                                                                    .numero,
+                                                                  m.class,
+                                                                  m.groupe
+                                                                )
+                                                              }
+                                                            >
+                                                              Victoire de{" "}
+                                                              {m.joueurA.pseudo}
+                                                            </button>
+                                                            <button
+                                                              onClick={() =>
+                                                                handleWinnerClassementArbre(
+                                                                  m.joueurB
+                                                                    .numero,
+                                                                  m.joueurA
+                                                                    .numero,
+                                                                  m.class,
+                                                                  m.groupe
+                                                                )
+                                                              }
+                                                            >
+                                                              Victoire de{" "}
+                                                              {m.joueurB.pseudo}
+                                                            </button>
+                                                          </div>
+                                                        )}
+                                                      </div>
+                                                    );
+                                                  }
+                                                })}{" "}
+                                            </div>
+                                          );
+                                        }
+                                      })}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        );
+                        // return <h3>On verra plus tard round 4 (arbre)</h3>;
                       } else {
                         return (
                           <div key={r}>

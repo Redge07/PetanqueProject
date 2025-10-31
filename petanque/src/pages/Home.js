@@ -17,10 +17,10 @@ const Home = () => {
     setLogin(false);
     navigate("/");
   };
-  useEffect(() => {
-    setLogin(true);
-    setPlayer({ player: { id: 1, pseudo: "Régis" } });
-  }, []);
+  // useEffect(() => {
+  //   setLogin(true);
+  //   setPlayer({ player: { id: 1, pseudo: "Régis" } });
+  // }, []);
   if (!login) {
     return (
       <div>

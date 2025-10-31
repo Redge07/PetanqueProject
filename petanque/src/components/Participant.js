@@ -156,31 +156,32 @@ const Participant = ({ player }) => {
             </div>
           )}
           {/* Si le joueur participe a un tournoi en mode arbre */}
-          {dataPlayer.style == "cascade" && (
-            <div>
-              <h3>
-                Vous participez au tournoi {dataPlayer.tournamentName} qui est
-                en {dataPlayer.style} et vous etes dans le groupe{" "}
-                {dataPlayer.groupe}{" "}
-                {dataPlayer.round == 4 ? (
-                  <span>en 1/{dataPlayer.class} de finale</span>
-                ) : (
-                  <span>au round {dataPlayer.round}</span>
-                )}
-                . Numero : {dataPlayer.numero}
-              </h3>
-              <p>
-                {" "}
-                {dataPlayer.idVersus
-                  ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
+          {dataPlayer.style == "cascade" ||
+            (dataPlayer.style == "classement" && (
+              <div>
+                <h3>
+                  Vous participez au tournoi {dataPlayer.tournamentName} qui est
+                  en {dataPlayer.style} et vous etes dans le groupe{" "}
+                  {dataPlayer.groupe}{" "}
+                  {dataPlayer.round == 4 ? (
+                    <span>en 1/{dataPlayer.class} de finale</span>
+                  ) : (
+                    <span>au round {dataPlayer.round}</span>
+                  )}
+                  . Numero : {dataPlayer.numero}
+                </h3>
+                <p>
+                  {" "}
+                  {dataPlayer.idVersus
+                    ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
                 ${dataPlayer.idVersus}`
-                  : "Vous n'avez pas d'adversaire"}
-              </p>
-              {dataPlayer.barrage == 1 && (
-                <p style={{ color: "red" }}>Vous faites un barrage</p>
-              )}
-            </div>
-          )}
+                    : "Vous n'avez pas d'adversaire"}
+                </p>
+                {dataPlayer.barrage == 1 && (
+                  <p style={{ color: "red" }}>Vous faites un barrage</p>
+                )}
+              </div>
+            ))}
         </div>
       )}
       {/* Le joueur a gagné le tournoi */}

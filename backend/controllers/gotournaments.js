@@ -197,51 +197,62 @@ exports.go_tournament = (req, res) => {
                         );
                       }
                     } else {
-                      const result = generateMatches(listPlayers, 3);
-                      const matches = [];
-                      for (let i = 1; i <= listPlayers.length; i++) {
-                        result[i].forEach((a, index) => {
-                          const key = `${Math.min(i, a)}-${Math.max(i, a)}`;
-                          if (!matches.find((m) => m.key == key)) {
-                            matches.push({
-                              key,
-                              idA: i,
-                              idB: a,
-                              pseudoA: listPlayers.find((p) => p.numero == i)
-                                .pseudo,
-                              pseudoB: listPlayers.find((p) => p.numero == a)
-                                .pseudo,
-                              round: index + 1,
-                            });
-                          }
+                      if (
+                        (listPlayers.length > 7 || listPlayers.length == 4) &&
+                        listPlayers.length % 2 == 0
+                      ) {
+                        const result = generateMatches(listPlayers, 3);
+                        const matches = [];
+                        for (let i = 1; i <= listPlayers.length; i++) {
+                          result[i].forEach((a, index) => {
+                            const key = `${Math.min(i, a)}-${Math.max(i, a)}`;
+                            if (!matches.find((m) => m.key == key)) {
+                              matches.push({
+                                key,
+                                idA: i,
+                                idB: a,
+                                pseudoA: listPlayers.find((p) => p.numero == i)
+                                  .pseudo,
+                                pseudoB: listPlayers.find((p) => p.numero == a)
+                                  .pseudo,
+                                round: index + 1,
+                              });
+                            }
+                          });
+                        }
+                        listPlayers.forEach((p) => {
+                          connection.query(
+                            "update players set id_versus = ?, class = ?, round = 1, groupe = ?, matches = ? where numero = ? and id_tournament = ?",
+                            [
+                              [result[p.numero][0]],
+                              0,
+                              null,
+                              result[p.numero].join("-"),
+                              p.numero,
+                              p.id_tournament,
+                            ]
+                          );
                         });
+                        matches.forEach((m) => {
+                          connection.query(
+                            "insert into matches (id_tournament, round, id_playerA, id_playerB, pseudoA, pseudoB, scoreA, scoreB, id_winner) values(?,?,?,?,?,?,0,0,0)",
+                            [
+                              req.params.id,
+                              m.round,
+                              m.idA,
+                              m.idB,
+                              m.pseudoA,
+                              m.pseudoB,
+                            ]
+                          );
+                        });
+                      } else {
+                        return res
+                          .status(200)
+                          .send(
+                            "Il faut au moins 8 joueurs ou alors 4 joueurs et que se soit un nombre de joueurs pair"
+                          );
                       }
-                      listPlayers.forEach((p) => {
-                        connection.query(
-                          "update players set id_versus = ?, class = ?, round = 1, groupe = ?, matches = ? where numero = ? and id_tournament = ?",
-                          [
-                            [result[p.numero][0]],
-                            listPlayers.length,
-                            null,
-                            result[p.numero].join("-"),
-                            p.numero,
-                            p.id_tournament,
-                          ]
-                        );
-                      });
-                      matches.forEach((m) => {
-                        connection.query(
-                          "insert into matches (id_tournament, round, id_playerA, id_playerB, pseudoA, pseudoB, scoreA, scoreB, id_winner) values(?,?,?,?,?,?,0,0,0)",
-                          [
-                            req.params.id,
-                            m.round,
-                            m.idA,
-                            m.idB,
-                            m.pseudoA,
-                            m.pseudoB,
-                          ]
-                        );
-                      });
                     }
                     // Et forcément j'actualise le fait que le tournoi a commencé
                     connection.query(
@@ -816,6 +827,63 @@ exports.win_player_classement = (req, res) => {
       }
     );
   };
+};
+
+exports.win_player_classement_arbre = (req, res) => {
+  const { win, lose, tour, groupe } = req.body;
+  connection.query(
+    "delete from players where numero = ? and id_tournament = ?",
+    [lose, req.params.id],
+    () => {
+      connection.query(
+        "select * from players where id_tournament = ? and groupe = ?",
+        [req.params.id, groupe],
+        (err, results) => {
+          const nb_joueurs_suite = results.filter((j) => j.class == tour / 2);
+          const num_max = Math.max(
+            0,
+            ...nb_joueurs_suite.map((j) => j.num_match)
+          );
+          if (num_max < tour / 2) {
+            connection.query(
+              "update players set id_versus = 0, class = ?, num_match = ? where numero = ? and id_tournament = ?",
+              [tour / 2, num_max + 1, win, req.params.id],
+              () => res.send("Victoire validé")
+            );
+          } else {
+            const adversaire = nb_joueurs_suite.find(
+              (j) =>
+                j.num_match ==
+                Math.min(
+                  ...nb_joueurs_suite
+                    .filter((j) => j.id_versus == 0)
+                    .map((j) => j.num_match)
+                )
+            );
+            connection.query(
+              "update players set id_versus = ?, class = ?, num_match = ? where numero = ? and id_tournament = ?",
+              [
+                adversaire.numero,
+                adversaire.class,
+                adversaire.num_match,
+                win,
+                req.params.id,
+              ],
+              () => {
+                connection.query(
+                  "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                  [win, adversaire.numero, req.params.id],
+                  () => {
+                    res.send("Victoire validé");
+                  }
+                );
+              }
+            );
+          }
+        }
+      );
+    }
+  );
 };
 
 exports.charge_classement = (req, res) => {
