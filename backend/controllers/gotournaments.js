@@ -62,7 +62,7 @@ function shuffleArray(array) {
   return arr;
 }
 
-// Génère les paires de chaque tour (méthode du cercle)
+// Fonction qui aide la fonction pour attribué 3 adversaire a chaque joueur pour le mode classement
 function roundRobinPairs(ids) {
   const n = ids.length;
   const arr = [...ids];
@@ -75,7 +75,6 @@ function roundRobinPairs(ids) {
     }
     rounds.push(pairs);
 
-    // Rotation des joueurs sauf le premier
     const fixed = arr[0];
     const rest = arr.slice(1);
     rest.unshift(rest.pop());
@@ -84,23 +83,19 @@ function roundRobinPairs(ids) {
   return rounds;
 }
 
-// Sélectionne nbAdversaires tours aléatoires et construit la map joueur -> adversaires
+// Fonction pour que tous les joueurs ait 3 adversaire aléatoirement et dans le meme ordre
 function generateMatches(players, nbAdversaires = 3) {
   const ids = players.map((p) => p.numero);
 
-  // Tous les tours possibles sans doublons
   const allRounds = roundRobinPairs(ids);
 
-  // On choisit nbAdversaires tours au hasard
   const chosen = [...allRounds]
     .sort(() => Math.random() - 0.5)
     .slice(0, nbAdversaires);
 
-  // Initialise la map joueur -> [adv1, adv2, adv3]
   const matches = {};
   ids.forEach((id) => (matches[id] = Array(nbAdversaires).fill(null)));
 
-  // Remplit les adversaires symétriquement
   chosen.forEach((pairs, roundIdx) => {
     pairs.forEach(([a, b]) => {
       matches[a][roundIdx] = b;
@@ -156,7 +151,7 @@ exports.go_tournament = (req, res) => {
                           ]
                         );
                       }
-                      // Les joueurs qui vont attendre que les autres finissent leur premeir match
+                      // Les joueurs qui vont attendre que les autres finissent leur premier match
                       for (let i = 0; i < listPlayers.length; i++) {
                         if (
                           i == listPlayers.length - 1 &&
@@ -180,6 +175,7 @@ exports.go_tournament = (req, res) => {
                           );
                         }
                       }
+                      // Sinon faut lancer le mode cascade
                     } else if (style == "cascade") {
                       const listPlayersM = shuffleArray(listPlayers);
                       for (let i = 0; i < listPlayersM.length; i++) {
@@ -196,13 +192,20 @@ exports.go_tournament = (req, res) => {
                           ]
                         );
                       }
+                      // Sinon c'est le mode classement
                     } else {
+                      // Pour lancer le tournoi il faut etre soit 4 ou alors etre plus de 7 et nombre paire de participant
                       if (
                         (listPlayers.length > 7 || listPlayers.length == 4) &&
                         listPlayers.length % 2 == 0
                       ) {
+                        // Récupérer les matches de tous les joueurs (3 adversaire par joueur)
+                        //
                         const result = generateMatches(listPlayers, 3);
                         const matches = [];
+                        // On crée la variable match proprement qui nous permettra de bien remplir la table matches
+                        // C'est un objet : { 1 : [4,5,2], 2: [3,6,1] ...}
+                        // Donc le length est égale au nombre de joueurs en tout
                         for (let i = 1; i <= listPlayers.length; i++) {
                           result[i].forEach((a, index) => {
                             const key = `${Math.min(i, a)}-${Math.max(i, a)}`;
@@ -220,6 +223,7 @@ exports.go_tournament = (req, res) => {
                             }
                           });
                         }
+                        // Tous les joueurs ont leur planning de match connu dans la colonne "matches" de le table "Players"
                         listPlayers.forEach((p) => {
                           connection.query(
                             "update players set id_versus = ?, class = ?, round = 1, groupe = ?, matches = ? where numero = ? and id_tournament = ?",
@@ -233,6 +237,7 @@ exports.go_tournament = (req, res) => {
                             ]
                           );
                         });
+                        // On remplit la table "matches"
                         matches.forEach((m) => {
                           connection.query(
                             "insert into matches (id_tournament, round, id_playerA, id_playerB, pseudoA, pseudoB, scoreA, scoreB, id_winner) values(?,?,?,?,?,?,0,0,0)",
@@ -246,6 +251,7 @@ exports.go_tournament = (req, res) => {
                             ]
                           );
                         });
+                        // Sinon faut indiquer que le nombre de joueur inscrit n'est pas bon pour commencer un tournoi en mode "classement"
                       } else {
                         return res
                           .status(200)
@@ -743,6 +749,7 @@ exports.win_player_cascade = (req, res) => {
   };
 };
 
+// API pour gérer lorsqu'un match du mode classement en phase de poule finit, gérer le vainqueur et le perdant
 exports.win_player_classement = (req, res) => {
   const { win, lose, scoreWin, scoreLose } = req.body;
   connection.query(
@@ -750,11 +757,13 @@ exports.win_player_classement = (req, res) => {
     [req.params.id],
     (err, results) => {
       const listPlayers = results;
+      // Je sélectionne le match qui correspond a l'affrontement en le win et le lose
       connection.query(
         "SELECT * FROM matches WHERE ((id_PlayerA = ? AND id_PlayerB = ?) OR (id_PlayerA = ? AND id_PlayerB = ?)) AND id_tournament = ?",
         [win, lose, lose, win, req.params.id],
         (err, results) => {
           const match = results[0];
+          // J'enregistre le score et le gagnant de ce match en question
           connection.query(
             "update matches set scoreA = ?, scoreB = ?, id_winner = ? where ((id_PlayerA = ? AND id_PlayerB = ?) OR (id_PlayerA = ? AND id_PlayerB = ?)) AND id_tournament = ?",
             [
@@ -768,11 +777,13 @@ exports.win_player_classement = (req, res) => {
               req.params.id,
             ],
             () => {
+              // Si le vainqueur a gagné son troisième match de poule alors on le fait passer au round 4 pour dire qu'il est potentiellment pret pour continuer dans le tournoi en arbre mais on sait pas si il aura assez de points justement
               if (
                 listPlayers.find(
                   (p) => p.numero == win && p.id_tournament == req.params.id
                 ).round == 3
               ) {
+                // Faire passer le vainqueur et le perdant au round 4
                 connection.query(
                   "update players set id_versus = 0, round = 4 where numero = ? and id_tournament = ?",
                   [win, req.params.id],
@@ -784,6 +795,7 @@ exports.win_player_classement = (req, res) => {
                     );
                   }
                 );
+                // Sinon alors les joueurs vont continuer dans la suite de la phase de poule normalement avec la fonction updatePlayers
               } else {
                 updatePlayers(listPlayers, win);
               }
@@ -794,6 +806,7 @@ exports.win_player_classement = (req, res) => {
     }
   );
 
+  // Fonction qui met a jour les prochains adversaire du vainqueur et du looser pour la phase de poule
   const updatePlayers = (listPlayers, numero) => {
     const players = listPlayers.find(
       (p) => p.numero == numero && p.id_tournament == req.params.id
@@ -801,6 +814,7 @@ exports.win_player_classement = (req, res) => {
     const adversaire = listPlayers.find(
       (p) => p.numero == players.matches.split("-")[players.round]
     );
+    // On met a jour les données du gagnant ou du perdant
     connection.query(
       "update players set id_versus = ?, round = ? where numero = ? and id_tournament = ?",
       [
@@ -810,6 +824,7 @@ exports.win_player_classement = (req, res) => {
         req.params.id,
       ],
       () => {
+        // Si y'a bien un adversaire alors on met ces données a jour
         if (players.round == adversaire.round - 1) {
           connection.query(
             "update players set id_versus = ? where numero = ? and id_tournament = ?",
@@ -819,6 +834,7 @@ exports.win_player_classement = (req, res) => {
                 ? updatePlayers(listPlayers, lose)
                 : res.send("Victoire validé")
           );
+          // Sinon on passe a la suite, si on vient de finir de mettre a jour les données du vainqueur faut bien les faire aussi pour le perdant, sinon ça veut dire qu'on a mis a jour les données du perdant et qu'on peut dire qu'on a validé la fin du match et que tout est a jour
         } else {
           numero == win
             ? updatePlayers(listPlayers, lose)
@@ -829,12 +845,15 @@ exports.win_player_classement = (req, res) => {
   };
 };
 
+// API pour gérer les matches qui finissent dans l'arbre du mode classement
 exports.win_player_classement_arbre = (req, res) => {
   const { win, lose, tour, groupe } = req.body;
+  // On supprime définitivement le joueur qui a perdu
   connection.query(
     "delete from players where numero = ? and id_tournament = ?",
     [lose, req.params.id],
     () => {
+      // On va placer le vainqueur dans le tour suivant
       connection.query(
         "select * from players where id_tournament = ? and groupe = ?",
         [req.params.id, groupe],
@@ -844,12 +863,14 @@ exports.win_player_classement_arbre = (req, res) => {
             0,
             ...nb_joueurs_suite.map((j) => j.num_match)
           );
+          // Ca veut dire qu'il n'aura pas encore d'adversaire attribué et donc qu'on peut modifier les données du gagnat et donner la réponse l'API et partir
           if (num_max < tour / 2) {
             connection.query(
               "update players set id_versus = 0, class = ?, num_match = ? where numero = ? and id_tournament = ?",
               [tour / 2, num_max + 1, win, req.params.id],
               () => res.send("Victoire validé")
             );
+            // Sinon il aura un adversaire attribué
           } else {
             const adversaire = nb_joueurs_suite.find(
               (j) =>
@@ -860,6 +881,7 @@ exports.win_player_classement_arbre = (req, res) => {
                     .map((j) => j.num_match)
                 )
             );
+            // On modifie les données du gagnant et de l'adversaire, et on peut finir l'API
             connection.query(
               "update players set id_versus = ?, class = ?, num_match = ? where numero = ? and id_tournament = ?",
               [
@@ -886,12 +908,14 @@ exports.win_player_classement_arbre = (req, res) => {
   );
 };
 
+// API pour pouvoir récupérer les résultats des matches de phase de poule du mode classement et donc pouvoir construire le classment aux utilisateurs
 exports.charge_classement = (req, res) => {
   connection.query(
     "select * from matches where id_tournament = ? and round < 4",
     [req.params.id],
     (err, results) => {
       let players = [];
+      // Toute l'algo pour ressortir des données en JSON qui montre les points de tous les joueurs proprement
       results.forEach((m) => {
         let playerA = players.find((p) => p.numero == m.id_playerA);
         if (!playerA) {
@@ -929,6 +953,7 @@ exports.charge_classement = (req, res) => {
   );
 };
 
+// Fonction qui mélange l'ordre des joueurs pour avoir des confrontations aléatoires
 function melanger(array) {
   const shuffled = [...array]; // on copie pour ne pas modifier l’original
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -938,19 +963,49 @@ function melanger(array) {
   return shuffled;
 }
 
-exports.create_arbre_classement = (req, res) => {
-  let { listPlayersA } = req.body;
-  listPlayersA = melanger(listPlayersA);
-  listPlayersA.forEach((p, i) => {
+// API qui permet de lançer un tournoi en arbre pour le mode classement une fois que la phase de poule est terminée
+exports.create_arbre_classement = async (req, res) => {
+  const groupes = ["A", "B", "C", "D"];
+  // On récupère toutes la liste de chaque groupe
+  let { listPlayersA, listPlayersB, listPlayersC, listPlayersD } = req.body;
+  // On mélange chaque liste
+  let listPlayers = [
+    melanger(listPlayersA),
+    melanger(listPlayersB),
+    melanger(listPlayersC),
+    melanger(listPlayersD),
+  ];
+  // On parcours les groupes
+  for (let j = 0; j < listPlayers.length; j++) {
+    const g = listPlayers[j];
+    // Pour commencer un tournoi en arbre il faut etre 8
+    if (g.length == 8) {
+      // On parcourt tous les joueurs de ce groupe en question
+      for (let i = 0; i < g.length; i++) {
+        const p = g[i];
+        // O n crée toutes les confrontations du premier tour
+        await new Promise((resolve, reject) => {
+          connection.query(
+            "update players set id_versus = ?, class = ?, groupe = ? where numero = ? and id_tournament = ?",
+            [
+              i % 2 == 0 ? g[i + 1].numero : g[i - 1].numero,
+              g.length / 2,
+              groupes[j],
+              p.numero,
+              req.params.id,
+            ],
+            () => resolve()
+          );
+        });
+      }
+    }
+  }
+  // Une fois que le tournoi en arbre est fait on supprime tous le reste de joueurs qui n'ont pas eu d'adversaire attribué car cela veut dire qu'ils n'ont pas passer les poules
+  await new Promise((resolve, reject) => {
     connection.query(
-      "update players set id_versus = ?, class = ?, groupe = ? where numero = ? and id_tournament = ?",
-      [
-        i % 2 == 0 ? listPlayersA[i + 1].numero : listPlayersA[i - 1].numero,
-        listPlayersA.length / 2,
-        "A",
-        p.numero,
-        req.params.id,
-      ]
+      "delete from players where id_versus = 0 and id_tournament = ?",
+      [req.params.id],
+      () => resolve()
     );
   });
   res.send("Le tournoi est lancé");

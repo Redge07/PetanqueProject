@@ -1,6 +1,10 @@
-Tournoi A et B
-Faudra bien faire l'ecran participant
-Bien commenter comme dab
+Discuter avec Bapt
+
+Ajouter le fait que l'orga choisit le nombre de tour de l'arbre en fonction des groupes
+Etre plus précis pour départager ce qui ont le meme nombre de points
+Sauvegarder le gagnant par groupe
+Coté participant qu'il puisse voir l'avancée du tournoi pas que son match précisément
+Bien commenter comme dab (reste Tournament et Participant du front-end)
 
 
 Passer les fonctions looser et update en dehors

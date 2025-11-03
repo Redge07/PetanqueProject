@@ -20,6 +20,7 @@ const Tournament = () => {
   const [responseWin, setResponseWin] = useState("");
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
   const [pairesInfos, setPaireInfos] = useState({});
+  // State qui permet de gérer l'affichage du classement des poules
   const [order, setOrder] = useState(false);
   useEffect(() => {
     if (!login) {
@@ -201,11 +202,13 @@ const Tournament = () => {
       });
   };
 
+  // Fonction quand je déclare un vainqueur de phase de poule en mode classement
   const handleWinnerClassement = (e, numeroA, numeroB) => {
     e.preventDefault();
     if (e.target.elements.scoreA.value == e.target.elements.scoreB.value) {
       setResponseWin("Il ne peut pas y avoir d'égalité ou de cases vides");
     } else {
+      // On récupère l'id du gagnant et du perdant et le score du gagnant et du perdant
       const [win, lose, scoreWin, scoreLose] =
         Number(e.target.elements.scoreA.value) >
         Number(e.target.elements.scoreB.value)
@@ -221,13 +224,6 @@ const Tournament = () => {
               e.target.elements.scoreB.value,
               e.target.elements.scoreA.value,
             ];
-      console.log(`numero : ${numeroA} ${numeroB}`);
-      console.log(
-        `score : ${e.target.elements.scoreA.value} ${e.target.elements.scoreB.value}`
-      );
-
-      console.log(`données : ${win} ${lose} ${scoreWin} ${scoreLose}`);
-
       axios
         .put(
           "http://localhost:5000/gotournaments/win_player_classement/" +
@@ -248,6 +244,7 @@ const Tournament = () => {
     }
   };
 
+  // Fonction quand je déclare un vainqueur de l'arbre du mode classement
   const handleWinnerClassementArbre = (win, lose, tour, groupe) => {
     axios
       .put(
@@ -263,15 +260,19 @@ const Tournament = () => {
       });
   };
 
+  // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
   const handleGoArbreClassement = () => {
     const listPlayersA = dataOrder
       .sort((a, b) => b.points - a.points)
       .slice(0, 8);
+    const listPlayersB = dataOrder
+      .sort((a, b) => b.points - a.points)
+      .slice(8, 16);
     axios
       .put(
         "http://localhost:5000/gotournaments/create_arbre_classement/" +
           idTournament,
-        { listPlayersA }
+        { listPlayersA, listPlayersB }
       )
       .then((res) => {
         setResponseWin(res.data);
@@ -594,7 +595,8 @@ const Tournament = () => {
                 dataOrder.filter((j) => j.nb_matchs_jouer == 3).length ==
                   dataOrder.length &&
                 listPlayers.results.filter((m) => m.joueurB).length == 0 &&
-                listPlayers.results.filter((m) => m.class != 0).length != 1 && (
+                listPlayers.results.filter((m) => m.class == 0.5).length ==
+                  0 && (
                   <button onClick={handleGoArbreClassement}>
                     Go Tournoi en arbres
                   </button>
@@ -633,7 +635,7 @@ const Tournament = () => {
                                           return (
                                             <div>
                                               {t == 1 ? (
-                                                "La finale"
+                                                <h3>La finale</h3>
                                               ) : t == 0.5 ? null : (
                                                 <h3>1/{t} de finale</h3>
                                               )}
