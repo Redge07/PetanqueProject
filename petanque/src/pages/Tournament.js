@@ -22,13 +22,14 @@ const Tournament = () => {
   const [pairesInfos, setPaireInfos] = useState({});
   // State qui permet de gérer l'affichage du classement des poules
   const [order, setOrder] = useState(false);
+  // State pour avoir les données du classement
+  const [dataOrder, setDataOrder] = useState([]);
   useEffect(() => {
     if (!login) {
       navigate("/");
     }
   }, []);
 
-  const [dataOrder, setDataOrder] = useState([]);
   useEffect(() => {
     axios
       .get(
@@ -261,18 +262,36 @@ const Tournament = () => {
   };
 
   // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
-  const handleGoArbreClassement = () => {
+  const handleGoArbreClassement = (e) => {
+    e.preventDefault();
     const listPlayersA = dataOrder
       .sort((a, b) => b.points - a.points)
-      .slice(0, 8);
-    const listPlayersB = dataOrder
-      .sort((a, b) => b.points - a.points)
-      .slice(8, 16);
+      .slice(0, e.target.elements.A.value);
+    const listPlayersB =
+      e.target.elements.B.value == 0
+        ? null
+        : dataOrder
+            .sort((a, b) => b.points - a.points)
+            .slice(
+              e.target.elements.A.value,
+              e.target.elements.A.value + e.target.elements.B.value
+            );
+    const listPlayersC =
+      e.target.elements.C.value == 0
+        ? null
+        : dataOrder
+            .sort((a, b) => b.points - a.points)
+            .slice(
+              e.target.elements.A.value + e.target.elements.B.value,
+              e.target.elements.A.value +
+                e.target.elements.B.value +
+                e.target.elements.C.value
+            );
     axios
       .put(
         "http://localhost:5000/gotournaments/create_arbre_classement/" +
           idTournament,
-        { listPlayersA, listPlayersB }
+        { listPlayersA, listPlayersB, listPlayersC }
       )
       .then((res) => {
         setResponseWin(res.data);
@@ -597,9 +616,33 @@ const Tournament = () => {
                 listPlayers.results.filter((m) => m.joueurB).length == 0 &&
                 listPlayers.results.filter((m) => m.class == 0.5).length ==
                   0 && (
-                  <button onClick={handleGoArbreClassement}>
-                    Go Tournoi en arbres
-                  </button>
+                  <div>
+                    <form onSubmit={handleGoArbreClassement}>
+                      {["A", "B", "C"].map((g) => {
+                        return (
+                          <div>
+                            <span>Taille de l'arbre du groupe {g}</span>
+                            <select
+                              name={g}
+                              defaultValue={g === "A" ? "8" : "0"}
+                            >
+                              {g == "A" ? null : (
+                                <option value="0">Pas de tournoi</option>
+                              )}
+                              <option value="1">1</option>
+                              <option value="2">2</option>
+                              <option value="4">4</option>
+                              <option value="8">8</option>
+                              <option value="16">16</option>
+                              <option value="32">32</option>
+                            </select>
+                            <br />
+                          </div>
+                        );
+                      })}
+                      <input type="submit" value="Go Tournoi en arbres" />
+                    </form>
+                  </div>
                 )}
               {!order && (
                 <div>

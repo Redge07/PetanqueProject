@@ -970,16 +970,16 @@ exports.create_arbre_classement = async (req, res) => {
   let { listPlayersA, listPlayersB, listPlayersC, listPlayersD } = req.body;
   // On mélange chaque liste
   let listPlayers = [
-    melanger(listPlayersA),
-    melanger(listPlayersB),
-    melanger(listPlayersC),
-    melanger(listPlayersD),
+    listPlayersA ? melanger(listPlayersA) : null,
+    listPlayersB ? melanger(listPlayersB) : null,
+    listPlayersC ? melanger(listPlayersC) : null,
+    listPlayersD ? melanger(listPlayersD) : null,
   ];
   // On parcours les groupes
   for (let j = 0; j < listPlayers.length; j++) {
     const g = listPlayers[j];
     // Pour commencer un tournoi en arbre il faut etre 8
-    if (g.length == 8) {
+    if (g) {
       // On parcourt tous les joueurs de ce groupe en question
       for (let i = 0; i < g.length; i++) {
         const p = g[i];
