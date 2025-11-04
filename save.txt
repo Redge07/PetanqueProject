@@ -16,3 +16,6 @@ Vainqueurs des groupes pour cascade, garder le vainqueur en BD, préciser + pour
 page participant (quel tournoi gagné et quelle groupe)
 Quand j'utilise une API, directement faire des connections pour récupérer les données des bases
 et ensuite les manipulé avec les fonctions JS
+Faire des Try/catch et des return res.status(500)
+Bbcrypt pour les MDP et token JWT pour les connexions
+Séparer les modes de tournoi en plusieurs fichiers (front et back compris)
