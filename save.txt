@@ -1,5 +1,3 @@
-Discuter avec Bapt
-
 Ajouter le fait que l'orga choisit le nombre de tour de l'arbre en fonction des groupes
 Etre plus précis pour départager ce qui ont le meme nombre de points
 Sauvegarder le gagnant par groupe
