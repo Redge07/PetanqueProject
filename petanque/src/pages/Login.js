@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { UsersContext } from "../App";
 import { useNavigate } from "react-router-dom";
+import { linkBackend } from "../constants/LinkBackend";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,16 +14,14 @@ const Login = () => {
       pseudo: e.target.elements.pseudo.value,
       password: e.target.elements.password.value,
     };
-    axios
-      .post("http://localhost:5000/log/inscription", user)
-      .then((res) => {
-        setRes(res.data);
-        if (res.data.res == 1) {
-          setTimeout(() => {
-            chargeHome(res.data);
-          }, 1000);
-        }
-      });
+    axios.post(linkBackend + "log/inscription", user).then((res) => {
+      setRes(res.data);
+      if (res.data.res == 1) {
+        setTimeout(() => {
+          chargeHome(res.data);
+        }, 1000);
+      }
+    });
   };
   const handleSignIn = (e) => {
     e.preventDefault();
@@ -30,7 +29,7 @@ const Login = () => {
       pseudo: e.target.elements.pseudo.value,
       password: e.target.elements.password.value,
     };
-    axios.post("http://localhost:5000/log/connexion", user).then((res) => {
+    axios.post(linkBackend + "log/connexion", user).then((res) => {
       setRes(res.data);
       if (res.data.res == 1) {
         setTimeout(() => {

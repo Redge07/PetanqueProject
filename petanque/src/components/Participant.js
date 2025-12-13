@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { linkBackend } from "../constants/LinkBackend";
 
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
@@ -16,7 +17,7 @@ const Participant = ({ player }) => {
     e.preventDefault();
     const pseudo = e.target.elements.pseudo.value;
     axios
-      .post("http://localhost:5000/players/add_player/", {
+      .post(linkBackend + "players/add_player/", {
         idUser: player.id,
         idTournament: dataTournament.id,
         pseudo: pseudo,
@@ -34,18 +35,16 @@ const Participant = ({ player }) => {
     e.preventDefault();
     const idSearch = e.target.elements.id.value;
     console.log(idSearch);
-    axios
-      .get("http://localhost:5000/players/search/" + idSearch)
-      .then((res) => {
-        console.log(res.data);
-        setDataTournament(res.data);
-      });
+    axios.get(linkBackend + "players/search/" + idSearch).then((res) => {
+      console.log(res.data);
+      setDataTournament(res.data);
+    });
   };
 
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
   const handleDelete = () => {
     axios
-      .delete("http://localhost:5000/players/delete_player/" + player.id)
+      .delete(linkBackend + "players/delete_player/" + player.id)
       .then((res) => {
         setResponseDeinscription(res.data.res);
         setTimeout(() => {
@@ -59,12 +58,10 @@ const Participant = ({ player }) => {
     setDataTournament({ res: -1 });
     setResponseInscription("");
     setResponseDeinscription("");
-    axios
-      .get("http://localhost:5000/players/charge/" + player.id)
-      .then((res) => {
-        console.log(res.data);
-        setDataPlayer(res.data);
-      });
+    axios.get(linkBackend + "players/charge/" + player.id).then((res) => {
+      console.log(res.data);
+      setDataPlayer(res.data);
+    });
   };
 
   useEffect(() => {

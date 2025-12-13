@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { UsersContext } from "../App";
 import axios from "axios";
 import Order from "../components/Order";
+import { linkBackend } from "../constants/LinkBackend";
 
 const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
@@ -32,9 +33,7 @@ const Tournament = () => {
 
   useEffect(() => {
     axios
-      .get(
-        "http://localhost:5000/gotournaments/charge_classement/" + idTournament
-      )
+      .get(linkBackend + "gotournaments/charge_classement/" + idTournament)
       .then((res) => setDataOrder(res.data));
   }, [order]);
 
@@ -63,7 +62,7 @@ const Tournament = () => {
       return { rounds, groupes, tours };
     };
     axios
-      .get("http://localhost:5000/tournaments/charge/" + idTournament)
+      .get(linkBackend + "tournaments/charge/" + idTournament)
       .then((res) => {
         console.log(res.data);
         setListPlayers(res.data);
@@ -76,9 +75,7 @@ const Tournament = () => {
   // Fonction pour supprimer un joueur du tournoi en attente
   const handleDeleteAttente = (value) => {
     axios
-      .delete(
-        "http://localhost:5000/tournaments/delete_players_attente/" + value
-      )
+      .delete(linkBackend + "tournaments/delete_players_attente/" + value)
       .then((res) => {
         setResponseAPI(res.data);
         setTimeout(() => {
@@ -91,8 +88,7 @@ const Tournament = () => {
   const handleDeleteValid = (value) => {
     axios
       .delete(
-        "http://localhost:5000/tournaments/delete_players_valid/" +
-          idTournament,
+        linkBackend + "tournaments/delete_players_valid/" + idTournament,
         { data: { numero: value } }
       )
       .then((res) => {
@@ -106,7 +102,7 @@ const Tournament = () => {
   // Fonction pour accepté un joueur
   const handleValid = (value) => {
     axios
-      .put("http://localhost:5000/tournaments/valid/" + idTournament, {
+      .put(linkBackend + "tournaments/valid/" + idTournament, {
         id_user: value,
       })
       .then((res) => {
@@ -122,7 +118,7 @@ const Tournament = () => {
   const handleAddPlayer = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:5000/tournaments/add_player/" + idTournament, {
+      .post(linkBackend + "tournaments/add_player/" + idTournament, {
         pseudo: e.target.elements.pseudo.value,
       })
       .then((res) => {
@@ -152,7 +148,7 @@ const Tournament = () => {
   // Fonction quand je décide de démarrer le tournoi
   const handleGoTournament = () => {
     axios
-      .put("http://localhost:5000/gotournaments/go_tournament/" + idTournament)
+      .put(linkBackend + "gotournaments/go_tournament/" + idTournament)
       .then((res) => {
         setResponseGoTournament(res.data);
         setTimeout(() => {
@@ -164,14 +160,11 @@ const Tournament = () => {
   // Fonction quand je déclare le vainqueur dans un tournoi arbre
   const handleWinnerArbre = (win, lose, tour) => {
     axios
-      .put(
-        "http://localhost:5000/gotournaments/win_player_arbre/" + idTournament,
-        {
-          win: win,
-          lose: lose,
-          tour: tour,
-        }
-      )
+      .put(linkBackend + "gotournaments/win_player_arbre/" + idTournament, {
+        win: win,
+        lose: lose,
+        tour: tour,
+      })
       .then((res) => {
         setResponseWin(res.data);
         setTimeout(() => {
@@ -183,18 +176,14 @@ const Tournament = () => {
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = (win, lose, round, groupe, barrage, tour) => {
     axios
-      .put(
-        "http://localhost:5000/gotournaments/win_player_cascade/" +
-          idTournament,
-        {
-          win,
-          lose,
-          round,
-          groupe,
-          barrage,
-          tour,
-        }
-      )
+      .put(linkBackend + "gotournaments/win_player_cascade/" + idTournament, {
+        win,
+        lose,
+        round,
+        groupe,
+        barrage,
+        tour,
+      })
       .then((res) => {
         setResponseWin(res.data);
         setTimeout(() => {
@@ -227,8 +216,7 @@ const Tournament = () => {
             ];
       axios
         .put(
-          "http://localhost:5000/gotournaments/win_player_classement/" +
-            idTournament,
+          linkBackend + "gotournaments/win_player_classement/" + idTournament,
           {
             win,
             lose,
@@ -249,7 +237,8 @@ const Tournament = () => {
   const handleWinnerClassementArbre = (win, lose, tour, groupe) => {
     axios
       .put(
-        "http://localhost:5000/gotournaments/win_player_classement_arbre/" +
+        linkBackend +
+          "gotournaments/win_player_classement_arbre/" +
           idTournament,
         { win, lose, tour, groupe }
       )
@@ -289,8 +278,7 @@ const Tournament = () => {
             );
     axios
       .put(
-        "http://localhost:5000/gotournaments/create_arbre_classement/" +
-          idTournament,
+        linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
         { listPlayersA, listPlayersB, listPlayersC }
       )
       .then((res) => {

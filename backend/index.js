@@ -1,6 +1,9 @@
+require("dotenv").config();
+
 const express = require("express");
 const app = express();
-const port = 5000;
+
+const port = process.env.PORT || 5000;
 
 const cors = require("cors");
 
@@ -14,6 +17,10 @@ app.use("/organisateurs", require("./routes/organisateurs"));
 app.use("/tournaments", require("./routes/tournaments"));
 app.use("/gotournaments", require("./routes/gotournaments"));
 
-app.listen(port, () => {
-  console.log("Go server");
+// app.listen(port, () => {
+//   console.log("Go server");
+// });
+
+app.listen(port, "0.0.0.0", () => {
+  console.log("Server running on port " + port);
 });

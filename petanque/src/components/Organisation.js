@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { linkBackend } from "../constants/LinkBackend";
 
 const Organisation = ({ player }) => {
   // State qui contiendra les tournoi que gère ce compte en question
@@ -11,7 +12,7 @@ const Organisation = ({ player }) => {
   const recharge = () => {
     console.log(player);
     axios
-      .get("http://localhost:5000/organisateurs/charge/" + player.id)
+      .get(linkBackend + "organisateurs/charge/" + player.id)
       .then((res) => setTournaments(res.data));
   };
   useEffect(() => {
@@ -22,19 +23,16 @@ const Organisation = ({ player }) => {
   const createTournament = async (e) => {
     e.preventDefault();
     setAddTournament(false);
-    await axios.post(
-      "http://localhost:5000/organisateurs/create/" + player.id,
-      {
-        name: e.target.elements.name.value,
-        style: e.target.elements.style_tournament.value,
-      }
-    );
+    await axios.post(linkBackend + "organisateurs/create/" + player.id, {
+      name: e.target.elements.name.value,
+      style: e.target.elements.style_tournament.value,
+    });
     recharge();
   };
 
   // Fonction qui supprime un tournoi
   const deleteTournament = async (value) => {
-    await axios.delete("http://localhost:5000/organisateurs/delete/" + value);
+    await axios.delete(linkBackend + "organisateurs/delete/" + value);
     recharge();
   };
   return (
