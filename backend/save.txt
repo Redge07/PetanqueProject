@@ -1,0 +1,57 @@
+Quand mon backend est en 
+
+En local (sur VS Code, donc je peux choisir la BD que je veux (dans "db.js") que se soit celle de Xampp ou Hostinger car je change comme je veux le code avec VS Code) : 
+	J'ai mon fichier .env qui contient toutes les informations de connexion a la base de données Hostinger : 
+		DB_HOST=srv2057.hstgr.io
+		DB_USER=u976121835_Redge7Petanque
+		DB_PASSWORD=Suarezbarca.9
+		DB_NAME=u976121835_petanque
+		DB_PORT=3306
+	Ce fichier est disponible seulement en local car il fait partie des fichiers dans ".gitignore" donc il n'est jamais transférer dans github pour les commits
+
+	Pour le fichier "db.js" je me connecte a un base de données, soit la BD de Xampp ou la BD de Hostinger, pour la BD de Xampp je mets les infos de connexion a la main et pour les infos de connexion de Hostinger
+	j'utilise les données qui sont dans le fichier .env : 
+		const mysql = require("mysql2");
+
+		const connection = mysql.createConnection({
+  			// host: "localhost",
+  			// user: "root",
+  			// password: "",
+  			// database: "petanque",
+
+  			host: process.env.DB_HOST,
+  			user: process.env.DB_USER,
+  			password: process.env.DB_PASSWORD,
+  			database: process.env.DB_NAME,
+  			port: process.env.DB_PORT,
+		});
+
+		module.exports = connection;
+
+	Pour lançer le serveur dans le fichier "index.js" c'est ce code : 
+		app.listen(port, () => {
+   			console.log("Go server");
+ 		});
+	avec le port qui à été définit plus haut : const port = process.env.PORT || 5000; donc ici il n'y aura pas de process.env.PORT donc on prend 5000
+
+En Ligne (sur Render, donc la j'ai bien mis la DB de Hostinger (dans "bd.js") avant d'importer le dossier sur Github car apres je ne peux plus y toucher depuis Render) : 
+	Le fichier .env n'existe pas car il est restait en local, sur render c'est moi qui rempli a la main les infos de connexion a la BD, et donc ces infos rentré correspondront a :
+		host: process.env.DB_HOST,
+  		user: process.env.DB_USER,
+  		password: process.env.DB_PASSWORD,
+  		database: process.env.DB_NAME,
+  		port: process.env.DB_PORT,
+	qui est dans le fichier "db.js"
+
+	Pour lançer le serveur dans le fichier "index.js" c'est ce code : 
+		app.listen(port, "0.0.0.0", () => {
+   			console.log("Server running on port " + port);
+ 		});
+	avec le port qui à été définit plus haut : const port = process.env.PORT || 5000;  donc ici le process.env.PORT sera dispo donc on prend lui
+
+Résumé : Front-end ---> Si Front-end local (localhost:3000) ---> Choisit le backend "localhost:5000" ou le backend "render.com" en changeant la variable dans le fichier LinkBackend.js
+		   ---> Si Front-end ligne (hostinger.com)  ---> Obligatoirement le backend "render.com"
+		   Backend ---> Si Backend local (localhost:5000) ---> Choisit BD de Xampp ou BD de Hostinger
+			   ---> Si Backend ligne (render.com)     ---> Obligatoirement BD Hostinger
+
+	
