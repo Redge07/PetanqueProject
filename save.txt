@@ -20,3 +20,5 @@ Séparer les modes de tournoi en plusieurs fichiers (front et back compris)
 
 Actualiser les données automatiquement
 systeme de recherche de tournoi clair pour un utilisateur
+Sur barre de recherche ne pas zoomer
+Des cercle de chargement partout
