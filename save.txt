@@ -17,3 +17,6 @@ et ensuite les manipulé avec les fonctions JS
 Faire des Try/catch et des return res.status(500)
 Bbcrypt pour les MDP et token JWT pour les connexions
 Séparer les modes de tournoi en plusieurs fichiers (front et back compris)
+
+Actualiser les données automatiquement
+systeme de recherche de tournoi clair pour un utilisateur
