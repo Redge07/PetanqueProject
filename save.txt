@@ -27,3 +27,4 @@ Pour le backend ---> Backend accessible sur github avec un repository, sur rende
 je précise le lien du dossier qui nous intéresse, je précise la commande à éxécuté (node index.js) et je précise les clé pour la connexion à la base de données
 Pour le Frontend ---> Frontend accessible sur github avec un repository, je crée un nouveu site en précisant le lien du dossier, 
 je précisé la commande à éxécuté (npm run build) et donc le fichierà aller chercher après (petanque/build)
+Systeme de recompense
