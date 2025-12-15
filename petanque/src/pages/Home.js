@@ -31,7 +31,7 @@ const Home = () => {
   }
   return (
     <div>
-      <h1>Home !</h1>
+      <h1>Home !!</h1>
       <p>Bonjour {player.player.pseudo}</p>
       {/* Si je fait apparaitre les 2 boutons pour choisir le mode organisateur ou participant */}
       {!choice && (
