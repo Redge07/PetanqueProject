@@ -17,10 +17,10 @@ app.use("/organisateurs", require("./routes/organisateurs"));
 app.use("/tournaments", require("./routes/tournaments"));
 app.use("/gotournaments", require("./routes/gotournaments"));
 
-// app.listen(port, () => {
-//   console.log("Go server in Render");
-// });
-
-app.listen(port, "0.0.0.0", () => {
-  console.log("Server running on port " + port);
+app.listen(port, () => {
+  console.log("Go server in Render");
 });
+
+// app.listen(port, "0.0.0.0", () => {
+//   console.log("Server running on port " + port);
+// });

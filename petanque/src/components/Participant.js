@@ -79,6 +79,7 @@ const Participant = ({ player }) => {
               type="number"
               name="id"
               placeholder="Rechercher un tournoi avec son id..."
+              required
             />
             <input type="submit" value="Chercher" />
           </form>
