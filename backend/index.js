@@ -21,13 +21,10 @@ app.use("/gotournaments", require("./routes/gotournaments"));
 //   console.log("Go server in Render");
 // });
 
-<<<<<<< HEAD
-=======
 app.get("/", (req, res) => {
   res.send("Bienvenue dans le backend");
 });
 
->>>>>>> af10b48dfc44dd290fb98754b9ce25e59a5c77a9
 app.listen(port, "0.0.0.0", () => {
   console.log("Server running on port " + port);
 });
