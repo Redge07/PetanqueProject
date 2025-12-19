@@ -253,29 +253,22 @@ const Tournament = () => {
   // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
   const handleGoArbreClassement = (e) => {
     e.preventDefault();
+
+    const A = Number(e.target.elements.A.value);
+    const B = Number(e.target.elements.B.value);
+    const C = Number(e.target.elements.C.value);
+
     const listPlayersA = dataOrder
       .sort((a, b) => b.points - a.points)
-      .slice(0, e.target.elements.A.value);
+      .slice(0, A);
     const listPlayersB =
-      e.target.elements.B.value == 0
+      B == 0
         ? null
-        : dataOrder
-            .sort((a, b) => b.points - a.points)
-            .slice(
-              e.target.elements.A.value,
-              e.target.elements.A.value + e.target.elements.B.value
-            );
+        : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
     const listPlayersC =
       e.target.elements.C.value == 0
         ? null
-        : dataOrder
-            .sort((a, b) => b.points - a.points)
-            .slice(
-              e.target.elements.A.value + e.target.elements.B.value,
-              e.target.elements.A.value +
-                e.target.elements.B.value +
-                e.target.elements.C.value
-            );
+        : dataOrder.sort((a, b) => b.points - a.points).slice(A + B, A + B + C);
     axios
       .put(
         linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
@@ -783,12 +776,14 @@ const Tournament = () => {
                                     >
                                       <input
                                         type="number"
+                                        defaultValue={0}
                                         placeholder={`Entrer le score de ${m.joueurA.pseudo}`}
                                         disabled={!m.joueurB}
                                         name="scoreA"
                                       />
                                       <input
                                         type="number"
+                                        defaultValue={1}
                                         placeholder={`Entrer le score de ${
                                           m.joueurB ? m.joueurB.pseudo : pseudo
                                         }`}
