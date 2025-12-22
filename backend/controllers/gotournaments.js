@@ -484,6 +484,17 @@ exports.win_player_cascade = (req, res) => {
             console.log(newTour);
             console.log(adversaire);
 
+            console.log("test");
+
+            if (newTour == 0.5) {
+              console.log("test2");
+              const vainqueur = `vainqueur${groupe}`;
+              connection.query(
+                `update tournaments set ${vainqueur} = ? where id = ?`,
+                [listPlayers.find((p) => p.numero == win).pseudo, req.params.id]
+              );
+            }
+
             updatePlayers(
               adversaire,
               newTour,
@@ -502,6 +513,16 @@ exports.win_player_cascade = (req, res) => {
             let nb_joueurs_suite = listPlayers.filter(
               (p) => p.groupe == groupe && p.class < nb_joueurs
             );
+            console.log("test");
+
+            if (infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1) == 0.5) {
+              console.log("test2");
+              const vainqueur = `vainqueur${groupe}`;
+              connection.query(
+                `update tournaments set ${vainqueur} = ? where id = ?`,
+                [listPlayers.find((p) => p.numero == win).pseudo, req.params.id]
+              );
+            }
             // Si y'a pas de joueur dans le tournoi en arbre encore alors c'est le premier a entré dans l'arbre
             if (nb_joueurs_suite.length == 0) {
               updatePlayers(
@@ -679,8 +700,6 @@ exports.win_player_cascade = (req, res) => {
         }
       );
     } else {
-      console.log("test" + tour);
-
       connection.query(
         "update players set id_versus = 0, class = ?, round = ?, groupe = ?, num_match = ?, barrage = ? where numero = ? and id_tournament = ?",
         [
@@ -968,10 +987,6 @@ exports.create_arbre_classement = async (req, res) => {
   const groupes = ["A", "B", "C", "D"];
   // On récupère toutes la liste de chaque groupe
   let { listPlayersA, listPlayersB, listPlayersC, listPlayersD } = req.body;
-  console.log(listPlayersA);
-  console.log(listPlayersB);
-  console.log(listPlayersC);
-  console.log(listPlayersD);
 
   // On mélange chaque liste
   let listPlayers = [
@@ -980,19 +995,13 @@ exports.create_arbre_classement = async (req, res) => {
     listPlayersC ? melanger(listPlayersC) : null,
     listPlayersD ? melanger(listPlayersD) : null,
   ];
-  console.log(listPlayers);
 
   // On parcours les groupes
   for (let j = 0; j < listPlayers.length; j++) {
     const g = listPlayers[j];
     // Pour commencer un tournoi en arbre il faut etre 8
     if (g) {
-      console.log(g);
-
       if (g.length == 1) {
-        console.log("test");
-        console.log(g);
-
         connection.query(
           "update players set id_versus = 0, class = 0.5, groupe = ? where numero = ? and id_tournament = ?",
           [groupes[j], g[0].numero, req.params.id]
