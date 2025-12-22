@@ -968,6 +968,10 @@ exports.create_arbre_classement = async (req, res) => {
   const groupes = ["A", "B", "C", "D"];
   // On récupère toutes la liste de chaque groupe
   let { listPlayersA, listPlayersB, listPlayersC, listPlayersD } = req.body;
+  console.log(listPlayersA);
+  console.log(listPlayersB);
+  console.log(listPlayersC);
+  console.log(listPlayersD);
 
   // On mélange chaque liste
   let listPlayers = [
@@ -986,6 +990,9 @@ exports.create_arbre_classement = async (req, res) => {
       console.log(g);
 
       if (g.length == 1) {
+        console.log("test");
+        console.log(g);
+
         connection.query(
           "update players set id_versus = 0, class = 0.5, groupe = ? where numero = ? and id_tournament = ?",
           [groupes[j], g[0].numero, req.params.id]
@@ -994,7 +1001,7 @@ exports.create_arbre_classement = async (req, res) => {
         // On parcourt tous les joueurs de ce groupe en question
         for (let i = 0; i < g.length; i++) {
           const p = g[i];
-          // O n crée toutes les confrontations du premier tour
+          // On crée toutes les confrontations du premier tour
           await new Promise((resolve, reject) => {
             connection.query(
               "update players set id_versus = ?, class = ?, groupe = ? where numero = ? and id_tournament = ?",
@@ -1015,7 +1022,7 @@ exports.create_arbre_classement = async (req, res) => {
   // Une fois que le tournoi en arbre est fait on supprime tous le reste de joueurs qui n'ont pas eu d'adversaire attribué car cela veut dire qu'ils n'ont pas passer les poules
   await new Promise((resolve, reject) => {
     connection.query(
-      "delete from players where id_versus = 0 and id_tournament = ?",
+      "delete from players where groupe is null and id_tournament = ?",
       [req.params.id],
       () => resolve()
     );

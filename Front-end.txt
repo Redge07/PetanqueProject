@@ -1,38 +1,55 @@
 Front-end : 
 	- Refaire le front-end sur react native
-	- Quand on a fini la phase de poules d'un tournoi en classement, permettre à l'utilisateur de choisir comment organiser les arbres pour la suite du tournoi. Par exemple il choisit que on fera un arbre pour le A avec les 8 premiers et un tournoi en arbre pour le B avec les joueurs entre la 9ème et 24ème place. Donc y'a une logique, je peux pas mettre de tournoi C si y'a pas un tournoi B, si je mets 4 en A et 8 en B alors ça veut dire que les 8 en B sont les joueurs de la 5ème à la 12ème place. Est-ce que on peut accepter 10 joueurs et donc faire un système de barrage ?
-	- Coté Participant il faut que les joueurs puissent voir toutes les infos sur le tournoi auquel ils participent, comme par exemple la liste des matches, ou en est le tournoi, le classement du tournoi
-	- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données. Donc faut mettre des logos de chargement partout car on n'est jamais sur que les données vont venir directement. Et aussi quand on fait des map il faut faire attention que le tableau à mappé n'est pas vide
+		- Quand on a fini la phase de poules d'un tournoi en classement, permettre à l'utilisateur de choisir comment organiser les arbres pour la suite du tournoi. 
+			Par exemple il choisit que on fera un arbre pour le A avec les 8 premiers et un tournoi en arbre pour le B avec les joueurs entre la 9ème et 24ème place. 
+			Donc y'a une logique, je peux pas mettre de tournoi C si y'a pas un tournoi B, si je mets 4 en A et 8 en B alors ça veut dire que les 8 en B sont les joueurs 
+			de la 5ème à la 12ème place. Est-ce que on peut accepter 10 joueurs et donc faire un système de barrage ?
+	- Coté Participant il faut que les joueurs puissent voir toutes les infos sur le tournoi auquel ils participent, comme par exemple la liste des matches, ou en est le tournoi, 
+		le classement du tournoi
+	- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données. 
+		Donc faut mettre des logos de chargement partout car on n'est jamais sur que les données vont venir directement. 
+		Et aussi quand on fait des map il faut faire attention que le tableau à mappé n'est pas vide
 	- Les composants sont beaucoup trop long, il faut vraiment les séparer en plusieurs composant et ça donnera une architecture clair de l'application
-	- Avoir un système d'actualisation de la page automatique, par exemple si je suis censé avoir un nouvel adversaire alors la page du participant se met automatiquement à jour sans rien toucher
-	- Pour la recherche d'un tournoi coté participant pour pouvoir s'inscire, il faut que la recherche soit très intuitif, avec la possiblité de rechercher avec le nom ou l'id du tournoi, ajouter aussi le système de QR Code
+	- Avoir un système d'actualisation de la page automatique, par exemple si je suis censé avoir un nouvel adversaire alors la page du participant se met automatiquement à jour 
+		sans rien toucher
+	- Pour la recherche d'un tournoi coté participant pour pouvoir s'inscire, il faut que la recherche soit très intuitif, avec la possiblité de rechercher avec le nom ou l'id du tournoi, 
+		ajouter aussi le système de QR Code
 	- Sur mobile en mode page web, il ne faut pas que ça zoom automatiquement quand on veut écrire dans un champ de texte
 	- Bien gérer les saisies sur les champs de texte, il ne faut pas que l'utilisateur puisse rentrer n'importe quoi
 
 Back-end : 
-	- Pour le tournoi classement quand la poule est finit, prendre en compte les choix de l'organisateur pour crée les tournois en arbre
+		- Pour le tournoi classement quand la poule est finit, prendre en compte les choix de l'organisateur pour crée les tournois en arbre
 	- Dans le classement il faut des critères précis pour séparer les joueurs qui ont le meme nombre de points 
 	- Quand un tournoi est finit ou alors un groupe est finit dans un tournoi, il faut garder en mémoire le nom du gagnant pour afficher le vainqueur histoire d'avoir quelque chose à afficher
 	- Utiliser la tables matches pour garder les résultats des matches en mémoire au cas où ça pourrait servir, pour faire un historique par exemple
 	- Passer les fonctions looser et update en dehors de la grosse fonction pour qu'ils soit plus indépendant, donc faudra donner "connections" en paramètre par exemple
-	- Il faut que les fonctions soit asynchrones parce que a des moments j'enchaine des requetes sql, et une requete sql peut se terminer plus rapide qu'une autre et donc créer un décalage. Il faut ajouter les async et les promise pour avoir un code clair.
+	- Il faut que les fonctions soit asynchrones parce que a des moments j'enchaine des requetes sql, et une requete sql peut se terminer plus rapide qu'une autre 
+		et donc créer un décalage. Il faut ajouter les async et les promise pour avoir un code clair.
 	- Quand on fait des requetes SQL avec des select, il faudrait préciser les colonnes qu'on veut pour avoir que des données qui nous intéressent.
 	- Quand je fais des requetes SQL, il vaut mieux faire une requetes SQL qui récupère toutes les données d'un coup pour les manipuler en JS au lieu de faire plusieurs appels a des requetes SQL
 	- Faire un backend très propres dans l'écriture du code avec des try/catch car ça gère les erreurs et c'est plus compréhensible pour vérifier les erreurs
 	- Utiliser les res.status pour avoir une réponse API très clair et propre pour les utilisateurs
 	- Les fichiers controllers sont beaucoup trop volumineux, il faudrait par exemple séparé les algorithmes des tournois en plusieurs fichiers javascript pour y voir plus clair
-	- Créer l'algorithme qui puisse gérer la répartition des récompense pour les vainqueurs. Les organisateurs ont récupérer une somme d'argent des inscriptions et doivent les répartir comme bon leurs semble. Proposé des calculs automatique et des choix de l'utilisateur lui meme
-	- Pour les tournois, peut etre laissé plus de flexibilité a l'utilisateur, par exemple si il souhaite le groupe A et B pour le tournoi en cascade au lieu des groupes A, B et C,il faut peut etre que le backend s'adapte
+	- Créer l'algorithme qui puisse gérer la répartition des récompense pour les vainqueurs. Les organisateurs ont récupérer une somme d'argent des inscriptions 
+		et doivent les répartir comme bon leurs semble. Proposé des calculs automatique et des choix de l'utilisateur lui meme
+	- Pour les tournois, peut etre laissé plus de flexibilité a l'utilisateur, par exemple si il souhaite le groupe A et B pour le tournoi en cascade 
+		au lieu des groupes A, B et C,il faut peut etre que le backend s'adapte
 
 Divers :
-	- Avoir un système d'authentification comme on peut trouver n'importe où. Avec l'inscription par mail, avec la possibilité de "continuer avec google", pouvoir envoyer des mails facilement, avoir un système de bcrypt pour les mot de passe, avoir des tokens pour gérer les sessions de connexion et pouvoir resté connecter. Utiliser les tokens JWT POUR gérer ça facilement
+	- Avoir un système d'authentification comme on peut trouver n'importe où. Avec l'inscription par mail, avec la possibilité de "continuer avec google", 
+		pouvoir envoyer des mails facilement, avoir un système de bcrypt pour les mot de passe, avoir des tokens pour gérer les sessions de connexion et pouvoir resté connecter. 
+		Utiliser les tokens JWT POUR gérer ça facilement
 	- Il faut pouvoir de déconnecter et donc détruire le token actuelle
-	- Avoir un bon système de notification pour l'application mobile, ça doit etre intégré au backend, par exemple si un match s'est fini alors annoncé le nouvel adversaire d'un joueur par une notification sur son téléphone.
-	- Avoir un système de géolocalisation, le but serait que les joueurs partage leur position et donc que les organisateurs aient une map pour visualiser les positions des joueurs qui participent au tournoi en question.
-	- Avoir un système de payement avec Stripe. ça sera pour que les organisateurs puissent crée un tournoi avec beaucoup de participant. Après voir payé sur stripe, ils récupèrent un code à entrer pour avoir le tournoi en mode "premium"
+	- Avoir un bon système de notification pour l'application mobile, ça doit etre intégré au backend, par exemple si un match s'est fini alors annoncé le nouvel adversaire d'un joueur 
+		par une notification sur son téléphone.
+	- Avoir un système de géolocalisation, le but serait que les joueurs partage leur position et donc que les organisateurs aient une map pour visualiser les positions des joueurs 
+		qui participent au tournoi en question.
+	- Avoir un système de payement avec Stripe. ça sera pour que les organisateurs puissent crée un tournoi avec beaucoup de participant. 
+		Après voir payé sur stripe, ils récupèrent un code à entrer pour avoir le tournoi en mode "premium"
 	- Pour le déploiement final il faudra avoir un serveur backend robuste, cela veut dire potentiellement payer un abonnement.
 	- Également il faudra que l'application soit disponible sur IOS et Android
 	- Pour la localisation, peut etre avoir un système de recherche d'un joueur sur la carte
 	- Pour le système stripe il faut gérer les erreurs, les remboursement,les factures ect...
 	- Avoir comme un tuto de l'application
+	- Fichier htaccess
 	

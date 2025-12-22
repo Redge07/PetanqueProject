@@ -25,6 +25,8 @@ const Tournament = () => {
   const [order, setOrder] = useState(false);
   // State pour avoir les données du classement
   const [dataOrder, setDataOrder] = useState([]);
+  // State pour préciser si le choix des valeurs des arbres de classement est cohérent
+  const [errorLengthArbre, setErrorLengthArbre] = useState("");
   useEffect(() => {
     if (!login) {
       navigate("/");
@@ -258,28 +260,43 @@ const Tournament = () => {
     const B = Number(e.target.elements.B.value);
     const C = Number(e.target.elements.C.value);
 
-    const listPlayersA = dataOrder
-      .sort((a, b) => b.points - a.points)
-      .slice(0, A);
-    const listPlayersB =
-      B == 0
-        ? null
-        : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
-    const listPlayersC =
-      e.target.elements.C.value == 0
-        ? null
-        : dataOrder.sort((a, b) => b.points - a.points).slice(A + B, A + B + C);
-    axios
-      .put(
-        linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
-        { listPlayersA, listPlayersB, listPlayersC }
-      )
-      .then((res) => {
-        setResponseWin(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      });
+    if (A + B + C > dataOrder.length) {
+      setErrorLengthArbre(
+        "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser"
+      );
+    } else if ((B == 0) & (C > 0)) {
+      setErrorLengthArbre(
+        "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B"
+      );
+    } else {
+      const listPlayersA = dataOrder
+        .sort((a, b) => b.points - a.points)
+        .slice(0, A);
+      const listPlayersB =
+        B == 0
+          ? null
+          : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
+      const listPlayersC =
+        e.target.elements.C.value == 0
+          ? null
+          : dataOrder
+              .sort((a, b) => b.points - a.points)
+              .slice(A + B, A + B + C);
+      console.log(listPlayersA);
+      console.log(listPlayersB);
+      console.log(listPlayersC);
+      axios
+        .put(
+          linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
+          { listPlayersA, listPlayersB, listPlayersC }
+        )
+        .then((res) => {
+          setResponseWin(res.data);
+          setTimeout(() => {
+            recharge();
+          }, 1000);
+        });
+    }
   };
 
   useEffect(() => {
@@ -623,6 +640,7 @@ const Tournament = () => {
                       })}
                       <input type="submit" value="Go Tournoi en arbres" />
                     </form>
+                    <p>{errorLengthArbre}</p>
                   </div>
                 )}
               {!order && (
