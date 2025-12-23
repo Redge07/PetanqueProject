@@ -19,6 +19,13 @@ exports.charge = (req, res) => {
         );
         // Sinon le tournoi a commencé
       } else if (results[0].start == 1) {
+        const vainqueur = {
+          vainqueurA: results[0].vainqueurA,
+          vainqueurB: results[0].vainqueurB,
+          vainqueurC: results[0].vainqueurC,
+        };
+        console.log(vainqueur);
+
         const style = results[0].style;
 
         // Je récupère tous les joueurs qui sont inscrits
@@ -64,7 +71,12 @@ exports.charge = (req, res) => {
                 };
               }
             }
-            res.json({ res: 1, results: matches, style: style });
+            res.json({
+              res: 1,
+              results: matches,
+              style: style,
+              vainqueur: vainqueur,
+            });
           }
         );
 

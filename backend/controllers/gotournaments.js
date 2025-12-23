@@ -877,6 +877,13 @@ exports.win_player_classement_arbre = (req, res) => {
         "select * from players where id_tournament = ? and groupe = ?",
         [req.params.id, groupe],
         (err, results) => {
+          if (tour / 2 == 0.5) {
+            const vainqueur = `vainqueur${groupe}`;
+            connection.query(
+              `update tournaments set ${vainqueur} = ? where id = ?`,
+              [results[0].pseudo, req.params.id]
+            );
+          }
           const nb_joueurs_suite = results.filter((j) => j.class == tour / 2);
           const num_max = Math.max(
             0,
@@ -1004,7 +1011,18 @@ exports.create_arbre_classement = async (req, res) => {
       if (g.length == 1) {
         connection.query(
           "update players set id_versus = 0, class = 0.5, groupe = ? where numero = ? and id_tournament = ?",
-          [groupes[j], g[0].numero, req.params.id]
+          [groupes[j], g[0].numero, req.params.id],
+          () => {
+            console.log("lettre : " + g);
+            const vainqueur = `vainqueur${groupes[j]}`;
+            console.log(vainqueur);
+            console.log(g[0].pseudo);
+
+            connection.query(
+              `update tournaments set ${vainqueur} = ? where id = ?`,
+              [g[0].pseudo, req.params.id]
+            );
+          }
         );
       } else {
         // On parcourt tous les joueurs de ce groupe en question

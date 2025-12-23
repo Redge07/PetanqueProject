@@ -252,6 +252,8 @@ const Tournament = () => {
       });
   };
 
+  console.log(dataOrder);
+
   // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
   const handleGoArbreClassement = (e) => {
     e.preventDefault();
@@ -282,9 +284,6 @@ const Tournament = () => {
           : dataOrder
               .sort((a, b) => b.points - a.points)
               .slice(A + B, A + B + C);
-      console.log(listPlayersA);
-      console.log(listPlayersB);
-      console.log(listPlayersC);
       axios
         .put(
           linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
@@ -506,12 +505,21 @@ const Tournament = () => {
                                               )}
                                               {/* J'affiche les confrontations qui respectent les filtres */}
                                               {versusMain.map((versus) => {
-                                                if (t == 0.5) {
+                                                const vainqueur = `vainqueur${g}`;
+                                                if (
+                                                  listPlayers.vainqueur[
+                                                    vainqueur
+                                                  ]
+                                                ) {
                                                   return (
                                                     <p>
                                                       Le vainqueur du groupe {g}{" "}
                                                       est{" "}
-                                                      {versus.joueurA.pseudo}
+                                                      {
+                                                        listPlayers.vainqueur[
+                                                          vainqueur
+                                                        ]
+                                                      }
                                                     </p>
                                                   );
                                                 } else {
@@ -688,11 +696,20 @@ const Tournament = () => {
                                                     m.class == t
                                                 )
                                                 .map((m) => {
-                                                  if (m.class == 0.5) {
+                                                  const vainqueur = `vainqueur${g}`;
+                                                  if (
+                                                    listPlayers.vainqueur[
+                                                      vainqueur
+                                                    ]
+                                                  ) {
                                                     return (
                                                       <p>
                                                         Le gagnant est{" "}
-                                                        {m.joueurA.pseudo}
+                                                        {
+                                                          listPlayers.vainqueur[
+                                                            vainqueur
+                                                          ]
+                                                        }
                                                       </p>
                                                     );
                                                   } else {
