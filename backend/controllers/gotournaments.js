@@ -484,10 +484,7 @@ exports.win_player_cascade = (req, res) => {
             console.log(newTour);
             console.log(adversaire);
 
-            console.log("test");
-
-            if (newTour == 0.5) {
-              console.log("test2");
+            if ((newTour == 0.5) & (groupe != "B") & (groupe != "B2")) {
               const vainqueur = `vainqueur${groupe}`;
               connection.query(
                 `update tournaments set ${vainqueur} = ? where id = ?`,
@@ -513,10 +510,7 @@ exports.win_player_cascade = (req, res) => {
             let nb_joueurs_suite = listPlayers.filter(
               (p) => p.groupe == groupe && p.class < nb_joueurs
             );
-            console.log("test");
-
             if (infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1) == 0.5) {
-              console.log("test2");
               const vainqueur = `vainqueur${groupe}`;
               connection.query(
                 `update tournaments set ${vainqueur} = ? where id = ?`,
@@ -1013,11 +1007,7 @@ exports.create_arbre_classement = async (req, res) => {
           "update players set id_versus = 0, class = 0.5, groupe = ? where numero = ? and id_tournament = ?",
           [groupes[j], g[0].numero, req.params.id],
           () => {
-            console.log("lettre : " + g);
             const vainqueur = `vainqueur${groupes[j]}`;
-            console.log(vainqueur);
-            console.log(g[0].pseudo);
-
             connection.query(
               `update tournaments set ${vainqueur} = ? where id = ?`,
               [g[0].pseudo, req.params.id]
