@@ -470,6 +470,40 @@ exports.win_player_cascade = (req, res) => {
           const listPlayers = results;
           // Si il s'agit d'un match qui est dans l'arbre
           if (round == 4) {
+            if ((groupe == "B" || groupe == "B2") && tour == 1) {
+              connection.query(
+                "delete from players where numero = ? and id_tournament = ?",
+                [lose, req.params.id],
+                () => {
+                  const adversaire = listPlayers.find(
+                    (p) => p.class == 0.5 && groupe == "B"
+                  );
+                  if (adversaire) {
+                    return connection.query(
+                      "update players set id_versus = ?, class = 0.5, groupe = 'B', num_match = 1 where numero = ? and id_tournament = ?",
+                      [adversaire.numero, win, req.params.id],
+                      () => {
+                        connection.query(
+                          "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                          [win, adversaire.numero, req.params.id],
+                          () => {
+                            return res.send("Victoire validé");
+                          }
+                        );
+                      }
+                    );
+                  } else {
+                    return connection.query(
+                      "update players set id_versus = 0, class = 0.5, groupe = 'B', num_match = 1 where numero = ? and id_tournament = ?",
+                      [win, req.params.id],
+                      () => {
+                        return res.send("Victoire validé");
+                      }
+                    );
+                  }
+                }
+              );
+            }
             // On récupère les joueurs qui sont dans le meme groupe et dans le tour d'au-dessus
             const nb_joueurs_suite = listPlayers.filter(
               (p) => p.groupe == groupe && p.class == tour / 2
@@ -484,7 +518,15 @@ exports.win_player_cascade = (req, res) => {
             console.log(newTour);
             console.log(adversaire);
 
-            if ((newTour == 0.5) & (groupe != "B") & (groupe != "B2")) {
+            if (newTour == 0.5 && groupe != "B" && groupe != "B2") {
+              const vainqueur = `vainqueur${groupe}`;
+              connection.query(
+                `update tournaments set ${vainqueur} = ? where id = ?`,
+                [listPlayers.find((p) => p.numero == win).pseudo, req.params.id]
+              );
+            }
+
+            if (newTour == 0.25) {
               const vainqueur = `vainqueur${groupe}`;
               connection.query(
                 `update tournaments set ${vainqueur} = ? where id = ?`,
@@ -510,7 +552,11 @@ exports.win_player_cascade = (req, res) => {
             let nb_joueurs_suite = listPlayers.filter(
               (p) => p.groupe == groupe && p.class < nb_joueurs
             );
-            if (infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1) == 0.5) {
+            if (
+              infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1) == 0.5 &&
+              groupe != "B" &&
+              groupe != "B2"
+            ) {
               const vainqueur = `vainqueur${groupe}`;
               connection.query(
                 `update tournaments set ${vainqueur} = ? where id = ?`,

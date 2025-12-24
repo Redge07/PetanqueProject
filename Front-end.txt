@@ -19,7 +19,7 @@ Front-end :
 
 Back-end : 
 		- Pour le tournoi classement quand la poule est finit, prendre en compte les choix de l'organisateur pour crée les tournois en arbre
-	- Faire que le vainqueur de B affronte le vainqueur de B2 (créer une API a part pour ce cas spécifique)
+	- Faire que le vainqueur de B affronte le vainqueur de B2 (adapter si les groupes B et B2 ont directement leur vainqueur a la sortie des 3 matchs)
 	- Quand un tournoi est finit ou alors un groupe est finit dans un tournoi, il faut garder en mémoire le nom du gagnant pour afficher le vainqueur histoire d'avoir quelque chose à afficher
 	- Quand on fait des requetes SQL avec des select, il faudrait préciser les colonnes qu'on veut pour avoir que des données qui nous intéressent.
 	- Quand je fais des requetes SQL, il vaut mieux faire une requetes SQL qui récupère toutes les données d'un coup pour les manipuler en JS au lieu de faire plusieurs appels a des requetes SQL

@@ -497,9 +497,17 @@ const Tournament = () => {
                                         } else {
                                           return (
                                             <div key={t}>
-                                              {r < 4 || t == 0.5 ? null : t ==
-                                                1 ? (
+                                              {r < 4 ||
+                                              t == 0.25 ||
+                                              (t == 0.5 &&
+                                                g != "B") ? null : t == 1 ? (
                                                 <h3>La finale</h3>
+                                              ) : t == 0.5 ? (
+                                                <h3>
+                                                  La grande finale du groupe B,
+                                                  vainqueur du B contre
+                                                  vainqueur B2
+                                                </h3>
                                               ) : (
                                                 <h3>1/{t} de finale</h3>
                                               )}
