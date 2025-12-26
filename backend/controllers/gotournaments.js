@@ -471,38 +471,7 @@ exports.win_player_cascade = (req, res) => {
           // Si il s'agit d'un match qui est dans l'arbre
           if (round == 4) {
             if ((groupe == "B" || groupe == "B2") && tour == 1) {
-              connection.query(
-                "delete from players where numero = ? and id_tournament = ?",
-                [lose, req.params.id],
-                () => {
-                  const adversaire = listPlayers.find(
-                    (p) => p.class == 0.5 && groupe == "B"
-                  );
-                  if (adversaire) {
-                    return connection.query(
-                      "update players set id_versus = ?, class = 0.5, groupe = 'B', num_match = 1 where numero = ? and id_tournament = ?",
-                      [adversaire.numero, win, req.params.id],
-                      () => {
-                        connection.query(
-                          "update players set id_versus = ? where numero = ? and id_tournament = ?",
-                          [win, adversaire.numero, req.params.id],
-                          () => {
-                            return res.send("Victoire validé");
-                          }
-                        );
-                      }
-                    );
-                  } else {
-                    return connection.query(
-                      "update players set id_versus = 0, class = 0.5, groupe = 'B', num_match = 1 where numero = ? and id_tournament = ?",
-                      [win, req.params.id],
-                      () => {
-                        return res.send("Victoire validé");
-                      }
-                    );
-                  }
-                }
-              );
+              return updateBigFinaleB(listPlayers);
             }
             // On récupère les joueurs qui sont dans le meme groupe et dans le tour d'au-dessus
             const nb_joueurs_suite = listPlayers.filter(
@@ -563,8 +532,14 @@ exports.win_player_cascade = (req, res) => {
                 [listPlayers.find((p) => p.numero == win).pseudo, req.params.id]
               );
             }
-            // Si y'a pas de joueur dans le tournoi en arbre encore alors c'est le premier a entré dans l'arbre
+            if (
+              infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1) == 0.5 &&
+              (groupe == "B" || groupe == "B2")
+            ) {
+              return updateBigFinaleB(listPlayers);
+            }
             if (nb_joueurs_suite.length == 0) {
+              // Si y'a pas de joueur dans le tournoi en arbre encore alors c'est le premier a entré dans l'arbre
               updatePlayers(
                 false,
                 infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1),
@@ -805,6 +780,41 @@ exports.win_player_cascade = (req, res) => {
         1
       );
     }
+  };
+  const updateBigFinaleB = (listPlayers) => {
+    connection.query(
+      "delete from players where numero = ? and id_tournament = ?",
+      [lose, req.params.id],
+      () => {
+        const adversaire = listPlayers.find(
+          (p) => p.class == 0.5 && p.groupe == "B"
+        );
+
+        if (adversaire) {
+          return connection.query(
+            "update players set id_versus = ?, class = 0.5, round = 4, groupe = 'B', num_match = 1 where numero = ? and id_tournament = ?",
+            [adversaire.numero, win, req.params.id],
+            () => {
+              connection.query(
+                "update players set id_versus = ? where numero = ? and id_tournament = ?",
+                [win, adversaire.numero, req.params.id],
+                () => {
+                  return res.send("Victoire validé");
+                }
+              );
+            }
+          );
+        } else {
+          return connection.query(
+            "update players set id_versus = 0, class = 0.5, round = 4, groupe = 'B', num_match = 1 where numero = ? and id_tournament = ?",
+            [win, req.params.id],
+            () => {
+              return res.send("Victoire validé");
+            }
+          );
+        }
+      }
+    );
   };
 };
 
