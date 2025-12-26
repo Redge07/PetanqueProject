@@ -33,6 +33,11 @@ const Tournament = () => {
     }
   }, []);
 
+  console.log("ee");
+
+  console.log(pairesInfos);
+  console.log(listPlayers);
+
   useEffect(() => {
     axios
       .get(linkBackend + "gotournaments/charge_classement/" + idTournament)
@@ -669,58 +674,51 @@ const Tournament = () => {
                       if (r == 4) {
                         return (
                           <div>
-                            {pairesInfos.groupes
-                              .sort(
-                                (a, b) =>
-                                  ["A", "B", "C"].indexOf(a) -
-                                  ["A", "B", "C"].indexOf(b)
-                              )
-                              .map((g) => {
+                            {["A", "B", "C"].map((g) => {
+                              const vainqueur = `vainqueur${g}`;
+                              if (listPlayers.vainqueur[vainqueur]) {
                                 return (
                                   <div>
-                                    {g ? <h2>Groupe {g}</h2> : null}
-                                    {pairesInfos.tours
-                                      .sort((a, b) => a - b)
-                                      .map((t) => {
-                                        if (
-                                          listPlayers.results.filter(
-                                            (m) => m.groupe == g && m.class == t
-                                          ).length == 0 ||
-                                          !g
-                                        ) {
-                                          return null;
-                                        } else {
-                                          return (
-                                            <div>
-                                              {t == 1 ? (
-                                                <h3>La finale</h3>
-                                              ) : t == 0.5 ? null : (
-                                                <h3>1/{t} de finale</h3>
-                                              )}
-                                              {listPlayers.results
-                                                .filter(
-                                                  (m) =>
-                                                    m.groupe == g &&
-                                                    m.class == t
-                                                )
-                                                .map((m) => {
-                                                  const vainqueur = `vainqueur${g}`;
-                                                  if (
-                                                    listPlayers.vainqueur[
-                                                      vainqueur
-                                                    ]
-                                                  ) {
-                                                    return (
-                                                      <p>
-                                                        Le gagnant est{" "}
-                                                        {
-                                                          listPlayers.vainqueur[
-                                                            vainqueur
-                                                          ]
-                                                        }
-                                                      </p>
-                                                    );
-                                                  } else {
+                                    <h2>Groupe {g}</h2>
+                                    <p>
+                                      Le gagnant est{" "}
+                                      {listPlayers.vainqueur[vainqueur]}
+                                    </p>
+                                  </div>
+                                );
+                              } else {
+                                if (
+                                  listPlayers.results.find((m) => m.groupe == g)
+                                ) {
+                                  return (
+                                    <div>
+                                      {g ? <h2>Groupe {g}</h2> : null}
+                                      {pairesInfos.tours
+                                        .sort((a, b) => a - b)
+                                        .map((t) => {
+                                          if (
+                                            listPlayers.results.filter(
+                                              (m) =>
+                                                m.groupe == g && m.class == t
+                                            ).length == 0 ||
+                                            !g
+                                          ) {
+                                            return null;
+                                          } else {
+                                            return (
+                                              <div>
+                                                {t == 1 ? (
+                                                  <h3>La finale</h3>
+                                                ) : t == 0.5 ? null : (
+                                                  <h3>1/{t} de finale</h3>
+                                                )}
+                                                {listPlayers.results
+                                                  .filter(
+                                                    (m) =>
+                                                      m.groupe == g &&
+                                                      m.class == t
+                                                  )
+                                                  .map((m) => {
                                                     return (
                                                       <div key={m.key}>
                                                         {/* Montre infos entre joueur A et joueur B potentiel */}
@@ -769,15 +767,18 @@ const Tournament = () => {
                                                         )}
                                                       </div>
                                                     );
-                                                  }
-                                                })}{" "}
-                                            </div>
-                                          );
-                                        }
-                                      })}
-                                  </div>
-                                );
-                              })}
+                                                  })}{" "}
+                                              </div>
+                                            );
+                                          }
+                                        })}
+                                    </div>
+                                  );
+                                } else {
+                                  return null;
+                                }
+                              }
+                            })}
                           </div>
                         );
                         // return <h3>On verra plus tard round 4 (arbre)</h3>;
