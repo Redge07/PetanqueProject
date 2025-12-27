@@ -3,7 +3,7 @@ Front-end :
 			Par exemple il choisit que on fera un arbre pour le A avec les 8 premiers et un tournoi en arbre pour le B avec les joueurs entre la 9ème et 24ème place. 
 			Donc y'a une logique, je peux pas mettre de tournoi C si y'a pas un tournoi B, si je mets 4 en A et 8 en B alors ça veut dire que les 8 en B sont les joueurs 
 			de la 5ème à la 12ème place. Est-ce que on peut accepter 10 joueurs et donc faire un système de barrage ?
-	- Afficher les gagnants meme si le joueur se désinscrit (si il se désinscrit plus de groupe A et donc on n'affiche plus rien), dans les maps, mettre avant tout le vainqueur et ensuite s'adapter
+		- Afficher les gagnants meme si le joueur se désinscrit (si il se désinscrit plus de groupe A et donc on n'affiche plus rien), dans les maps, mettre avant tout le vainqueur et ensuite s'adapter
 	- Coté Participant il faut que les joueurs puissent voir toutes les infos sur le tournoi auquel ils participent, comme par exemple la liste des matches, ou en est le tournoi, 
 		le classement du tournoi
 	- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données. 
