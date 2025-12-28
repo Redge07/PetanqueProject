@@ -17,7 +17,7 @@ const Participant = ({ player }) => {
     e.preventDefault();
     const pseudo = e.target.elements.pseudo.value;
     axios
-      .post(linkBackend + "players/add_player/", {
+      .post(linkBackend + "players/", {
         idUser: player.id,
         idTournament: dataTournament.id,
         pseudo: pseudo,
@@ -43,14 +43,12 @@ const Participant = ({ player }) => {
 
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
   const handleDelete = () => {
-    axios
-      .delete(linkBackend + "players/delete_player/" + player.id)
-      .then((res) => {
-        setResponseDeinscription(res.data.res);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      });
+    axios.delete(linkBackend + "players/" + player.id).then((res) => {
+      setResponseDeinscription(res.data.res);
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+    });
   };
 
   // Fonction qui recharge la page, on récupère la situation du joueur bien mise a jour
@@ -58,7 +56,7 @@ const Participant = ({ player }) => {
     setDataTournament({ res: -1 });
     setResponseInscription("");
     setResponseDeinscription("");
-    axios.get(linkBackend + "players/charge/" + player.id).then((res) => {
+    axios.get(linkBackend + "players/" + player.id).then((res) => {
       console.log(res.data);
       setDataPlayer(res.data);
     });

@@ -18,14 +18,19 @@ exports.charge = (req, res) => {
           "select style from tournaments where id = ?",
           [player.id_tournament],
           (err, results) => {
-            // Si le jouuer n'a pas gagné le tournoi on continue le processus normal
+            // Le joueur a déjà gagné le tournoi
             if (
               (player.class == 0.5 &&
-                (results.style != "cascade" ||
-                  player.groupe != "B" ||
-                  player.groupe != "B2")) ||
+                (results[0].style != "cascade" ||
+                  (player.groupe != "B" && player.groupe != "B2"))) ||
               player.class == 0.25
             ) {
+              res.json({
+                res: 4,
+                msg: "Félicitations vous etes le grand vainqueur",
+              });
+              // Si le jouuer n'a pas gagné le tournoi on continue le processus normal
+            } else {
               // On va récupérer le tournoi auquel il est attribué en tant que joueur
               connection.query(
                 "select * from tournaments where id = ?",
@@ -75,12 +80,6 @@ exports.charge = (req, res) => {
                   }
                 }
               );
-              // Le joueur a déjà gagné le tournoi
-            } else {
-              res.json({
-                res: 4,
-                msg: "Félicitations vous etes le grand vainqueur",
-              });
             }
           }
         );
