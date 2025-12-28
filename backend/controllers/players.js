@@ -14,64 +14,76 @@ exports.charge = (req, res) => {
         res.json({ res: 0 });
         // Si il est dans la liste alors c'est un joueur et on va voir sa situation précise
       } else {
-        // Si le jouuer n'a pas gagné le tournoi on continue le processus normal
-        if (player.class != 0.5) {
-          // On va récupérer le tournoi auquel il est attribué en tant que joueur
-          connection.query(
-            "select * from tournaments where id = ?",
-            [player.id_tournament],
-            (err, results) => {
-              const tournament = results[0];
-              // Si la colonne valider du joueur est a 0 alors sa demande est en attente
-              if (player.valider == 0) {
-                res.json({
-                  res: 1,
-                  pseudo: player.pseudo,
-                  tournamentName: tournament.name,
-                  style: tournament.style,
-                });
-                // Sinon ca veut dire que sa demande a été accepté et donc il participe a un tournoi
-              } else {
-                // Si le tournoi n'a pas commencé, alors le joueur a juste a attendre que ca commence
-                if (tournament.start == 0) {
-                  res.json({
-                    res: 2,
-                    pseudo: player.pseudo,
-                    numero: player.numero,
-                    tournamentName: tournament.name,
-                    style: tournament.style,
-                  });
-                  // Sinon ca veut dire que le tournoi a commencé
-                } else {
-                  // On va vérifié l'adversaire du joueur
-                  connection.query(
-                    "select * from players where numero = ? and id_tournament = ?",
-                    [player.id_versus, player.id_tournament],
-                    // On renvoie la situation du joueur, avec son adversaire ou pas
-                    (err, results) => {
+        connection.query(
+          "select style from tournaments where id = ?",
+          [player.id_tournament],
+          (err, results) => {
+            // Si le jouuer n'a pas gagné le tournoi on continue le processus normal
+            if (
+              (player.class == 0.5 &&
+                (results.style != "cascade" ||
+                  player.groupe != "B" ||
+                  player.groupe != "B2")) ||
+              player.class == 0.25
+            ) {
+              // On va récupérer le tournoi auquel il est attribué en tant que joueur
+              connection.query(
+                "select * from tournaments where id = ?",
+                [player.id_tournament],
+                (err, results) => {
+                  const tournament = results[0];
+                  // Si la colonne valider du joueur est a 0 alors sa demande est en attente
+                  if (player.valider == 0) {
+                    res.json({
+                      res: 1,
+                      pseudo: player.pseudo,
+                      tournamentName: tournament.name,
+                      style: tournament.style,
+                    });
+                    // Sinon ca veut dire que sa demande a été accepté et donc il participe a un tournoi
+                  } else {
+                    // Si le tournoi n'a pas commencé, alors le joueur a juste a attendre que ca commence
+                    if (tournament.start == 0) {
                       res.json({
-                        res: 3,
-                        ...player,
+                        res: 2,
+                        pseudo: player.pseudo,
+                        numero: player.numero,
                         tournamentName: tournament.name,
                         style: tournament.style,
-                        idVersus:
-                          results.length === 0 ? null : results[0].numero,
-                        pseudoVersus:
-                          results.length === 0 ? null : results[0].pseudo,
                       });
+                      // Sinon ca veut dire que le tournoi a commencé
+                    } else {
+                      // On va vérifié l'adversaire du joueur
+                      connection.query(
+                        "select * from players where numero = ? and id_tournament = ?",
+                        [player.id_versus, player.id_tournament],
+                        // On renvoie la situation du joueur, avec son adversaire ou pas
+                        (err, results) => {
+                          res.json({
+                            res: 3,
+                            ...player,
+                            tournamentName: tournament.name,
+                            style: tournament.style,
+                            idVersus:
+                              results.length === 0 ? null : results[0].numero,
+                            pseudoVersus:
+                              results.length === 0 ? null : results[0].pseudo,
+                          });
+                        }
+                      );
                     }
-                  );
+                  }
                 }
-              }
+              );
+              // Le joueur a déjà gagné le tournoi
+            } else {
+              res.json({
+                res: 4,
+                msg: "Félicitations vous etes le grand vainqueur",
+              });
             }
-          );
-          // Le joueur a déjà gagné le tournoi
-        } else {
-          res.json({
-            res: 4,
-            msg: "Félicitations vous etes le grand vainqueur",
-          });
-        }
+          }
+        );
       }
     }
   );
