@@ -6,7 +6,7 @@ Front-end :
 		- Afficher les gagnants meme si le joueur se désinscrit (si il se désinscrit plus de groupe A et donc on n'affiche plus rien), dans les maps, mettre avant tout le vainqueur et ensuite s'adapter
 	- Coté Participant il faut que les joueurs puissent voir toutes les infos sur le tournoi auquel ils participent, comme par exemple la liste des matches, ou en est le tournoi, 
 		le classement du tournoi
-	- Les composants sont beaucoup trop long, il faut vraiment les séparer en plusieurs composant et ça donnera une architecture clair de l'application
+	- Les composants sont beaucoup trop long, il faut vraiment les séparer en plusieurs composant et ça donnera une architecture clair de l'application (profité pour faire un code clair et propre)
 	- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données. 
 		Donc faut mettre des logos de chargement partout car on n'est jamais sur que les données vont venir directement. 
 		Et aussi quand on fait des map il faut faire attention que le tableau à mappé n'est pas vide
@@ -22,7 +22,7 @@ Back-end :
 		- Pour le tournoi classement quand la poule est finit, prendre en compte les choix de l'organisateur pour crée les tournois en arbre
 		- Faire que le vainqueur de B affronte le vainqueur de B2 (adapter si les groupes B et B2 ont directement leur vainqueur a la sortie des 3 matchs)
 		- Quand un tournoi est finit ou alors un groupe est finit dans un tournoi, il faut garder en mémoire le nom du gagnant pour afficher le vainqueur histoire d'avoir quelque chose à afficher
-	- Les fichiers controllers sont beaucoup trop volumineux, il faudrait par exemple séparé les algorithmes des tournois en plusieurs fichiers javascript pour y voir plus clair
+	- Les fichiers controllers sont beaucoup trop volumineux, il faudrait par exemple séparé les algorithmes des tournois en plusieurs fichiers javascript pour y voir plus clair (en profiter pour faire un code clair et structuré en faisant plein de fonctions differente (POO))
 	- Quand on fait des requetes SQL avec des select, il faudrait préciser les colonnes qu'on veut pour avoir que des données qui nous intéressent.
 	- Quand je fais des requetes SQL, il vaut mieux faire une requetes SQL qui récupère toutes les données d'un coup pour les manipuler en JS au lieu de faire plusieurs appels a des requetes SQL
 	- Dans le classement il faut des critères précis pour séparer les joueurs qui ont le meme nombre de points 
