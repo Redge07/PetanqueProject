@@ -1,139 +1,153 @@
 const connection = require("../config/db");
-
-// API pour récupérer la situation d'un utilisateur sur sa situation de joueur
-exports.charge = (req, res) => {
-  const id = req.params.id;
-  connection.query(
-    "select * from players where id_user = ?",
-    [id],
-    (err, results) => {
-      if (err) return res.status(500).json({ res: -1 });
-      // Si il n'est pas dans la liste alors ce n'est pas un joueur
-      if (results.length == 0) return res.status(200).json({ res: 0 });
-      // Si il est dans la liste alors c'est un joueur et on va voir sa situation précise
-      const player = results[0];
-      // On va récupérer le tournoi auquel il est attribué en tant que joueur
-      connection.query(
-        "select style, name from tournaments where id = ?",
-        [player.id_tournament],
-        (err, results) => {
-          if (err) return res.status(500).json({ res: -1 });
-          const tournament = results[0];
-          // Le joueur a déjà gagné le tournoi
-          if (
-            (player.class == 0.5 &&
-              (tournament.style != "cascade" ||
-                (player.groupe != "B" && player.groupe != "B2"))) ||
-            player.class == 0.25
-          ) {
-            return res.status(200).json({
-              res: 4,
-              msg: "Félicitations vous etes le grand vainqueur",
-            });
-            // Si le jouuer n'a pas gagné le tournoi on continue le processus normal
-          } else {
-            // Si la colonne valider du joueur est a 0 alors sa demande est en attente
-            if (player.valider == 0) {
-              return res.status(200).json({
-                res: 1,
-                pseudo: player.pseudo,
-                tournamentName: tournament.name,
-                style: tournament.style,
-              });
-              // Sinon ca veut dire que sa demande a été accepté et donc il participe a un tournoi
-            } else {
-              // Si le tournoi n'a pas commencé, alors le joueur a juste a attendre que ca commence
-              if (tournament.start == 0) {
-                return res.status(200).json({
-                  res: 2,
-                  pseudo: player.pseudo,
-                  numero: player.numero,
-                  tournamentName: tournament.name,
-                  style: tournament.style,
-                });
-                // Sinon ca veut dire que le tournoi a commencé
-              } else {
-                // On va vérifié l'adversaire du joueur
-                connection.query(
-                  "select * from players where numero = ? and id_tournament = ?",
-                  [player.id_versus, player.id_tournament],
-                  // On renvoie la situation du joueur, avec son adversaire ou pas
-                  (err, results) => {
-                    if (err) return res.status(500).json({ res: -1 });
-                    return res.status(200).json({
-                      res: 3,
-                      ...player,
-                      tournamentName: tournament.name,
-                      style: tournament.style,
-                      idVersus: results.length === 0 ? null : results[0].numero,
-                      pseudoVersus:
-                        results.length === 0 ? null : results[0].pseudo,
-                    });
-                  }
-                );
-              }
-            }
-          }
-        }
-      );
-    }
-  );
+const status = {
+  player: {
+    notPlay: 0,
+    Waiting: 1,
+    WaitingStart: 2,
+    playing: 3,
+    Winner: 4,
+  },
+  tournament: {
+    noExist: 0,
+    noStart: 1,
+    End: 2,
+  },
 };
 
-// API qui va renvoyer la requete d'un joueur pour trouver un tournoi et vouloir s'inscrire
-exports.search = (req, res) => {
-  const idTournament = req.params.id;
-  // On cherche l'id du tournoi dans la table
-  connection.query(
-    "select * from tournaments where id = ?",
-    [idTournament],
-    (err, results) => {
-      if (err) return res.status(500).json({ res: -1 });
-      // Si ca retourne rien, alors l'id ne correspond a aucun tournoi
-      if (results.length == 0) return res.status(200).json({ res: 0 });
-      // Sinon ca veut dire qu'un tournoi existe bien
-      const tournament = results[0];
-      // Si il n'a pas commencé
-      if (tournament.start == 0) {
-        return res.status(200).json({
-          res: 1,
-          id: tournament.id,
-          name: tournament.name,
-          style: tournament.style,
-        });
-        // Sinon il a deja commencé
-      } else {
-        return res.status(200).json({ res: 2, name: tournament.name });
-      }
+// Le return est celui de "connection", car oui le promise s'arrete si il voit "reject" mais le connection lui continue et s'en fout si il n'y a pas le return
+const query = (sql, params = []) => {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, params, (err, results) => {
+      if (err) return reject(err);
+      else resolve(results);
+    });
+  });
+};
+
+// API pour récupérer la situation d'un utilisateur sur sa situation de joueur
+exports.charge = async (req, res) => {
+  try {
+    const idPlayer = req.params.id;
+    const playerTab = await query("select * from players where id_user = ?", [
+      idPlayer,
+    ]);
+    // Si le tableau est vide ça veut dire que l'id de l'utilisateur n'a pas été trouvé comme joueur
+    if (playerTab.length == 0)
+      return res.status(200).json({ res: status.player.notPlay });
+    const player = playerTab[0];
+    const tournament = (
+      await query("select style, name, start from tournaments where id = ?", [
+        player.id_tournament,
+      ])
+    )[0];
+
+    //Variable binaire pour savoir si les caractéristique du joueur sont celles d'un vainqueur de tournoi
+    const isWinner =
+      (player.class == 0.5 &&
+        (tournament.style != "cascade" ||
+          (player.groupe != "B" && player.groupe != "B2"))) ||
+      player.class == 0.25;
+    // Si c'est bien un vainqueur alors on envoie la réponse pour dire qu'il est le vainqueur
+    if (isWinner) {
+      return res.status(200).json({
+        res: status.player.Winner,
+        msg: "Félicitations vous etes le grand vainqueur",
+      });
     }
-  );
+    // Si le joueur a fait ça demande mais n'a pas encore été accepté
+    if (player.valider == 0) {
+      return res.status(200).json({
+        res: status.player.Waiting,
+        pseudo: player.pseudo,
+        tournamentName: tournament.name,
+        style: tournament.style,
+      });
+    }
+    // Si le joueur a été accepté mais le tournoi n'as pas encore commencé
+    if (tournament.start == 0) {
+      return res.status(200).json({
+        res: status.player.WaitingStart,
+        pseudo: player.pseudo,
+        numero: player.numero,
+        tournamentName: tournament.name,
+        style: tournament.style,
+      });
+    }
+    // Le joueur est dans un tournoi en cours et on voit si il a un adversaire actuellement
+    const adversaireTab = await query(
+      "select * from players where numero = ? and id_tournament = ?",
+      [player.id_versus, player.id_tournament]
+    );
+    const adversaire = adversaireTab.length == 0 ? null : adversaireTab[0];
+    return res.status(200).json({
+      res: status.player.playing,
+      ...player,
+      tournamentName: tournament.name,
+      style: tournament.style,
+      idVersus: adversaire ? adversaire.numero : null,
+      pseudoVersus: adversaire ? adversaire.pseudo : null,
+    });
+  } catch (err) {
+    return res.status(500).json({ res: -1 });
+  }
+};
+
+exports.search = async (req, res) => {
+  try {
+    const idTournament = req.params.id;
+    const tournamentTab = await query(
+      "select * from tournaments where id = ?",
+      [idTournament]
+    );
+    // Si le tableau est vide alors aucun tournoi ne correspond à l'id envoyé à l'API
+    if (tournamentTab.length == 0)
+      return res.status(200).json({ res: status.tournament.noExist });
+    const tournament = tournamentTab[0];
+    // Le tournoi existe et n'a pas commencé
+    if (tournament.start == 0) {
+      return res.status(200).json({
+        res: status.tournament.noStart,
+        id: tournament.id,
+        name: tournament.name,
+        style: tournament.style,
+      });
+      // Le tournoi à malheureusement déjà commencé
+    } else {
+      return res
+        .status(200)
+        .json({ res: status.tournament.End, name: tournament.name });
+    }
+  } catch (err) {
+    return res.status(500).json({ res: -1 });
+  }
 };
 
 // API qui inscrit la demande d'un joueur a un tournoi
-exports.add_player = (req, res) => {
-  const { idUser, idTournament, pseudo } = req.body;
-  connection.query(
-    "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider) values (?, 0, 0, ?, ?, 0)",
-    [pseudo, idTournament, idUser],
-    (err) => {
-      if (err) return res.status(500).json({ res: -1 });
-      return res.status(200).json({
-        res: "Vous avez été ajouté au tournoi numéro " + idTournament,
-      });
-    }
-  );
+exports.add_player = async (req, res) => {
+  try {
+    const { idUser, idTournament, pseudo } = req.body;
+    await query(
+      "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider) values (?, 0, 0, ?, ?, 0)",
+      [pseudo, idTournament, idUser]
+    );
+    return res.status(200).json({
+      res: "Vous avez été ajouté au tournoi numéro " + idTournament,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      res: -1,
+    });
+  }
 };
 
 // API qui désinscrit un joueur d'un tournoi
-exports.delete_player = (req, res) => {
-  connection.query(
-    "delete from players where id_user = ?",
-    [req.params.id],
-    (err) => {
-      if (err) return res.status(500).json({ res: -1 });
-      return res
-        .status(200)
-        .json({ res: "Vous vous etes désinscrit du tournoi" });
-    }
-  );
+exports.delete_player = async (req, res) => {
+  try {
+    await query("delete from players where id_user = ?", [req.params.id]);
+    return res
+      .status(200)
+      .json({ res: "Vous vous etes désinscrit du tournoi" });
+  } catch (err) {
+    return res.status(500).json({ res: -1 });
+  }
 };

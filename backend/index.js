@@ -25,6 +25,13 @@ app.get("/", (req, res) => {
   res.send("Bienvenue dans le backend");
 });
 
+let x = 0;
+
+app.get("/test", (req, res) => {
+  x = x + 1;
+  res.send(x);
+});
+
 app.listen(port, "0.0.0.0", () => {
   console.log("Server running on port " + port);
 });
