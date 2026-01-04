@@ -1,45 +1,17 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { linkBackend } from "../constants/LinkBackend";
+import SearchTournament from "./playerComponents/SearchTournament";
+import ArbreTournament from "./playerComponents/ArbreTournament";
+import CascadeTournament from "./playerComponents/CascadeTournament";
+import ClassementTournament from "./playerComponents/ClassementTournament";
 
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
   const [dataPlayer, setDataPlayer] = useState({ res: 0 });
-  // State qui va récupérer le tournoi qui a été chercher dans la barre de recherche pour vouloir s'inscrire a un tournoi, -1 par défaut pour dire que aucune recherche n'a été essayer, 0 pour dire que le résultat de la recherche n'a pas trouvé de tournoi correspondant a cette id, 1 a trouver un tournoi qui correspond a cette id et 2 qui dit que le tournoi a été trouver mais a deja commencé
-  const [dataTournament, setDataTournament] = useState({ res: -1 });
-  // Récupérer un petit message pour dire que l'utilisateur a bien été inscrit au tournoi
-  const [responseInscription, setResponseInscription] = useState("");
+
   // Récupérer un petit message pour dire que l'utilisateur a bien été désinscrit du tournoi
   const [responseDeinscription, setResponseDeinscription] = useState("");
-
-  // Fonction pour s'inscrire a un tournoi
-  const handleInscrire = (e) => {
-    e.preventDefault();
-    const pseudo = e.target.elements.pseudo.value;
-    axios
-      .post(linkBackend + "players/", {
-        idUser: player.id,
-        idTournament: dataTournament.id,
-        pseudo: pseudo,
-      })
-      .then((res) => {
-        setResponseInscription(res.data.res);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      });
-  };
-
-  // Fonction pour récupérer le tournoi trouver grace a la recherche (quand on veut trouver un tournoi pour s'inscrire)
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const idSearch = e.target.elements.id.value;
-    console.log(idSearch);
-    axios.get(linkBackend + "players/search/" + idSearch).then((res) => {
-      console.log(res.data);
-      setDataTournament(res.data);
-    });
-  };
 
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
   const handleDelete = () => {
@@ -53,8 +25,6 @@ const Participant = ({ player }) => {
 
   // Fonction qui recharge la page, on récupère la situation du joueur bien mise a jour
   const recharge = () => {
-    setDataTournament({ res: -1 });
-    setResponseInscription("");
     setResponseDeinscription("");
     axios.get(linkBackend + "players/" + player.id).then((res) => {
       console.log(res.data);
@@ -70,46 +40,7 @@ const Participant = ({ player }) => {
       <h2>Participant</h2>
       {/* Si le joueur n'est lier a aucun tournoi, on propose une barre de recherche */}
       {dataPlayer.res == 0 && (
-        <div>
-          <p>Vous ne participez à aucun tournoi</p>
-          <form onSubmit={handleSearch}>
-            <input
-              type="number"
-              name="id"
-              placeholder="Rechercher un tournoi avec son id..."
-              required
-            />
-            <input type="submit" value="Chercher" />
-          </form>
-          {/* Après avoir cherché un tournoi, l'id ne correspond a aucun tournoi */}
-          {dataTournament.res == 0 && (
-            <p>Cette id ne correspond à aucun tournoi</p>
-          )}
-          {/* On a trouvé le tournoi, on propose de s'inscrire en tapant un pseudo et de s'inscrire */}
-          {dataTournament.res == 1 && (
-            <div>
-              <p>
-                {dataTournament.name} {dataTournament.style}
-              </p>
-              <form onSubmit={handleInscrire}>
-                <input
-                  type="text"
-                  name="pseudo"
-                  placeholder="Entrer votre pseudo"
-                />
-                <input type="submit" value="S'inscrire" />
-              </form>
-              <p>{responseInscription}</p>
-            </div>
-          )}
-          {/* On a trouvé un tournoi mais il a deja commencé donc on ne peut pas s'inscrire */}
-          {dataTournament.res == 2 && (
-            <p>
-              Le tournoi {dataTournament.name} à déja commencé, vous ne pouvez
-              pas y participer
-            </p>
-          )}
-        </div>
+        <SearchTournament player={player} recharge={recharge} />
       )}
       {/* Le joueur est actuellement en attente d'acceptation d'un tournoi */}
       {dataPlayer.res == 1 && (
@@ -133,60 +64,36 @@ const Participant = ({ player }) => {
       )}
       {/* On est en plein tournoi */}
       {dataPlayer.res == 3 && (
-        <div>
+        <div style={{ border: "solid 2px blue" }}>
+          <h4 style={{ color: "blue" }}>
+            Balise pour montrer toutes les infos lorsqu'un joueur participe a un
+            tournoi
+          </h4>
+          <h2>Numero : {dataPlayer.numero}</h2>
+          <h3>{dataPlayer.tournamentName} Tournament !</h3>
+          <p>
+            Vous participez au tournoi {dataPlayer.tournamentName} qui est un
+            tournoi en {dataPlayer.style}
+          </p>
           {/* Si le joueur participe a un tournoi en mode arbre */}
           {dataPlayer.style == "arbre" && (
-            <div>
-              <h3>
-                Vous participez au tournoi {dataPlayer.tournamentName} qui est
-                en {dataPlayer.style} et vous etes {dataPlayer.style} en 1/
-                {dataPlayer.class} de finale. Numero : {dataPlayer.numero}
-              </h3>
-              <p>
-                {" "}
-                {dataPlayer.idVersus
-                  ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
-                ${dataPlayer.idVersus}`
-                  : "Vous n'avez pas d'adversaire"}
-              </p>
-            </div>
+            <ArbreTournament dataPlayer={dataPlayer} />
           )}
-          {/* Si le joueur participe a un tournoi en mode arbre */}
-          {(dataPlayer.style == "cascade" ||
-            dataPlayer.style == "classement") && (
-            <div>
-              <h3>
-                Vous participez au tournoi {dataPlayer.tournamentName} qui est
-                en {dataPlayer.style}{" "}
-                {dataPlayer.style == "classement"
-                  ? dataPlayer.round == 4 && dataPlayer.class != 0
-                    ? "et vous etes dans le groupe"
-                    : ""
-                  : "et vous etes dans le groupe"}{" "}
-                {dataPlayer.groupe}{" "}
-                {dataPlayer.round == 4 ? (
-                  dataPlayer.class == 0 ? (
-                    "et vous avez finit vos 3 matchs, il faut attendre que la phase de poule se finissent pour tout le monde"
-                  ) : (
-                    <span>en 1/{dataPlayer.class} de finale</span>
-                  )
-                ) : (
-                  <span>au round {dataPlayer.round}</span>
-                )}
-                . Numero : {dataPlayer.numero}
-              </h3>
-              <p>
-                {" "}
-                {dataPlayer.idVersus
-                  ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
-                ${dataPlayer.idVersus}`
-                  : "Vous n'avez pas d'adversaire"}
-              </p>
-              {dataPlayer.barrage == 1 && (
-                <p style={{ color: "red" }}>Vous faites un barrage</p>
-              )}
-            </div>
+          {/* Si le joueur participe a un tournoi en mode cascade */}
+          {dataPlayer.style == "cascade" && (
+            <CascadeTournament dataPlayer={dataPlayer} />
           )}
+          {/* Si le joueur participe a un tournoi en mode classement */}
+          {dataPlayer.style == "classement" && (
+            <ClassementTournament dataPlayer={dataPlayer} />
+          )}
+          <p>
+            {" "}
+            {dataPlayer.idVersus
+              ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
+                ${dataPlayer.idVersus}`
+              : "Vous n'avez pas d'adversaire"}
+          </p>
         </div>
       )}
       {/* Le joueur a gagné le tournoi */}

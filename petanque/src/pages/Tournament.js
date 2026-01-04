@@ -839,7 +839,7 @@ const Tournament = () => {
               )}
               {order && (
                 <div>
-                  <Order dataOrder={dataOrder} />
+                  <Order idTournament={idTournament} />
                 </div>
               )}
             </div>

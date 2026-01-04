@@ -10,6 +10,7 @@ Front-end :
 	- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données. 
 		Donc faut mettre des logos de chargement partout car on n'est jamais sur que les données vont venir directement. 
 		Et aussi quand on fait des map il faut faire attention que le tableau à mappé n'est pas vide
+	- Quand on appelle une API, le serveur backend peut ne pas marcher et donc pour axios faut faire un try/catch
 	- Pour la recherche d'un tournoi coté participant pour pouvoir s'inscire, il faut que la recherche soit très intuitif, avec la possiblité de rechercher avec le nom ou l'id du tournoi, 
 		ajouter aussi le système de QR Code
 	- Avoir un système d'actualisation de la page automatique, par exemple si je suis censé avoir un nouvel adversaire alors la page du participant se met automatiquement à jour 
@@ -30,6 +31,7 @@ Back-end :
 	- Utiliser les res.status pour avoir une réponse API très clair et propre pour les utilisateurs
 	- Quand on fait des requetes SQL avec des select, il faudrait préciser les colonnes qu'on veut pour avoir que des données qui nous intéressent.
 	- Quand je fais des requetes SQL, il vaut mieux faire une requetes SQL qui récupère toutes les données d'un coup pour les manipuler en JS au lieu de faire plusieurs appels a des requetes SQL
+	- Changé toutes la logique, faire la génération du tournoi au lancement et pas un calcul a chaque victoire
 	- Dans le classement il faut des critères précis pour séparer les joueurs qui ont le meme nombre de points 
 	- Utiliser la tables matches pour garder les résultats des matches en mémoire au cas où ça pourrait servir, pour faire un historique par exemple
 	- Passer les fonctions looser et update en dehors de la grosse fonction pour qu'ils soit plus indépendant, donc faudra donner "connections" en paramètre par exemple

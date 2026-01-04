@@ -1,4 +1,17 @@
-const Order = ({ dataOrder }) => {
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { linkBackend } from "../constants/LinkBackend";
+
+const Order = ({ idTournament }) => {
+  // State pour avoir les données du classement
+  const [dataOrder, setDataOrder] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(linkBackend + "gotournaments/charge_classement/" + idTournament)
+      .then((res) => setDataOrder(res.data));
+  }, []);
+
   return (
     <div>
       <h1>Bonjour Classement</h1>
