@@ -4,6 +4,7 @@ import { UsersContext } from "../App";
 import axios from "axios";
 import Order from "../components/Order";
 import { linkBackend } from "../constants/LinkBackend";
+import NoStartTournament from "../components/tournamentComponents/NoStartTournament";
 
 const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
@@ -13,10 +14,6 @@ const Tournament = () => {
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
   const [listPlayers, setListPlayers] = useState([]);
-  // State qui gère les message quand on supprime ou qu'on accepte un joueur
-  const [responseAPI, setResponseAPI] = useState({ res: 0 });
-  // State qui affiche le message quand le tournoi est bien lancé
-  const [responseGoTournament, setResponseGoTournament] = useState("");
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
@@ -46,7 +43,6 @@ const Tournament = () => {
 
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
-    setResponseAPI({ res: 0 });
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
     const createPaires = (matches) => {
       let groupes = [];
@@ -76,91 +72,6 @@ const Tournament = () => {
         setResponseWin("");
         const { rounds, groupes, tours } = createPaires(res.data.results);
         setPaireInfos({ rounds, groupes, tours });
-      });
-  };
-
-  // Fonction pour supprimer un joueur du tournoi en attente
-  const handleDeleteAttente = (value) => {
-    axios
-      .delete(linkBackend + "tournaments/delete_players_attente/" + value)
-      .then((res) => {
-        setResponseAPI(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      });
-  };
-
-  // Fonction pour supprimer un joueur du tournoi en valid
-  const handleDeleteValid = (value) => {
-    axios
-      .delete(
-        linkBackend + "tournaments/delete_players_valid/" + idTournament,
-        { data: { numero: value } }
-      )
-      .then((res) => {
-        setResponseAPI(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      });
-  };
-
-  // Fonction pour accepté un joueur
-  const handleValid = (value) => {
-    axios
-      .put(linkBackend + "tournaments/valid/" + idTournament, {
-        id_user: value,
-      })
-      .then((res) => {
-        console.log(res.data);
-        setResponseAPI(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      });
-  };
-
-  // Fonction pour ajouter un joueur manuellement
-  const handleAddPlayer = (e) => {
-    e.preventDefault();
-    axios
-      .post(linkBackend + "tournaments/add_player/" + idTournament, {
-        pseudo: e.target.elements.pseudo.value,
-      })
-      .then((res) => {
-        console.log(res.data);
-        setResponseAPI(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      });
-  };
-
-  // Fonction pour connaitre le nombre de joueurs en attente et confirmé
-  const countPlayer = (value) => {
-    if (value == 0) {
-      let listPlayersAttente = listPlayers.results.filter(
-        (p) => p.valider == 0
-      );
-      return listPlayersAttente.length;
-    } else {
-      let listPlayersValider = listPlayers.results.filter(
-        (p) => p.valider == 1
-      );
-      return listPlayersValider.length;
-    }
-  };
-
-  // Fonction quand je décide de démarrer le tournoi
-  const handleGoTournament = () => {
-    axios
-      .put(linkBackend + "gotournaments/go_tournament/" + idTournament)
-      .then((res) => {
-        setResponseGoTournament(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
       });
   };
 
@@ -311,74 +222,11 @@ const Tournament = () => {
       <h2>Tournament {idTournament}</h2>
       {/* Si le tournoi n'a pas commencé on va afficher les joueurs en attente et accepté */}
       {listPlayers.res == 0 && (
-        <div>
-          <div>
-            <h3>Joueurs en attente</h3>
-            <p>
-              Il y a {countPlayer(0)}{" "}
-              {countPlayer(0) > 1 ? "joueurs" : "joueur"} en attente
-            </p>
-            <ul>
-              {/* On liste les joueurs qui sont en attente en filtrant avec le colonne "valider" */}
-              {listPlayers.results
-                .filter((j) => j.valider == 0)
-                .map((j) => (
-                  <li key={j.id_user}>
-                    {/* Pseudo du joueur */}
-                    <span>{j.pseudo}</span>
-                    {/* Bouton pour supprimer ce joueur */}
-                    <button onClick={() => handleDeleteAttente(j.id_user)}>
-                      Supprimer
-                    </button>
-                    {/* Bouton pour accepté ce joueur */}
-                    <button onClick={() => handleValid(j.id_user)}>
-                      Accepté
-                    </button>
-                    {/* Message qui va apparaitre quand on va supprimer ou accepté un joueur, vérifie si on parle d'une suppression ou d'une validation et vérifie l'id pour bien affiché ce message au joueur concerné */}
-                    {responseAPI.res == 1 && responseAPI.id == j.id_user && (
-                      <p>{responseAPI.msg}</p>
-                    )}
-                  </li>
-                ))}
-            </ul>
-          </div>
-          <div>
-            {/* On va lister tous les joueurs qui n'ont pas encore été accepté pour ce tournoi en question dans la base de données */}
-            <h3>Joueurs accepté</h3>
-            <p>
-              Il y a {countPlayer(1)}{" "}
-              {countPlayer(1) > 1 ? "joueurs" : "joueur"} accepté
-            </p>
-            <ul>
-              {listPlayers.results
-                .filter((j) => j.valider == 1)
-                .map((j) => (
-                  <li key={j.numero}>
-                    <span>{j.pseudo}</span>
-                    <span> numéro : {j.numero}</span>
-                    <button onClick={() => handleDeleteValid(j.numero)}>
-                      Supprimer
-                    </button>
-                    {responseAPI.res == 1 && responseAPI.numero == j.numero && (
-                      <p>{responseAPI.msg}</p>
-                    )}
-                  </li>
-                ))}
-            </ul>
-          </div>
-          <h3>Ajouté un joueur manuellement</h3>
-          {/* Form pour ajouter un joueur manuellement */}
-          <form onSubmit={handleAddPlayer}>
-            <input
-              type="text"
-              name="pseudo"
-              placeholder="Entrez un pseudo..."
-            />
-            <input type="submit" value="Inscrire le joueur" />
-          </form>
-          <button onClick={handleGoTournament}>Lancer le tournoi</button>
-          <p>{responseGoTournament}</p>
-        </div>
+        <NoStartTournament
+          listPlayers={listPlayers}
+          recharge={recharge}
+          idTournament={idTournament}
+        />
       )}
       {/* Le tournoi a commencé */}
       {listPlayers.res == 1 && (

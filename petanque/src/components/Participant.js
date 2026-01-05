@@ -2,9 +2,10 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { linkBackend } from "../constants/LinkBackend";
 import SearchTournament from "./playerComponents/SearchTournament";
-import ArbreTournament from "./playerComponents/ArbreTournament";
-import CascadeTournament from "./playerComponents/CascadeTournament";
-import ClassementTournament from "./playerComponents/ClassementTournament";
+import ArbreTournament from "./playerComponents/ArbrePlayer";
+import CascadeTournament from "./playerComponents/CascadePlayer";
+import ClassementTournament from "./playerComponents/ClassementPlayer";
+import Order from "./Order";
 
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
@@ -12,6 +13,8 @@ const Participant = ({ player }) => {
 
   // Récupérer un petit message pour dire que l'utilisateur a bien été désinscrit du tournoi
   const [responseDeinscription, setResponseDeinscription] = useState("");
+
+  const [showOrder, setShowOrder] = useState(false);
 
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
   const handleDelete = () => {
@@ -104,6 +107,18 @@ const Participant = ({ player }) => {
           <p>{responseDeinscription}</p>
         </div>
       )}
+      {dataPlayer.style == "classement" && (
+        <div>
+          {showOrder ? (
+            <button onClick={() => setShowOrder(false)}>
+              Ne plus voir le classement
+            </button>
+          ) : (
+            <button onClick={() => setShowOrder(true)}>Voir Classement</button>
+          )}
+        </div>
+      )}
+      {showOrder && <Order idTournament={dataPlayer.id_tournament} />}
     </div>
   );
 };
