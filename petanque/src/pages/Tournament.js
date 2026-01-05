@@ -5,6 +5,7 @@ import axios from "axios";
 import Order from "../components/Order";
 import { linkBackend } from "../constants/LinkBackend";
 import NoStartTournament from "../components/tournamentComponents/NoStartTournament";
+import ArbreTournament from "../components/tournamentComponents/ArbreTournament";
 
 const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
@@ -72,22 +73,6 @@ const Tournament = () => {
         setResponseWin("");
         const { rounds, groupes, tours } = createPaires(res.data.results);
         setPaireInfos({ rounds, groupes, tours });
-      });
-  };
-
-  // Fonction quand je déclare le vainqueur dans un tournoi arbre
-  const handleWinnerArbre = (win, lose, tour) => {
-    axios
-      .put(linkBackend + "gotournaments/win_player_arbre/" + idTournament, {
-        win: win,
-        lose: lose,
-        tour: tour,
-      })
-      .then((res) => {
-        setResponseWin(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
       });
   };
 
@@ -232,73 +217,21 @@ const Tournament = () => {
       {listPlayers.res == 1 && (
         <div>
           <h2>Go Tournoi</h2>
+          <h3>Tournoi en {listPlayers.style}</h3>
+          <p>{responseWin}</p>
           {/* Le tournoi en question est en arbre */}
           {listPlayers.style == "arbre" && (
-            <div>
-              <h3>Tournoi en Arbre</h3>
-              <p>{responseWin}</p>
-              <div>
-                {/* Je vais trier les affichage par les tours des joueurs */}
-                {pairesInfos.tours
-                  .sort((a, b) => a - b)
-                  .map((t) => {
-                    return (
-                      <div key={t}>
-                        <h2>Matchs de 1/{t}</h2>
-                        {/* Une fois que c'est trier, j'affiche les matches qui correspondent aux filtres */}
-                        {listPlayers.results
-                          .filter((versus) => versus.class == t)
-                          .map((p, i) => (
-                            <div key={p.key}>
-                              <p>
-                                Match {i + 1} : {p.joueurA.pseudo}, numéro :{" "}
-                                {p.joueurA.numero} vs{" "}
-                                {p.joueurB
-                                  ? p.joueurB.pseudo +
-                                    ", numéro : " +
-                                    p.joueurB.numero
-                                  : "Pas encore d'adversaire attribué"}{" "}
-                                en 1/{p.class}
-                              </p>
-                              {p.joueurB && (
-                                <div>
-                                  <button
-                                    onClick={() =>
-                                      handleWinnerArbre(
-                                        p.joueurA.numero,
-                                        p.joueurB.numero,
-                                        p.class
-                                      )
-                                    }
-                                  >
-                                    Victoire de {p.joueurA.pseudo}
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleWinnerArbre(
-                                        p.joueurB.numero,
-                                        p.joueurA.numero,
-                                        p.class
-                                      )
-                                    }
-                                  >
-                                    Victoire de {p.joueurB.pseudo}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
+            <ArbreTournament
+              pairesInfos={pairesInfos}
+              listPlayers={listPlayers}
+              setResponseWin={setResponseWin}
+              idTournament={idTournament}
+              recharge={recharge}
+            />
           )}
           {/* Le tournoi en question est en cascade */}
           {listPlayers.style == "cascade" && (
             <div>
-              <h3>Tournoi en Cascade</h3>
-              <p>{responseWin}</p>
               {["A", "B", "C"].map((g) => {
                 const vainqueur = `vainqueur${g}`;
                 if (listPlayers.vainqueur[vainqueur]) {
@@ -497,8 +430,6 @@ const Tournament = () => {
                 )}
               {!order && (
                 <div>
-                  <h3>Tournoi en Classement</h3>
-                  <p>{responseWin}</p>
                   {["A", "B", "C"].map((g) => {
                     const vainqueur = `vainqueur${g}`;
                     if (listPlayers.vainqueur[vainqueur]) {
