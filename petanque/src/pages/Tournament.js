@@ -5,7 +5,6 @@ import axios from "axios";
 import { linkBackend } from "../constants/LinkBackend";
 import NoStartTournament from "../components/tournamentComponents/NoStartTournament";
 import ArbreTournament from "../components/tournamentComponents/ArbreTournament";
-import CascadeTournament from "../components/tournamentComponents/CascadeTournament";
 import Cascade from "../components/tournamentComponents/Cascade";
 import ClassementTournament from "../components/tournamentComponents/ClassementTournament";
 

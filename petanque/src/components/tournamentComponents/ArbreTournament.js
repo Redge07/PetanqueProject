@@ -11,12 +11,12 @@ const ArbreTournament = ({
   recharge,
 }) => {
   // Fonction quand je déclare le vainqueur dans un tournoi arbre
-  const handleWinnerArbre = (win, lose, tour) => {
+  const handleWinnerArbre = (win, lose, versus) => {
     axios
       .put(linkBackend + "gotournaments/win_player_arbre/" + idTournament, {
         win: win,
         lose: lose,
-        tour: tour,
+        tour: versus.class,
       })
       .then((res) => {
         setResponseWin(res.data);
