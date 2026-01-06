@@ -15,7 +15,7 @@ const Tournament = () => {
   const { login } = useContext(UsersContext);
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
-  const [listPlayers, setListPlayers] = useState([]);
+  const [listPlayers, setListPlayers] = useState({});
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
@@ -25,6 +25,13 @@ const Tournament = () => {
       navigate("/");
     }
   }, []);
+
+  const formatTournament = {
+    arbre: ArbreTournament,
+    cascade: CascadeTournament,
+    classement: ClassementTournament,
+  };
+  const TournamentComponent = formatTournament[listPlayers.style];
 
   console.log("ee");
 
@@ -85,28 +92,8 @@ const Tournament = () => {
           <h2>Go Tournoi</h2>
           <h3>Tournoi en {listPlayers.style}</h3>
           <p>{responseWin}</p>
-          {/* Le tournoi en question est en arbre */}
-          {listPlayers.style == "arbre" && (
-            <ArbreTournament
-              pairesInfos={pairesInfos}
-              listPlayers={listPlayers}
-              setResponseWin={setResponseWin}
-              idTournament={idTournament}
-              recharge={recharge}
-            />
-          )}
-          {/* Le tournoi en question est en cascade */}
-          {listPlayers.style == "cascade" && (
-            <CascadeTournament
-              pairesInfos={pairesInfos}
-              listPlayers={listPlayers}
-              setResponseWin={setResponseWin}
-              idTournament={idTournament}
-              recharge={recharge}
-            />
-          )}
-          {listPlayers.style == "classement" && (
-            <ClassementTournament
+          {TournamentComponent && (
+            <TournamentComponent
               pairesInfos={pairesInfos}
               listPlayers={listPlayers}
               setResponseWin={setResponseWin}
