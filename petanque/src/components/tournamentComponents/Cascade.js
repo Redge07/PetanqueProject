@@ -1,8 +1,9 @@
 import axios from "axios";
 import React from "react";
 import { linkBackend } from "../../constants/LinkBackend";
+import Arbre from "./Arbre";
 
-const CascadeTournament = ({
+const Cascade = ({
   listPlayers,
   pairesInfos,
   recharge,
@@ -10,7 +11,7 @@ const CascadeTournament = ({
   idTournament,
 }) => {
   // Fonction quand je déclare le vainqueur
-  const handleWinnerCascade = (win, lose, tour, groupe, round, barrage) => {
+  const handleWinnerCascade = (win, lose, round, groupe, barrage, tour) => {
     axios
       .put(linkBackend + "gotournaments/win_player_cascade/" + idTournament, {
         win,
@@ -59,13 +60,23 @@ const CascadeTournament = ({
                 {pairesInfos.rounds
                   .sort((a, b) => b - a)
                   .map((r) => {
+                    console.log(r);
+
                     // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
-                    if (
-                      listPlayers.results.filter(
-                        (v) => v.groupe == g && v.round == r
-                      ).length == 0
-                    ) {
+                    const matches = listPlayers.results.filter(
+                      (v) => v.groupe == g && v.round == r
+                    );
+                    if (matches.length == 0) {
                       return null;
+                    } else if (r == 4) {
+                      console.log("ouid");
+                      return (
+                        <Arbre
+                          pairesInfos={pairesInfos}
+                          matches={matches}
+                          handleWinner={handleWinnerCascade}
+                        />
+                      );
                     } else {
                       return (
                         <div key={r}>
@@ -130,10 +141,10 @@ const CascadeTournament = ({
                                                   handleWinnerCascade(
                                                     versus.joueurA.numero,
                                                     versus.joueurB.numero,
-                                                    versus.class,
-                                                    g,
                                                     r,
-                                                    versus.barrage
+                                                    g,
+                                                    versus.barrage,
+                                                    versus.class
                                                   )
                                                 }
                                               >
@@ -145,10 +156,10 @@ const CascadeTournament = ({
                                                   handleWinnerCascade(
                                                     versus.joueurB.numero,
                                                     versus.joueurA.numero,
-                                                    versus.class,
-                                                    g,
                                                     r,
-                                                    versus.barrage
+                                                    g,
+                                                    versus.barrage,
+                                                    versus.class
                                                   )
                                                 }
                                               >
@@ -176,4 +187,4 @@ const CascadeTournament = ({
   );
 };
 
-export default CascadeTournament;
+export default Cascade;

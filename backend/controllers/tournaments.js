@@ -54,6 +54,7 @@ exports.charge = (req, res) => {
                   groupe: results[i].groupe,
                   num_match: results[i].num_match,
                   barrage: results[i].barrage,
+                  tournament_style: style,
                 };
                 matches.push(match);
               }
