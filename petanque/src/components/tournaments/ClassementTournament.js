@@ -2,7 +2,9 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import Order from "../Order";
-import CreateTournamentArbreClassement from "./CreateTournamentArbreClassement";
+import CreateTournamentArbreClassement from "../tournamentComponents/CreateTournamentArbreClassement";
+import VainqueurGroupe from "./VainqueurGroupe";
+import Arbre from "../tournamentComponents/Arbre";
 
 const ClassementTournament = ({
   listPlayers,
@@ -25,6 +27,9 @@ const ClassementTournament = ({
       .get(linkBackend + "gotournaments/charge_classement/" + idTournament)
       .then((res) => setDataOrder(res.data));
   }, [order]);
+
+  console.log("test");
+  console.log(pairesInfos);
 
   // Fonction quand je déclare un vainqueur de phase de poule en mode classement
   const handleWinnerClassement = (e, numeroA, numeroB) => {
@@ -68,13 +73,13 @@ const ClassementTournament = ({
   };
 
   // Fonction quand je déclare un vainqueur de l'arbre du mode classement
-  const handleWinnerClassementArbre = (win, lose, tour, groupe) => {
+  const handleWinnerClassementArbre = (win, lose, versus) => {
     axios
       .put(
         linkBackend +
           "gotournaments/win_player_classement_arbre/" +
           idTournament,
-        { win, lose, tour, groupe }
+        { win, lose, tour: versus.class, groupe: versus.groupe }
       )
       .then((res) => {
         setResponseWin(res.data);
@@ -148,21 +153,11 @@ const ClassementTournament = ({
         )}
       {!order && (
         <div>
-          {["A", "B", "C"].map((g) => {
-            const vainqueur = `vainqueur${g}`;
-            if (listPlayers.vainqueur[vainqueur]) {
-              return (
-                <div>
-                  <h2>Groupe {g}</h2>
-                  <p>Le gagnant est {listPlayers.vainqueur[vainqueur]}</p>
-                </div>
-              );
-            }
-          })}
+          <VainqueurGroupe listPlayers={listPlayers} />
           {pairesInfos.rounds
             .sort((a, b) => b - a)
             .map((r) => {
-              if (r == 4) {
+              if (r == 4 && pairesInfos.groupes[0] != null) {
                 return (
                   <div>
                     {pairesInfos.groupes
@@ -176,81 +171,18 @@ const ClassementTournament = ({
                         if (listPlayers.vainqueur[vainqueur]) {
                           return null;
                         } else {
+                          const matches = listPlayers.results.filter(
+                            (m) => m.groupe == g
+                          );
                           return (
                             <div>
-                              {g ? <h2>Groupe {g}</h2> : null}
-                              {pairesInfos.tours
-                                .sort((a, b) => a - b)
-                                .map((t) => {
-                                  if (
-                                    listPlayers.results.filter(
-                                      (m) => m.groupe == g && m.class == t
-                                    ).length == 0 ||
-                                    !g
-                                  ) {
-                                    return null;
-                                  } else {
-                                    return (
-                                      <div>
-                                        {t == 1 ? (
-                                          <h3>La finale</h3>
-                                        ) : t == 0.5 ? null : (
-                                          <h3>1/{t} de finale</h3>
-                                        )}
-                                        {listPlayers.results
-                                          .filter(
-                                            (m) => m.groupe == g && m.class == t
-                                          )
-                                          .map((m) => {
-                                            return (
-                                              <div key={m.key}>
-                                                {/* Montre infos entre joueur A et joueur B potentiel */}
-                                                <p>
-                                                  Le joueur numéro{" "}
-                                                  {m.joueurA.numero} (
-                                                  {m.joueurA.pseudo}){" "}
-                                                  {m.joueurB
-                                                    ? `affronte le joueur numéro ${m.joueurB.numero} (${m.joueurB.pseudo})`
-                                                    : "n'a pas encore d'adversaire attitré"}
-                                                </p>
-                                                {/* Si y'a bien joueur B pour le match alors on peut déclarer un vainqueur et donc afficher les boutons*/}
-                                                {m.joueurB && (
-                                                  <div>
-                                                    <button
-                                                      onClick={() =>
-                                                        handleWinnerClassementArbre(
-                                                          m.joueurA.numero,
-                                                          m.joueurB.numero,
-                                                          m.class,
-                                                          m.groupe
-                                                        )
-                                                      }
-                                                    >
-                                                      Victoire de{" "}
-                                                      {m.joueurA.pseudo}
-                                                    </button>
-                                                    <button
-                                                      onClick={() =>
-                                                        handleWinnerClassementArbre(
-                                                          m.joueurB.numero,
-                                                          m.joueurA.numero,
-                                                          m.class,
-                                                          m.groupe
-                                                        )
-                                                      }
-                                                    >
-                                                      Victoire de{" "}
-                                                      {m.joueurB.pseudo}
-                                                    </button>
-                                                  </div>
-                                                )}
-                                              </div>
-                                            );
-                                          })}{" "}
-                                      </div>
-                                    );
-                                  }
-                                })}
+                              {/* {g ? <h2>Groupe {g}</h2> : null} */}
+                              <h2>Groupe {g}</h2>
+                              <Arbre
+                                pairesInfos={pairesInfos}
+                                matches={matches}
+                                handleWinner={handleWinnerClassementArbre}
+                              />
                             </div>
                           );
                         }
@@ -258,7 +190,8 @@ const ClassementTournament = ({
                   </div>
                 );
                 // return <h3>On verra plus tard round 4 (arbre)</h3>;
-              } else {
+              }
+              if (r < 4) {
                 return (
                   <div key={r}>
                     <h3>Round {r}</h3>

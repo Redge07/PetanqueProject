@@ -4,9 +4,9 @@ import { UsersContext } from "../App";
 import axios from "axios";
 import { linkBackend } from "../constants/LinkBackend";
 import NoStartTournament from "../components/tournamentComponents/NoStartTournament";
-import ArbreTournament from "../components/tournamentComponents/ArbreTournament";
-import Cascade from "../components/tournamentComponents/Cascade";
-import ClassementTournament from "../components/tournamentComponents/ClassementTournament";
+import ArbreTournament from "../components/tournaments/ArbreTournament";
+import Cascade from "../components/tournaments/Cascade";
+import ClassementTournament from "../components/tournaments/ClassementTournament";
 
 const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
@@ -94,8 +94,8 @@ const Tournament = () => {
           <p>{responseWin}</p>
           {TournamentComponent && (
             <TournamentComponent
-              pairesInfos={pairesInfos}
               listPlayers={listPlayers}
+              pairesInfos={pairesInfos}
               setResponseWin={setResponseWin}
               idTournament={idTournament}
               recharge={recharge}

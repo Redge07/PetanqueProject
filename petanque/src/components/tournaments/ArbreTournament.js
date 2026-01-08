@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 import { linkBackend } from "../../constants/LinkBackend";
-import Arbre from "./Arbre";
+import Arbre from "../tournamentComponents/Arbre";
 
 const ArbreTournament = ({
   pairesInfos,

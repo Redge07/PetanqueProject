@@ -1,8 +1,9 @@
 import axios from "axios";
 import React from "react";
 import { linkBackend } from "../../constants/LinkBackend";
-import Arbre from "./Arbre";
-import ButtonWinner from "./ButtonsWinner";
+import Arbre from "../tournamentComponents/Arbre";
+import ButtonWinner from "../tournamentComponents/ButtonsWinner";
+import VainqueurGroupe from "./VainqueurGroupe";
 
 const Cascade = ({
   listPlayers,
@@ -31,17 +32,7 @@ const Cascade = ({
   };
   return (
     <div>
-      {["A", "B", "C"].map((g) => {
-        const vainqueur = `vainqueur${g}`;
-        if (listPlayers.vainqueur[vainqueur]) {
-          return (
-            <div>
-              <h2>Groupe {g}</h2>
-              <p>Le gagnant est {listPlayers.vainqueur[vainqueur]}</p>
-            </div>
-          );
-        }
-      })}
+      <VainqueurGroupe listPlayers={listPlayers} />
       {/* On tri par les groupes */}
       {pairesInfos.groupes
         .sort(
