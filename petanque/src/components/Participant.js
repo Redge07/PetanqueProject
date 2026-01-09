@@ -6,6 +6,7 @@ import ArbreTournament from "./playerComponents/ArbrePlayer";
 import CascadeTournament from "./playerComponents/CascadePlayer";
 import ClassementTournament from "./playerComponents/ClassementPlayer";
 import Order from "./Order";
+import ViewTournament from "./playerComponents/ViewTournament";
 
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
@@ -14,7 +15,17 @@ const Participant = ({ player }) => {
   // Récupérer un petit message pour dire que l'utilisateur a bien été désinscrit du tournoi
   const [responseDeinscription, setResponseDeinscription] = useState("");
 
+  // State pour afficher ou non le classement
   const [showOrder, setShowOrder] = useState(false);
+  const [showDetailsTournament, setShowDetailsTournament] = useState(false);
+
+  const formatTournament = {
+    arbre: ArbreTournament,
+    cascade: CascadeTournament,
+    classement: ClassementTournament,
+  };
+
+  const TournamentComponent = formatTournament[dataPlayer.style];
 
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
   const handleDelete = () => {
@@ -78,17 +89,9 @@ const Participant = ({ player }) => {
             Vous participez au tournoi {dataPlayer.tournamentName} qui est un
             tournoi en {dataPlayer.style}
           </p>
-          {/* Si le joueur participe a un tournoi en mode arbre */}
-          {dataPlayer.style == "arbre" && (
-            <ArbreTournament dataPlayer={dataPlayer} />
-          )}
-          {/* Si le joueur participe a un tournoi en mode cascade */}
-          {dataPlayer.style == "cascade" && (
-            <CascadeTournament dataPlayer={dataPlayer} />
-          )}
-          {/* Si le joueur participe a un tournoi en mode classement */}
-          {dataPlayer.style == "classement" && (
-            <ClassementTournament dataPlayer={dataPlayer} />
+          {/* Composant qui la situation d'un joueur dans un tournoi précis */}
+          {TournamentComponent && (
+            <TournamentComponent dataPlayer={dataPlayer} />
           )}
           <p>
             {" "}
@@ -119,6 +122,21 @@ const Participant = ({ player }) => {
         </div>
       )}
       {showOrder && <Order idTournament={dataPlayer.id_tournament} />}
+      {showDetailsTournament ? (
+        <button onClick={() => setShowDetailsTournament(false)}>
+          Ne plus voir le détails des matches
+        </button>
+      ) : (
+        <button onClick={() => setShowDetailsTournament(true)}>
+          Voir le détails des matches
+        </button>
+      )}
+      {showDetailsTournament && (
+        <ViewTournament
+          idTournament={dataPlayer.id_tournament}
+          style={dataPlayer.style}
+        />
+      )}
     </div>
   );
 };
