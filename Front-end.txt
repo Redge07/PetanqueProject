@@ -4,13 +4,12 @@ Front-end :
 			Donc y'a une logique, je peux pas mettre de tournoi C si y'a pas un tournoi B, si je mets 4 en A et 8 en B alors ça veut dire que les 8 en B sont les joueurs 
 			de la 5ème à la 12ème place. Est-ce que on peut accepter 10 joueurs et donc faire un système de barrage ?
 		- Afficher les gagnants meme si le joueur se désinscrit (si il se désinscrit plus de groupe A et donc on n'affiche plus rien), dans les maps, mettre avant tout le vainqueur et ensuite s'adapter
-	- Coté Participant il faut que les joueurs puissent voir toutes les infos sur le tournoi auquel ils participent, comme par exemple la liste des matches, ou en est le tournoi, 
+		- Coté Participant il faut que les joueurs puissent voir toutes les infos sur le tournoi auquel ils participent, comme par exemple la liste des matches, ou en est le tournoi, 
 		le classement du tournoi
-	- Les composants sont beaucoup trop long, il faut vraiment les séparer en plusieurs composant et ça donnera une architecture clair de l'application (profité pour faire un code clair et propre)
-	- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données. 
-		Donc faut mettre des logos de chargement partout car on n'est jamais sur que les données vont venir directement. 
+		- Les composants sont beaucoup trop long, il faut vraiment les séparer en plusieurs composant et ça donnera une architecture clair de l'application (profité pour faire un code clair et propre)
+	- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données ou meme crash donc faut gérer avec le try/catch. 
+		Faut mettre des logos de chargement partout car on n'est jamais sur que les données vont venir directement. 
 		Et aussi quand on fait des map il faut faire attention que le tableau à mappé n'est pas vide
-	- Quand on appelle une API, le serveur backend peut ne pas marcher et donc pour axios faut faire un try/catch
 	- Pour la recherche d'un tournoi coté participant pour pouvoir s'inscire, il faut que la recherche soit très intuitif, avec la possiblité de rechercher avec le nom ou l'id du tournoi, 
 		ajouter aussi le système de QR Code
 	- Avoir un système d'actualisation de la page automatique, par exemple si je suis censé avoir un nouvel adversaire alors la page du participant se met automatiquement à jour 

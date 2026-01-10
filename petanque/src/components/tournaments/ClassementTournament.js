@@ -1,11 +1,11 @@
 import axios from "axios";
 import React, { useContext, useEffect, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
-import Order from "../Order";
 import CreateTournamentArbreClassement from "../tournamentComponents/CreateTournamentArbreClassement";
-import VainqueurGroupe from "./VainqueurGroupe";
+import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import Arbre from "../tournamentComponents/Arbre";
 import { OrgaContext } from "../../pages/Tournament";
+import Order from "../tournamentComponents/Order";
 
 const ClassementTournament = ({
   listPlayers,
@@ -30,7 +30,7 @@ const ClassementTournament = ({
     axios
       .get(linkBackend + "gotournaments/charge_classement/" + idTournament)
       .then((res) => setDataOrder(res.data));
-  }, [order]);
+  }, []);
 
   console.log("test");
   console.log(pairesInfos);

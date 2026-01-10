@@ -3,7 +3,7 @@ import React from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import Arbre from "../tournamentComponents/Arbre";
 import ButtonWinner from "../tournamentComponents/ButtonsWinner";
-import VainqueurGroupe from "./VainqueurGroupe";
+import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 
 const Cascade = ({
   listPlayers,

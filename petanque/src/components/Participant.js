@@ -2,11 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { linkBackend } from "../constants/LinkBackend";
 import SearchTournament from "./playerComponents/SearchTournament";
-import ArbreTournament from "./playerComponents/ArbrePlayer";
-import CascadeTournament from "./playerComponents/CascadePlayer";
-import ClassementTournament from "./playerComponents/ClassementPlayer";
-import Order from "./Order";
-import ViewTournament from "./playerComponents/ViewTournament";
+import DirectTournament from "./playerComponents/DirectTournament";
 
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
@@ -14,18 +10,6 @@ const Participant = ({ player }) => {
 
   // Récupérer un petit message pour dire que l'utilisateur a bien été désinscrit du tournoi
   const [responseDeinscription, setResponseDeinscription] = useState("");
-
-  // State pour afficher ou non le classement
-  const [showOrder, setShowOrder] = useState(false);
-  const [showDetailsTournament, setShowDetailsTournament] = useState(false);
-
-  const formatTournament = {
-    arbre: ArbreTournament,
-    cascade: CascadeTournament,
-    classement: ClassementTournament,
-  };
-
-  const TournamentComponent = formatTournament[dataPlayer.style];
 
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
   const handleDelete = () => {
@@ -77,82 +61,7 @@ const Participant = ({ player }) => {
         </div>
       )}
       {/* On est en plein tournoi */}
-      {dataPlayer.res == 3 && (
-        <div className="composant" style={{ border: "solid 2px blue" }}>
-          <h4 style={{ color: "blue" }}>
-            Balise pour montrer toutes les infos lorsqu'un joueur participe a un
-            tournoi
-          </h4>
-          <h2>Numero : {dataPlayer.numero}</h2>
-          <h3>{dataPlayer.tournamentName} Tournament !</h3>
-          <p>
-            Vous participez au tournoi {dataPlayer.tournamentName} qui est un
-            tournoi en {dataPlayer.style}
-          </p>
-          {/* Composant qui la situation d'un joueur dans un tournoi précis */}
-          {TournamentComponent && (
-            <TournamentComponent dataPlayer={dataPlayer} />
-          )}
-          <p>
-            {" "}
-            {dataPlayer.idVersus
-              ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
-                ${dataPlayer.idVersus}`
-              : "Vous n'avez pas d'adversaire"}
-          </p>
-          {dataPlayer.style == "classement" && (
-            <div
-              className="composant"
-              style={{
-                border: "2px solid green",
-              }}
-            >
-              <h4 style={{ color: "green" }}>
-                Balise pour montrer le classement du tournoi
-              </h4>
-
-              <div>
-                {showOrder ? (
-                  <button onClick={() => setShowOrder(false)}>
-                    Ne plus voir le classement
-                  </button>
-                ) : (
-                  <button onClick={() => setShowOrder(true)}>
-                    Voir Classement
-                  </button>
-                )}
-              </div>
-
-              {showOrder && <Order idTournament={dataPlayer.id_tournament} />}
-            </div>
-          )}
-          <div
-            className="composant"
-            style={{
-              border: "2px solid green",
-            }}
-          >
-            <h4 style={{ color: "green" }}>
-              Balise pour montrer les infos du tournoi auquel il participe
-            </h4>
-            {showDetailsTournament ? (
-              <button onClick={() => setShowDetailsTournament(false)}>
-                Ne plus voir le détails des matches
-              </button>
-            ) : (
-              <button onClick={() => setShowDetailsTournament(true)}>
-                Voir le détails des matches
-              </button>
-            )}
-            {showDetailsTournament && (
-              <ViewTournament
-                idTournament={dataPlayer.id_tournament}
-                style={dataPlayer.style}
-              />
-            )}
-          </div>
-        </div>
-      )}
+      {dataPlayer.res == 3 && <DirectTournament dataPlayer={dataPlayer} />}
       {/* Le joueur a gagné le tournoi */}
       {dataPlayer.res == 4 && (
         <div>

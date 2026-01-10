@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { linkBackend } from "../constants/LinkBackend";
+import { linkBackend } from "../../constants/LinkBackend";
 
 const Order = ({ idTournament }) => {
   // State pour avoir les données du classement

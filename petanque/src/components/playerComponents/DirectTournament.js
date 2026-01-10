@@ -1,0 +1,96 @@
+import React, { useState } from "react";
+import ClassementTournament from "../tournaments/ClassementTournament";
+import CascadeTournament from "../tournaments/Cascade";
+import ArbreTournament from "../tournaments/ArbreTournament";
+import ViewTournament from "./ViewTournament";
+import Order from "../tournamentComponents/Order";
+
+const DirectTournament = ({ dataPlayer }) => {
+  // State pour afficher ou non le classement
+  const [showOrder, setShowOrder] = useState(false);
+  const [showDetailsTournament, setShowDetailsTournament] = useState(false);
+
+  const formatTournament = {
+    arbre: ArbreTournament,
+    cascade: CascadeTournament,
+    classement: ClassementTournament,
+  };
+
+  const TournamentComponent = formatTournament[dataPlayer.style];
+  return (
+    <div className="composant" style={{ border: "solid 2px blue" }}>
+      <h4 style={{ color: "blue" }}>
+        Balise pour montrer toutes les infos lorsqu'un joueur participe a un
+        tournoi
+      </h4>
+      <h2>Numero : {dataPlayer.numero}</h2>
+      <h3>{dataPlayer.tournamentName} Tournament !</h3>
+      <p>
+        Vous participez au tournoi {dataPlayer.tournamentName} qui est un
+        tournoi en {dataPlayer.style}
+      </p>
+      {/* Composant qui montre la situation d'un joueur dans un tournoi précis */}
+      {TournamentComponent && <TournamentComponent dataPlayer={dataPlayer} />}
+      <p>
+        {" "}
+        {dataPlayer.idVersus
+          ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
+                ${dataPlayer.idVersus}`
+          : "Vous n'avez pas d'adversaire"}
+      </p>
+      {dataPlayer.style == "classement" && (
+        <div
+          className="composant"
+          style={{
+            border: "2px solid green",
+          }}
+        >
+          <h4 style={{ color: "green" }}>
+            Balise pour montrer le classement du tournoi
+          </h4>
+
+          <div>
+            {showOrder ? (
+              <button onClick={() => setShowOrder(false)}>
+                Ne plus voir le classement
+              </button>
+            ) : (
+              <button onClick={() => setShowOrder(true)}>
+                Voir Classement
+              </button>
+            )}
+          </div>
+
+          {showOrder && <Order idTournament={dataPlayer.id_tournament} />}
+        </div>
+      )}
+      <div
+        className="composant"
+        style={{
+          border: "2px solid green",
+        }}
+      >
+        <h4 style={{ color: "green" }}>
+          Balise pour montrer les infos du tournoi auquel il participe
+        </h4>
+        {showDetailsTournament ? (
+          <button onClick={() => setShowDetailsTournament(false)}>
+            Ne plus voir le détails des matches
+          </button>
+        ) : (
+          <button onClick={() => setShowDetailsTournament(true)}>
+            Voir le détails des matches
+          </button>
+        )}
+        {showDetailsTournament && (
+          <ViewTournament
+            idTournament={dataPlayer.id_tournament}
+            style={dataPlayer.style}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default DirectTournament;
