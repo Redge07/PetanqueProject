@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, createContext } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { UsersContext } from "../App";
 import axios from "axios";
@@ -7,6 +7,9 @@ import NoStartTournament from "../components/tournamentComponents/NoStartTournam
 import ArbreTournament from "../components/tournaments/ArbreTournament";
 import Cascade from "../components/tournaments/Cascade";
 import ClassementTournament from "../components/tournaments/ClassementTournament";
+import createPaires from "../utils/CreatePaires";
+
+export const OrgaContext = createContext();
 
 const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
@@ -41,26 +44,6 @@ const Tournament = () => {
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
-    const createPaires = (matches) => {
-      let groupes = [];
-      let rounds = [];
-      let tours = [];
-      matches.forEach((match) => {
-        const groupe = match.groupe;
-        if (!groupes.includes(groupe)) {
-          groupes.push(groupe);
-        }
-        const round = match.round;
-        if (!rounds.includes(parseInt(round))) {
-          rounds.push(parseInt(round));
-        }
-        const tour = match.class;
-        if (!tours.includes(parseFloat(tour))) {
-          tours.push(parseFloat(tour));
-        }
-      });
-      return { rounds, groupes, tours };
-    };
     axios
       .get(linkBackend + "tournaments/charge/" + idTournament)
       .then((res) => {
@@ -76,41 +59,43 @@ const Tournament = () => {
     recharge();
   }, []);
   return (
-    <div>
-      <h2>Tournament {idTournament}</h2>
-      {/* Si le tournoi n'a pas commencé on va afficher les joueurs en attente et accepté */}
-      {listPlayers.res == 0 && (
-        <NoStartTournament
-          listPlayers={listPlayers}
-          recharge={recharge}
-          idTournament={idTournament}
-        />
-      )}
-      {/* Le tournoi a commencé */}
-      {listPlayers.res == 1 && (
-        <div>
-          <h2>Go Tournoi</h2>
-          <h3>Tournoi en {listPlayers.style}</h3>
-          <p>{responseWin}</p>
-          {TournamentComponent && (
-            <TournamentComponent
-              listPlayers={listPlayers}
-              pairesInfos={pairesInfos}
-              setResponseWin={setResponseWin}
-              idTournament={idTournament}
-              recharge={recharge}
-            />
-          )}
-        </div>
-      )}
-      {/* Le tournoi est fini est on affiche le vainqueur */}
-      {listPlayers.res == 2 && (
-        <div>
-          <h1>{listPlayers.msg}</h1>
-        </div>
-      )}
-      <NavLink to="/Home">Retour</NavLink>
-    </div>
+    <OrgaContext.Provider value={{ orga: true }}>
+      <div>
+        <h2>Tournament {idTournament}</h2>
+        {/* Si le tournoi n'a pas commencé on va afficher les joueurs en attente et accepté */}
+        {listPlayers.res == 0 && (
+          <NoStartTournament
+            listPlayers={listPlayers}
+            recharge={recharge}
+            idTournament={idTournament}
+          />
+        )}
+        {/* Le tournoi a commencé */}
+        {listPlayers.res == 1 && (
+          <div>
+            <h2>Go Tournoi</h2>
+            <h3>Tournoi en {listPlayers.style}</h3>
+            <p>{responseWin}</p>
+            {TournamentComponent && (
+              <TournamentComponent
+                listPlayers={listPlayers}
+                pairesInfos={pairesInfos}
+                setResponseWin={setResponseWin}
+                idTournament={idTournament}
+                recharge={recharge}
+              />
+            )}
+          </div>
+        )}
+        {/* Le tournoi est fini est on affiche le vainqueur */}
+        {listPlayers.res == 2 && (
+          <div>
+            <h1>{listPlayers.msg}</h1>
+          </div>
+        )}
+        <NavLink to="/Home">Retour</NavLink>
+      </div>
+    </OrgaContext.Provider>
   );
 };
 

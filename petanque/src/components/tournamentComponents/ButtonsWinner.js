@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
+import { OrgaContext } from "../../pages/Tournament";
 
 const ButtonWinner = ({ versus, handleWinner }) => {
+  const context = useContext(OrgaContext);
+  const orga = context?.orga;
   return (
-    <div style={{ border: "solid 2px green" }}>
-      <h4 style={{ color: "green" }}>Balise qui représente un versus</h4>
+    <div className="composant" style={{ border: "solid 2px green" }}>
+      <h4 style={{ color: "green" }}>Balise qui représente un versuss</h4>
       {/* Montre infos entre joueur A et joueur B potentiel */}
       <p>
         Le joueur numéro {versus.joueurA.numero} ({versus.joueurA.pseudo}){" "}
@@ -23,7 +26,7 @@ const ButtonWinner = ({ versus, handleWinner }) => {
         )}
       </p>
       {/* Si y'a bien joueur B pour le match alors on peut déclarer un vainqueur et donc afficher les boutons*/}
-      {versus.joueurB && (
+      {versus.joueurB && orga && (
         <div>
           <button
             onClick={() =>

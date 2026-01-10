@@ -4,17 +4,16 @@ import ButtonWinner from "./ButtonsWinner";
 const Arbre = ({ pairesInfos, matches, handleWinner }) => {
   const sortedTours = [...pairesInfos.tours].sort((a, b) => a - b);
   return (
-    <div style={{ border: "solid 2px blue" }}>
+    <div className="composant" style={{ border: "solid 2px blue" }}>
       <h4 style={{ color: "blue" }}>Composant qui est un arbre en entier</h4>
       {/* Je vais trier les affichage par les tours des joueurs */}
       {sortedTours.map((t) => {
         if (matches.find((versus) => versus.class == t)) {
           return (
             <div
+              className="composant"
               style={{
                 border: "solid 2px red",
-                margin: "20px",
-                padding: "20px",
               }}
               key={t}
             >

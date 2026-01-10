@@ -69,7 +69,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament }) => {
       });
   };
   return (
-    <div style={{ border: "solid 2px red" }}>
+    <div className="composant" style={{ border: "solid 2px red" }}>
       <h4 style={{ color: "red" }}>
         Composant qui représente un tournoi lorsqu'il n'a pas encore commencé
       </h4>

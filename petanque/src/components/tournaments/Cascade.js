@@ -46,7 +46,11 @@ const Cascade = ({
             return null;
           } else {
             return (
-              <div key={g}>
+              <div
+                className="composant"
+                style={{ border: "solid 2px red" }}
+                key={g}
+              >
                 <h2>Groupe {g}</h2>
                 {/* Ensuite on tri par les rounds */}
                 {pairesInfos.rounds
@@ -68,7 +72,11 @@ const Cascade = ({
                       );
                     } else {
                       return (
-                        <div key={r}>
+                        <div
+                          className="composant"
+                          style={{ border: "solid 2px blue" }}
+                          key={r}
+                        >
                           <h3>Round {r}</h3>
                           {pairesInfos.tours
                             .sort((a, b) => a - b)

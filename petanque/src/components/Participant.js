@@ -78,7 +78,7 @@ const Participant = ({ player }) => {
       )}
       {/* On est en plein tournoi */}
       {dataPlayer.res == 3 && (
-        <div style={{ border: "solid 2px blue" }}>
+        <div className="composant" style={{ border: "solid 2px blue" }}>
           <h4 style={{ color: "blue" }}>
             Balise pour montrer toutes les infos lorsqu'un joueur participe a un
             tournoi
@@ -100,6 +100,57 @@ const Participant = ({ player }) => {
                 ${dataPlayer.idVersus}`
               : "Vous n'avez pas d'adversaire"}
           </p>
+          {dataPlayer.style == "classement" && (
+            <div
+              className="composant"
+              style={{
+                border: "2px solid green",
+              }}
+            >
+              <h4 style={{ color: "green" }}>
+                Balise pour montrer le classement du tournoi
+              </h4>
+
+              <div>
+                {showOrder ? (
+                  <button onClick={() => setShowOrder(false)}>
+                    Ne plus voir le classement
+                  </button>
+                ) : (
+                  <button onClick={() => setShowOrder(true)}>
+                    Voir Classement
+                  </button>
+                )}
+              </div>
+
+              {showOrder && <Order idTournament={dataPlayer.id_tournament} />}
+            </div>
+          )}
+          <div
+            className="composant"
+            style={{
+              border: "2px solid green",
+            }}
+          >
+            <h4 style={{ color: "green" }}>
+              Balise pour montrer les infos du tournoi auquel il participe
+            </h4>
+            {showDetailsTournament ? (
+              <button onClick={() => setShowDetailsTournament(false)}>
+                Ne plus voir le détails des matches
+              </button>
+            ) : (
+              <button onClick={() => setShowDetailsTournament(true)}>
+                Voir le détails des matches
+              </button>
+            )}
+            {showDetailsTournament && (
+              <ViewTournament
+                idTournament={dataPlayer.id_tournament}
+                style={dataPlayer.style}
+              />
+            )}
+          </div>
         </div>
       )}
       {/* Le joueur a gagné le tournoi */}
@@ -109,33 +160,6 @@ const Participant = ({ player }) => {
           <button onClick={handleDelete}>Quitter le tournoi</button>
           <p>{responseDeinscription}</p>
         </div>
-      )}
-      {dataPlayer.style == "classement" && (
-        <div>
-          {showOrder ? (
-            <button onClick={() => setShowOrder(false)}>
-              Ne plus voir le classement
-            </button>
-          ) : (
-            <button onClick={() => setShowOrder(true)}>Voir Classement</button>
-          )}
-        </div>
-      )}
-      {showOrder && <Order idTournament={dataPlayer.id_tournament} />}
-      {showDetailsTournament ? (
-        <button onClick={() => setShowDetailsTournament(false)}>
-          Ne plus voir le détails des matches
-        </button>
-      ) : (
-        <button onClick={() => setShowDetailsTournament(true)}>
-          Voir le détails des matches
-        </button>
-      )}
-      {showDetailsTournament && (
-        <ViewTournament
-          idTournament={dataPlayer.id_tournament}
-          style={dataPlayer.style}
-        />
       )}
     </div>
   );

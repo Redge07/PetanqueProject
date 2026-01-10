@@ -35,7 +35,7 @@ const SearchTournament = ({ player, recharge }) => {
       });
   };
   return (
-    <div style={{ border: "solid 2px red" }}>
+    <div className="composant" style={{ border: "solid 2px red" }}>
       <h4 style={{ color: "red" }}>Composant pour rechercher un tournoi</h4>
       <p>Vous ne participez à aucun tournoi</p>
       <form onSubmit={handleSearch}>

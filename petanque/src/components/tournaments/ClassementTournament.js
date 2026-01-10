@@ -1,10 +1,11 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import Order from "../Order";
 import CreateTournamentArbreClassement from "../tournamentComponents/CreateTournamentArbreClassement";
 import VainqueurGroupe from "./VainqueurGroupe";
 import Arbre from "../tournamentComponents/Arbre";
+import { OrgaContext } from "../../pages/Tournament";
 
 const ClassementTournament = ({
   listPlayers,
@@ -13,6 +14,9 @@ const ClassementTournament = ({
   setResponseWin,
   idTournament,
 }) => {
+  const context = useContext(OrgaContext);
+  const orga = context?.orga;
+
   // State qui permet de gérer l'affichage du classement des poules
   const [order, setOrder] = useState(false);
 
@@ -134,23 +138,37 @@ const ClassementTournament = ({
         });
     }
   };
+
+  const formArbre =
+    dataOrder.length != 0 &&
+    !listPlayers.vainqueur.vainqueurA &&
+    !listPlayers.vainqueur.vainqueurB &&
+    !listPlayers.vainqueur.vainqueurC &&
+    dataOrder.filter((j) => j.nb_matchs_jouer == 3).length ==
+      dataOrder.length &&
+    listPlayers.results.filter((m) => m.joueurB).length == 0 &&
+    listPlayers.results.filter((m) => m.class == 0.5).length == 0;
   return (
     <div>
-      <button onClick={() => setOrder(false)}>Matchs</button>
-      <button onClick={() => setOrder(true)}>Classement</button>
-      {dataOrder.length != 0 &&
-        !listPlayers.vainqueur.vainqueurA &&
-        !listPlayers.vainqueur.vainqueurB &&
-        !listPlayers.vainqueur.vainqueurC &&
-        dataOrder.filter((j) => j.nb_matchs_jouer == 3).length ==
-          dataOrder.length &&
-        listPlayers.results.filter((m) => m.joueurB).length == 0 &&
-        listPlayers.results.filter((m) => m.class == 0.5).length == 0 && (
-          <CreateTournamentArbreClassement
-            handleGoArbreClassement={handleGoArbreClassement}
-            errorLengthArbre={errorLengthArbre}
-          />
-        )}
+      {formArbre && !orga && (
+        <p>
+          La phase de poule est fini, il faut attendre le tirage au sort pour la
+          suite en arbre
+        </p>
+      )}
+      {orga && (
+        <div>
+          <button onClick={() => setOrder(false)}>Matchs</button>
+          <button onClick={() => setOrder(true)}>Classement</button>
+        </div>
+      )}
+
+      {formArbre && orga && (
+        <CreateTournamentArbreClassement
+          handleGoArbreClassement={handleGoArbreClassement}
+          errorLengthArbre={errorLengthArbre}
+        />
+      )}
       {!order && (
         <div>
           <VainqueurGroupe listPlayers={listPlayers} />
@@ -217,37 +235,39 @@ const ClassementTournament = ({
                               {m.joueurA.pseudo} vs{" "}
                               {m.joueurB ? m.joueurB.pseudo : pseudo}
                             </p>
-                            <form
-                              onSubmit={(e) =>
-                                handleWinnerClassement(
-                                  e,
-                                  m.joueurA.numero,
-                                  m.joueurB.numero
-                                )
-                              }
-                            >
-                              <input
-                                type="number"
-                                defaultValue={0}
-                                placeholder={`Entrer le score de ${m.joueurA.pseudo}`}
-                                disabled={!m.joueurB}
-                                name="scoreA"
-                              />
-                              <input
-                                type="number"
-                                defaultValue={1}
-                                placeholder={`Entrer le score de ${
-                                  m.joueurB ? m.joueurB.pseudo : pseudo
-                                }`}
-                                disabled={!m.joueurB}
-                                name="scoreB"
-                              />
-                              <input
-                                type="submit"
-                                value="Valider"
-                                disabled={!m.joueurB}
-                              />
-                            </form>
+                            {orga && (
+                              <form
+                                onSubmit={(e) =>
+                                  handleWinnerClassement(
+                                    e,
+                                    m.joueurA.numero,
+                                    m.joueurB.numero
+                                  )
+                                }
+                              >
+                                <input
+                                  type="number"
+                                  defaultValue={0}
+                                  placeholder={`Entrer le score de ${m.joueurA.pseudo}`}
+                                  disabled={!m.joueurB}
+                                  name="scoreA"
+                                />
+                                <input
+                                  type="number"
+                                  defaultValue={1}
+                                  placeholder={`Entrer le score de ${
+                                    m.joueurB ? m.joueurB.pseudo : pseudo
+                                  }`}
+                                  disabled={!m.joueurB}
+                                  name="scoreB"
+                                />
+                                <input
+                                  type="submit"
+                                  value="Valider"
+                                  disabled={!m.joueurB}
+                                />
+                              </form>
+                            )}
                           </div>
                         );
                       })}

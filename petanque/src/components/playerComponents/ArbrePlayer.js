@@ -2,7 +2,7 @@ import React from "react";
 
 const ArbreTournament = ({ dataPlayer }) => {
   return (
-    <div style={{ border: "solid 2px red" }}>
+    <div className="composant" style={{ border: "solid 2px red" }}>
       <h4 style={{ color: "red" }}>
         Composant pour montrer la situation spécifique d'un joueur qui fait un
         tournoi en arbre
