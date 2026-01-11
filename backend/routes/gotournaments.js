@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const gotournaments = require("../controllers/gotournaments");
+const gotournaments2 = require("../controllers2/gotournaments2");
 
 router.put("/go_tournament/:id", gotournaments.go_tournament);
+router.put("/go_tournament2/:id", gotournaments2.go_tournament_arbre);
 router.put("/win_player_arbre/:id", gotournaments.win_player_arbre);
 router.put("/win_player_cascade/:id", gotournaments.win_player_cascade);
 router.put("/win_player_classement/:id", gotournaments.win_player_classement);
