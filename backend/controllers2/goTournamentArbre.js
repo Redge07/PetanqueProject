@@ -1,13 +1,5 @@
-const connection = require("../config/db");
-
-const query = (sql, params = []) => {
-  return new Promise((resolve, reject) => {
-    connection.query(sql, params, (err, results) => {
-      if (err) return reject(err);
-      else resolve(results);
-    });
-  });
-};
+const { query } = require("../constants/query");
+const { updatePlayers } = require("../constants/updatePlayers");
 
 function getRandomElements(arr, n) {
   const result = [];
@@ -20,7 +12,7 @@ function getRandomElements(arr, n) {
   return result;
 }
 
-exports.go_tournament_arbre = async (req, res) => {
+exports.goTournamentArbre = async (req, res) => {
   try {
     const idTournament = req.params.id;
     const listPlayers = await query(
@@ -29,9 +21,6 @@ exports.go_tournament_arbre = async (req, res) => {
     );
     if (listPlayers.length < 2)
       return res.status(200).send("Il faut au moins 2 joueurs");
-    const style = (
-      await query("select style from tournaments where id = ?", [idTournament])
-    )[0];
     // await query("delete from players where id_tournament = ? and valider = 0", [
     //   idTournament,
     // ]);
@@ -46,6 +35,7 @@ exports.go_tournament_arbre = async (req, res) => {
     }
     number = number + prelim / 2;
 
+    // Je crée les matches excluant les matches de préliminaire
     for (let i = 1; i <= p2 / 2; i = i * 2) {
       for (let j = 1; j <= i; j++) {
         await query(
@@ -55,6 +45,7 @@ exports.go_tournament_arbre = async (req, res) => {
         number--;
       }
     }
+    // Je crée les matches préliminaire et j'en profite pour ajouter tous les jouers car ces matches seront forcément rempli des joueurs
     for (let i = 1; i <= prelim / 2; i++) {
       await query(
         "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class) values (?, ?, ?, ?, ?, ?, 0, ?)",
@@ -71,6 +62,7 @@ exports.go_tournament_arbre = async (req, res) => {
       number--;
     }
 
+    // Les matches préliminaire ont été crée et rempli de joueur, il faut maintenant ajouter les quelques joueurs qui attendent au tour d'apres
     const numberStart = prelim / 2 + 1;
     number = numberStart;
     let lettre = "A";
@@ -87,7 +79,15 @@ exports.go_tournament_arbre = async (req, res) => {
       number++;
     }
 
-    return res.status(200).json({ number, prelim, tirage });
+    await updatePlayers(
+      [
+        ...listPlayers.map((player) => player.numero),
+        ...tirage.map((player) => player.numero),
+      ],
+      idTournament
+    );
+
+    return res.status(200).send("Oui");
   } catch (err) {
     return res.status(500).send(err);
   }

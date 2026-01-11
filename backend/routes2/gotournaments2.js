@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const gotournaments2 = require("../controllers2/gotournaments2");
+const goTournamentArbre = require("../controllers2/goTournamentArbre");
 
-router.put("/go_tournament2/:id", gotournaments2.go_tournament_arbre);
+router.put("/go_tournament2/:id", goTournamentArbre.goTournamentArbre);
 
 module.exports = router;
