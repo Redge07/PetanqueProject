@@ -18,6 +18,7 @@ app.use("/tournaments", require("./routes/tournaments"));
 app.use("/gotournaments", require("./routes/gotournaments"));
 
 app.use("/gotournaments2", require("./routes2/gotournaments2"));
+app.use("/winner", require("./routes2/winner"));
 
 // app.listen(port, () => {
 //   console.log("Go server in Render");

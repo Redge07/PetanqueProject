@@ -10,22 +10,29 @@ exports.updatePlayers = async (list_id, idTournament) => {
     const match = tournament.find(
       (match) => match.id_playerA == id || match.id_playerB == id
     );
-    const id_versus = match.id_playerB
-      ? match.id_playerA == id
-        ? match.id_playerB
-        : match.id_playerA
-      : 0;
-    await query(
-      "update players set id_versus = ?, class = ?, round = ?, groupe = ?, barrage = ? where numero = ? and id_tournament = ?",
-      [
-        id_versus,
-        match.class,
-        match.round,
-        match.groupe,
-        match.barrage,
-        id,
-        idTournament,
-      ]
-    );
+    if (match) {
+      const id_versus = match.id_playerB
+        ? match.id_playerA == id
+          ? match.id_playerB
+          : match.id_playerA
+        : 0;
+      await query(
+        "update players set id_versus = ?, class = ?, round = ?, groupe = ?, barrage = ? where numero = ? and id_tournament = ?",
+        [
+          id_versus,
+          match.class,
+          match.round,
+          match.groupe,
+          match.barrage,
+          id,
+          idTournament,
+        ]
+      );
+    } else {
+      await query(
+        "delete from players where id_tournament = ? and numero = ?",
+        [idTournament, id]
+      );
+    }
   }
 };
