@@ -60,7 +60,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament }) => {
   // Fonction quand je décide de démarrer le tournoi
   const handleGoTournament = () => {
     axios
-      .put(linkBackend + "gotournaments/go_tournament/" + idTournament)
+      .put(linkBackend + "gotournaments2/arbre/" + idTournament)
       .then((res) => {
         setResponseGoTournament(res.data);
         setTimeout(() => {

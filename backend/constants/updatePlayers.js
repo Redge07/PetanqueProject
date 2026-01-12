@@ -5,8 +5,13 @@ exports.updatePlayers = async (list_id, idTournament) => {
     "select * from matches2 where end = 0 and id_tournament = ?",
     [idTournament]
   );
-  for (let i = 0; i < list_id.length; i++) {
-    const id = list_id[i];
+  let new_list_id = [...list_id];
+  list_id.forEach((id) => {
+    const match = tournament.find((match) => match.id_playerB == id);
+    if (match) new_list_id.push(match.id_playerA);
+  });
+  for (let i = 0; i < new_list_id.length; i++) {
+    const id = new_list_id[i];
     const match = tournament.find(
       (match) => match.id_playerA == id || match.id_playerB == id
     );

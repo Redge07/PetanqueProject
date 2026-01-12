@@ -9,6 +9,23 @@ exports.winnerArbre = async (req, res) => {
       "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
       [win, idTournament, win, win]
     );
+    console.log(tour);
+
+    if (tour == 1) {
+      await query(
+        "delete from players where numero = ? and id_tournament = ?",
+        [lose, idTournament]
+      );
+      await query(
+        "update players set id_versus = 0, class = ? where id_tournament = ?",
+        [0.5, idTournament]
+      );
+      await query(
+        "update tournaments set vainqueur = ?, start = 2 where id = ?",
+        [pseudoWin, idTournament]
+      );
+      return res.status(200).send("Victoire validé");
+    }
     const matches = await query(
       "select * from matches2 where id_tournament = ? and class = ? and id_playerB = 0",
       [idTournament, tour / 2]

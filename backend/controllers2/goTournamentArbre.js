@@ -21,9 +21,13 @@ exports.goTournamentArbre = async (req, res) => {
     );
     if (listPlayers.length < 2)
       return res.status(200).send("Il faut au moins 2 joueurs");
-    // await query("delete from players where id_tournament = ? and valider = 0", [
-    //   idTournament,
-    // ]);
+    await query("update tournaments set start = ? where id = ?", [
+      1,
+      idTournament,
+    ]);
+    await query("delete from players where id_tournament = ? and valider = 0", [
+      idTournament,
+    ]);
     const nb_players = listPlayers.length;
     const p2 = 2 ** Math.floor(Math.log2(nb_players));
     const prelim = (nb_players - p2) * 2;
