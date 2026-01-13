@@ -9,8 +9,6 @@ exports.winnerArbre = async (req, res) => {
       "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
       [win, idTournament, win, win]
     );
-    console.log(tour);
-
     if (tour == 1) {
       await query(
         "delete from players where numero = ? and id_tournament = ?",
