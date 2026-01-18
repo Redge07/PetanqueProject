@@ -52,6 +52,8 @@ exports.winnerArbre = async (req, res) => {
 };
 
 exports.winnerCascade = async (req, res) => {
+  console.log("winner cascade");
+
   try {
     const idTournament = req.params.id;
     const { win, lose, pseudoWin, pseudoLose, tour, barrage, groupe, round } =
@@ -75,7 +77,9 @@ exports.winnerCascade = async (req, res) => {
       );
       return res.status(200).send("Victoire validé");
     }
-    if (round < 3) {
+    console.log("barrage : " + barrage);
+
+    if (round < 3 || barrage) {
       const numGroupe = { A: 1, B: 2, B2: 3, C: 4 };
       const newGroupes = { 1: "A", 2: "B", 3: "B2", 4: "C" };
       for (let i = 0; i < 2; i++) {
@@ -86,6 +90,7 @@ exports.winnerCascade = async (req, res) => {
           newGroupe =
             newGroupes[numGroupe[groupe] + (barrage ? round - 1 : round)];
         }
+
         const matches = await query(
           "select * from matches2 where id_tournament = ? and id_playerB = 0 and round = ? and groupe = ?",
           [idTournament, barrage ? round : round + 1, newGroupe],
@@ -111,6 +116,84 @@ exports.winnerCascade = async (req, res) => {
             idTournament,
             matchNumber,
           ],
+        );
+      }
+    } else if (round == 3) {
+      let matches = await query(
+        "select * from matches2 where id_tournament = ? and groupe = ? and class > 0 and id_playerB = 0",
+        [idTournament, groupe],
+      );
+      if (matches.length == 0) {
+        if (groupe == "A" || groupe == "C") {
+          await query(
+            `update tournaments set vainqueur${groupe} = ? where id = ?`,
+            [pseudoWin, idTournament],
+          );
+        } else {
+          const lettre =
+            matches.find((m) => m.class == 0.5).id_playerA == 0 ? "A" : "B";
+          await query(
+            `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and class = 0.5`,
+            [win, pseudoWin, idTournament],
+          );
+        }
+      } else {
+        const tour = Math.max(matches.map((m) => m.class));
+        matches = matches.filter((m) => m.class == tour);
+        const minNumberNoPlayerA = Math.min(
+          ...matches
+            .filter((match) => match.id_playerA == 0)
+            .map((match) => match.number),
+        );
+        const minNumberNoPlayerB = Math.min(
+          ...matches
+            .filter((match) => match.id_playerB == 0)
+            .map((match) => match.number),
+        );
+        const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
+        const matchNumber =
+          lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
+        await query(
+          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ?`,
+          [win, pseudoWin, idTournament, matchNumber],
+        );
+      }
+    } else {
+      if (tour == 1) {
+        if (groupe == "A" || groupe == "C") {
+          await query(
+            `update tournaments set vainqueur${groupe} = ? where id = ?`,
+            [pseudoWin, idTournament],
+          );
+        } else {
+          const lettre =
+            matches.find((m) => m.class == 0.5).id_playerA == 0 ? "A" : "B";
+          await query(
+            `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and class = 0.5`,
+            [win, pseudoWin, idTournament],
+          );
+        }
+      } else {
+        const matches = await query(
+          "select * from tournaments where id_tournament ? and groupe = ? and class = ? and id_playerB = 0",
+          [idTournament, groupe, tour / 2],
+        );
+        const minNumberNoPlayerA = Math.min(
+          ...matches
+            .filter((match) => match.id_playerA == 0)
+            .map((match) => match.number),
+        );
+        const minNumberNoPlayerB = Math.min(
+          ...matches
+            .filter((match) => match.id_playerB == 0)
+            .map((match) => match.number),
+        );
+        const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
+        const matchNumber =
+          lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
+        await query(
+          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ?`,
+          [win, pseudoWin, idTournament, matchNumber],
         );
       }
     }

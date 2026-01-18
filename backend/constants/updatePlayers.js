@@ -3,7 +3,7 @@ const { query } = require("./query");
 exports.updatePlayers = async (list_id, idTournament) => {
   const tournament = await query(
     "select * from matches2 where end = 0 and id_tournament = ?",
-    [idTournament]
+    [idTournament],
   );
   let new_list_id = [...list_id];
   list_id.forEach((id) => {
@@ -13,7 +13,7 @@ exports.updatePlayers = async (list_id, idTournament) => {
   for (let i = 0; i < new_list_id.length; i++) {
     const id = new_list_id[i];
     const match = tournament.find(
-      (match) => match.id_playerA == id || match.id_playerB == id
+      (match) => match.id_playerA == id || match.id_playerB == id,
     );
     if (match) {
       const id_versus = match.id_playerB
@@ -31,12 +31,12 @@ exports.updatePlayers = async (list_id, idTournament) => {
           match.barrage,
           id,
           idTournament,
-        ]
+        ],
       );
     } else {
       await query(
         "delete from players where id_tournament = ? and numero = ?",
-        [idTournament, id]
+        [idTournament, id],
       );
     }
   }

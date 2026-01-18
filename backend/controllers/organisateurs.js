@@ -11,7 +11,7 @@ exports.charge = (req, res) => {
       } else {
         res.json({ res: 0 });
       }
-    }
+    },
   );
 };
 
@@ -23,7 +23,7 @@ exports.create = (req, res) => {
     [name, req.params.admin, style],
     (err, results) => {
       res.send(`Votre tournoi ${name} a bien été crée`);
-    }
+    },
   );
 };
 
@@ -38,16 +38,22 @@ exports.delete = (req, res) => {
         [req.params.id],
         () => {
           connection.query(
-            "delete from tournaments where id = ?",
+            "delete from matches2 where id_tournament = ?",
             [req.params.id],
-            (err, results) => {
-              res.send(
-                `Le tournoi numéro ${req.params.id} à bien été supprimé`
+            () => {
+              connection.query(
+                "delete from tournaments where id = ?",
+                [req.params.id],
+                (err, results) => {
+                  res.send(
+                    `Le tournoi numéro ${req.params.id} à bien été supprimé`,
+                  );
+                },
               );
-            }
+            },
           );
-        }
+        },
       );
-    }
+    },
   );
 };

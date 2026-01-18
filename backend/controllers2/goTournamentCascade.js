@@ -96,6 +96,10 @@ exports.goTournamentCascade = async (req, res) => {
           groupe,
         );
     }
+    await query(
+      "insert into matches2 (id_tournament, number, round, class, groupe) values (?, 1, 4, ?, ?)",
+      [idTournament, 0.5, "B"],
+    );
     await updatePlayers(
       listPlayers.map((player) => player.numero),
       idTournament,
