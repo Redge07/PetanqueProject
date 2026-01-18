@@ -1,12 +1,22 @@
 const { createArbre } = require("../constants/createArbre");
 const { query } = require("../constants/query");
+const { updatePlayers } = require("../constants/updatePlayers");
+
+function shuffleArray(array) {
+  const arr = [...array]; // copie pour ne pas modifier l'original
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)); // index aléatoire
+    [arr[i], arr[j]] = [arr[j], arr[i]]; // échange
+  }
+  return arr;
+}
 
 exports.goTournamentCascade = async (req, res) => {
   try {
     const idTournament = req.params.id;
     const listPlayers = await query(
       "select * from players where id_tournament = ?",
-      [idTournament]
+      [idTournament],
     );
     if (listPlayers.length < 8)
       return res.status(200).send("Il faut au moins 8 joueurs");
@@ -15,6 +25,9 @@ exports.goTournamentCascade = async (req, res) => {
       idTournament,
     ]);
     const nb_joueurs = listPlayers.length;
+    const listPlayersM = shuffleArray(listPlayers);
+    console.log(listPlayersM);
+
     let number = 1;
     const groupes = ["A", "B", "B2", "C"];
     const barrages = {
@@ -55,8 +68,18 @@ exports.goTournamentCascade = async (req, res) => {
         if (barrages[groupe][i][1]) {
           for (let j = 0; j < Math.ceil(nb_matches); j++) {
             await query(
-              "insert into matches2 (id_tournament, number, end, round, class, groupe, barrage) values(?,?,0,?,0,?,?)",
-              [idTournament, number, i + 1, groupe, barrage && j == 0 ? 1 : 0]
+              "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, round, class, groupe, barrage) values(?,?,?,?,?,?,0,?,0,?,?)",
+              [
+                idTournament,
+                number,
+                groupe == "A" && i == 0 ? listPlayersM[j * 2].numero : 0,
+                groupe == "A" && i == 0 ? listPlayersM[j * 2].pseudo : "",
+                groupe == "A" && i == 0 ? listPlayersM[j * 2 + 1].numero : 0,
+                groupe == "A" && i == 0 ? listPlayersM[j * 2 + 1].pseudo : "",
+                i + 1,
+                groupe,
+                barrage && j == 0 ? 1 : 0,
+              ],
             );
             number++;
           }
@@ -70,9 +93,13 @@ exports.goTournamentCascade = async (req, res) => {
           idTournament,
           false,
           4,
-          groupe
+          groupe,
         );
     }
+    await updatePlayers(
+      listPlayers.map((player) => player.numero),
+      idTournament,
+    );
     res.status(200).send("Go tournoi !");
   } catch (err) {
     res.status(500).send(err);
