@@ -12,11 +12,13 @@ function shuffleArray(array) {
 }
 
 exports.goTournamentCascade = async (req, res) => {
+  console.log("rrr");
+
   try {
     const idTournament = req.params.id;
     const listPlayers = await query(
       "select * from players where id_tournament = ?",
-      [idTournament],
+      [idTournament]
     );
     if (listPlayers.length < 8)
       return res.status(200).send("Il faut au moins 8 joueurs");
@@ -79,7 +81,7 @@ exports.goTournamentCascade = async (req, res) => {
                 i + 1,
                 groupe,
                 barrage && j == 0 ? 1 : 0,
-              ],
+              ]
             );
             number++;
           }
@@ -93,16 +95,16 @@ exports.goTournamentCascade = async (req, res) => {
           idTournament,
           false,
           4,
-          groupe,
+          groupe
         );
     }
     await query(
       "insert into matches2 (id_tournament, number, round, class, groupe) values (?, 1, 4, ?, ?)",
-      [idTournament, 0.5, "B"],
+      [idTournament, 0.5, "B"]
     );
     await updatePlayers(
       listPlayers.map((player) => player.numero),
-      idTournament,
+      idTournament
     );
     res.status(200).send("Go tournoi !");
   } catch (err) {

@@ -7,42 +7,42 @@ exports.winnerArbre = async (req, res) => {
     const { win, lose, pseudoWin, tour } = req.body;
     await query(
       "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
-      [win, idTournament, win, win],
+      [win, idTournament, win, win]
     );
     if (tour == 1) {
       await query(
         "delete from players where numero = ? and id_tournament = ?",
-        [lose, idTournament],
+        [lose, idTournament]
       );
       await query(
         "update players set id_versus = 0, class = ? where id_tournament = ?",
-        [0.5, idTournament],
+        [0.5, idTournament]
       );
       await query(
         "update tournaments set vainqueur = ?, start = 2 where id = ?",
-        [pseudoWin, idTournament],
+        [pseudoWin, idTournament]
       );
       return res.status(200).send("Victoire validé");
     }
     const matches = await query(
       "select * from matches2 where id_tournament = ? and class = ? and id_playerB = 0",
-      [idTournament, tour / 2],
+      [idTournament, tour / 2]
     );
     const minNumberNoPlayerA = Math.min(
       ...matches
         .filter((match) => match.id_playerA == 0)
-        .map((match) => match.number),
+        .map((match) => match.number)
     );
     const minNumberNoPlayerB = Math.min(
       ...matches
         .filter((match) => match.id_playerB == 0)
-        .map((match) => match.number),
+        .map((match) => match.number)
     );
     const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
     const matchNumber = lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
     await query(
       `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ?`,
-      [win, pseudoWin, idTournament, matchNumber],
+      [win, pseudoWin, idTournament, matchNumber]
     );
     await updatePlayers([win, lose], idTournament);
     return res.status(200).send("Victoire validé");
@@ -55,15 +55,17 @@ exports.winnerCascade = async (req, res) => {
   console.log("winner cascade");
 
   try {
+    // ------------------------ La Base ------------------------
     const idTournament = req.params.id;
     const { win, lose, pseudoWin, pseudoLose, tour, barrage, groupe, round } =
       req.body;
     await query(
       "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
-      [win, idTournament, win, win],
+      [win, idTournament, win, win]
     );
     console.log("barrage : " + barrage);
 
+    // ---------------------- Match dans la phase ----------------------
     if (round < 3 || barrage) {
       const numGroupe = { A: 1, B: 2, B2: 3, C: 4 };
       const newGroupes = { 1: "A", 2: "B", 3: "B2", 4: "C" };
@@ -78,17 +80,18 @@ exports.winnerCascade = async (req, res) => {
 
         const matches = await query(
           "select * from matches2 where id_tournament = ? and id_playerB = 0 and round = ? and groupe = ?",
-          [idTournament, barrage ? round : round + 1, newGroupe],
+          [idTournament, barrage ? round : round + 1, newGroupe]
         );
+        // ----------------------- Code à regrouper (placer joueur dans matches2) ----------------------
         const minNumberNoPlayerA = Math.min(
           ...matches
             .filter((match) => match.id_playerA == 0)
-            .map((match) => match.number),
+            .map((match) => match.number)
         );
         const minNumberNoPlayerB = Math.min(
           ...matches
             .filter((match) => match.id_playerB == 0)
-            .map((match) => match.number),
+            .map((match) => match.number)
         );
         const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
         const matchNumber =
@@ -100,84 +103,94 @@ exports.winnerCascade = async (req, res) => {
             i == 0 ? pseudoWin : pseudoLose,
             idTournament,
             matchNumber,
-          ],
+          ]
         );
       }
+      // ----------------------- Dernier Match de la phase --------------------------
     } else if (round == 3) {
       let matches = await query(
         "select * from matches2 where id_tournament = ? and groupe = ? and class > 0 and id_playerB = 0",
-        [idTournament, groupe],
+        [idTournament, groupe]
       );
+      // Si au final le dernier match de la phase donne le grand gagnant du groupe
       if (matches.filter((m) => m.class >= 1).length == 0) {
         if (groupe == "A" || groupe == "C") {
+          // ------------------- Code à replacer (déclarer un gagnant) -------------------
           await query(
             `update tournaments set vainqueur${groupe} = ? where id = ?`,
-            [pseudoWin, idTournament],
+            [pseudoWin, idTournament]
           );
           await query(
             "delete from players where numero = ? and id_tournament = ?",
-            [lose, idTournament],
+            [lose, idTournament]
           );
           await query(
             "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-            [0.5, idTournament, win],
+            [0.5, idTournament, win]
           );
           return res.status(200).send("Victoire validé");
         } else {
+          // ------------------ Code à regrouper (place le joueur en grande finale du B) ---------------------
           const lettre =
             matches.find((m) => m.class == 0.5).id_playerA == 0 ? "A" : "B";
           await query(
             `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and class = 0.5`,
-            [win, pseudoWin, idTournament],
+            [win, pseudoWin, idTournament]
           );
         }
+        // ------------------- Le gagnant doit etre placé dans l'arbre  ------------------------
       } else {
         const tour = Math.max(...matches.map((m) => m.class));
         matches = matches.filter((m) => m.class == tour);
         const minNumberNoPlayerA = Math.min(
           ...matches
             .filter((match) => match.id_playerA == 0)
-            .map((match) => match.number),
+            .map((match) => match.number)
         );
+        // ----------------------- Code à regrouper (placer joueur dans matches2) ----------------------
         const minNumberNoPlayerB = Math.min(
           ...matches
             .filter((match) => match.id_playerB == 0)
-            .map((match) => match.number),
+            .map((match) => match.number)
         );
         const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
         const matchNumber =
           lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
         await query(
           `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and groupe = ? and class >= 1`,
-          [win, pseudoWin, idTournament, matchNumber, groupe],
+          [win, pseudoWin, idTournament, matchNumber, groupe]
         );
       }
+      // -------------------- Le gagnant a gagné un match dans l'arbre ---------------------
     } else {
+      // ------------------- Si il gagne une finale --------------------
       if (tour == 1) {
         console.log("tour1");
 
         if (groupe == "A" || groupe == "C") {
+          // ------------------- Code à replacer (déclarer un gagnant) -------------------
           console.log("pas b");
 
           await query(
             `update tournaments set vainqueur${groupe} = ? where id = ?`,
-            [pseudoWin, idTournament],
+            [pseudoWin, idTournament]
           );
           await query(
             "delete from players where numero = ? and id_tournament = ?",
-            [lose, idTournament],
+            [lose, idTournament]
           );
           await query(
             "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-            [0.5, idTournament, win],
+            [0.5, idTournament, win]
           );
           return res.status(200).send("Victoire validé");
         } else {
+          // ------------------ Code à regrouper (place le joueur en grande finale du B) ---------------------
           console.log("oui b");
 
           const match = await query(
             "select * from matches2 where id_tournament = ? and class = 0.5",
-            [idTournament],
+            [idTournament]
           );
           console.log("id");
           console.log(match);
@@ -185,44 +198,49 @@ exports.winnerCascade = async (req, res) => {
           const lettre = match[0].id_playerA == 0 ? "A" : "B";
           await query(
             `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and class = 0.5`,
-            [win, pseudoWin, idTournament],
+            [win, pseudoWin, idTournament]
           );
         }
+        // -------------- Si le gagnant gagne la grande finale du B ------------------
       } else if (tour == 0.5) {
+        // ------------------- Code à replacer (déclarer un gagnant) -------------------
+        console.log("match 0.5");
+
         await query(
           `update tournaments set vainqueur${groupe} = ? where id = ?`,
-          [pseudoWin, idTournament],
+          [pseudoWin, idTournament]
         );
         await query(
           "delete from players where numero = ? and id_tournament = ?",
-          [lose, idTournament],
+          [lose, idTournament]
         );
         await query(
           "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-          [0.25, idTournament, win],
+          [0.25, idTournament, win]
         );
         return res.status(200).send("Victoire validé");
+        // -------------- Si le gagnant gagne dans arbre et que c'est pas une finale (donc continue) ------------------
       } else {
         const matches = await query(
           "select * from matches2 where id_tournament ? and groupe = ? and class = ? and id_playerB = 0",
-          [idTournament, groupe, tour / 2],
+          [idTournament, groupe, tour / 2]
         );
         const minNumberNoPlayerA = Math.min(
           ...matches
             .filter((match) => match.id_playerA == 0)
-            .map((match) => match.number),
+            .map((match) => match.number)
         );
         const minNumberNoPlayerB = Math.min(
           ...matches
             .filter((match) => match.id_playerB == 0)
-            .map((match) => match.number),
+            .map((match) => match.number)
         );
         const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
         const matchNumber =
           lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
         await query(
           `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and class >= 1 and groupe = ?`,
-          [win, pseudoWin, idTournament, matchNumber, groupe],
+          [win, pseudoWin, idTournament, matchNumber, groupe]
         );
       }
     }
