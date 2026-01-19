@@ -62,21 +62,6 @@ exports.winnerCascade = async (req, res) => {
       "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
       [win, idTournament, win, win],
     );
-    if (tour == 1) {
-      await query(
-        "delete from players where numero = ? and id_tournament = ?",
-        [lose, idTournament],
-      );
-      await query(
-        "update players set id_versus = 0, class = ? where id_tournament = ?",
-        [0.5, idTournament],
-      );
-      await query(
-        `update tournaments set vainqueur${groupe} = ? where id = ?`,
-        [pseudoWin, idTournament],
-      );
-      return res.status(200).send("Victoire validé");
-    }
     console.log("barrage : " + barrage);
 
     if (round < 3 || barrage) {
@@ -109,7 +94,7 @@ exports.winnerCascade = async (req, res) => {
         const matchNumber =
           lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
         await query(
-          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ?`,
+          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and class = 0`,
           [
             i == 0 ? win : lose,
             i == 0 ? pseudoWin : pseudoLose,
@@ -123,12 +108,21 @@ exports.winnerCascade = async (req, res) => {
         "select * from matches2 where id_tournament = ? and groupe = ? and class > 0 and id_playerB = 0",
         [idTournament, groupe],
       );
-      if (matches.length == 0) {
+      if (matches.filter((m) => m.class >= 1).length == 0) {
         if (groupe == "A" || groupe == "C") {
           await query(
             `update tournaments set vainqueur${groupe} = ? where id = ?`,
             [pseudoWin, idTournament],
           );
+          await query(
+            "delete from players where numero = ? and id_tournament = ?",
+            [lose, idTournament],
+          );
+          await query(
+            "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
+            [0.5, idTournament, win],
+          );
+          return res.status(200).send("Victoire validé");
         } else {
           const lettre =
             matches.find((m) => m.class == 0.5).id_playerA == 0 ? "A" : "B";
@@ -138,7 +132,7 @@ exports.winnerCascade = async (req, res) => {
           );
         }
       } else {
-        const tour = Math.max(matches.map((m) => m.class));
+        const tour = Math.max(...matches.map((m) => m.class));
         matches = matches.filter((m) => m.class == tour);
         const minNumberNoPlayerA = Math.min(
           ...matches
@@ -154,28 +148,63 @@ exports.winnerCascade = async (req, res) => {
         const matchNumber =
           lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
         await query(
-          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ?`,
-          [win, pseudoWin, idTournament, matchNumber],
+          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and groupe = ? and class >= 1`,
+          [win, pseudoWin, idTournament, matchNumber, groupe],
         );
       }
     } else {
       if (tour == 1) {
+        console.log("tour1");
+
         if (groupe == "A" || groupe == "C") {
+          console.log("pas b");
+
           await query(
             `update tournaments set vainqueur${groupe} = ? where id = ?`,
             [pseudoWin, idTournament],
           );
+          await query(
+            "delete from players where numero = ? and id_tournament = ?",
+            [lose, idTournament],
+          );
+          await query(
+            "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
+            [0.5, idTournament, win],
+          );
+          return res.status(200).send("Victoire validé");
         } else {
-          const lettre =
-            matches.find((m) => m.class == 0.5).id_playerA == 0 ? "A" : "B";
+          console.log("oui b");
+
+          const match = await query(
+            "select * from matches2 where id_tournament = ? and class = 0.5",
+            [idTournament],
+          );
+          console.log("id");
+          console.log(match);
+
+          const lettre = match[0].id_playerA == 0 ? "A" : "B";
           await query(
             `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and class = 0.5`,
             [win, pseudoWin, idTournament],
           );
         }
+      } else if (tour == 0.5) {
+        await query(
+          `update tournaments set vainqueur${groupe} = ? where id = ?`,
+          [pseudoWin, idTournament],
+        );
+        await query(
+          "delete from players where numero = ? and id_tournament = ?",
+          [lose, idTournament],
+        );
+        await query(
+          "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
+          [0.25, idTournament, win],
+        );
+        return res.status(200).send("Victoire validé");
       } else {
         const matches = await query(
-          "select * from tournaments where id_tournament ? and groupe = ? and class = ? and id_playerB = 0",
+          "select * from matches2 where id_tournament ? and groupe = ? and class = ? and id_playerB = 0",
           [idTournament, groupe, tour / 2],
         );
         const minNumberNoPlayerA = Math.min(
@@ -192,8 +221,8 @@ exports.winnerCascade = async (req, res) => {
         const matchNumber =
           lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
         await query(
-          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ?`,
-          [win, pseudoWin, idTournament, matchNumber],
+          `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and class >= 1 and groupe = ?`,
+          [win, pseudoWin, idTournament, matchNumber, groupe],
         );
       }
     }

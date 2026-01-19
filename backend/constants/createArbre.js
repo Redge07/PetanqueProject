@@ -16,15 +16,9 @@ exports.createArbre = async (
   idTournament,
   really,
   round,
-  groupe
+  groupe,
 ) => {
-  console.log("arbre");
-
   const nb_players = really ? listPlayers.length : listPlayers;
-  console.log("players : " + nb_players);
-  console.log("id : " + idTournament);
-  console.log(really);
-
   const p2 = 2 ** Math.floor(Math.log2(nb_players));
   const prelim = (nb_players - p2) * 2;
   const tirage = really && getRandomElements(listPlayers, prelim);
@@ -40,7 +34,7 @@ exports.createArbre = async (
     for (let j = 1; j <= i; j++) {
       await query(
         "insert into matches2 (id_tournament, number, end, class, round, groupe) values (?, ?, 0, ?, ?, ?)",
-        [idTournament, number, i, really ? 0 : round, really ? "" : groupe]
+        [idTournament, number, i, really ? 0 : round, really ? "" : groupe],
       );
       number--;
     }
@@ -57,7 +51,7 @@ exports.createArbre = async (
         really ? tirage[(i - 1) * 2 + 1].numero : 0,
         really ? tirage[(i - 1) * 2 + 1].pseudo : "",
         p2,
-      ]
+      ],
     );
     number--;
   }
