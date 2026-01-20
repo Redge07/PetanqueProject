@@ -1,6 +1,52 @@
 const { query } = require("../constants/query");
 const { updatePlayers } = require("../constants/updatePlayers");
 
+const defineBigWinner = async (win, lose, idTournament, pseudoWin, groupe) => {
+  await query("delete from players where numero = ? and id_tournament = ?", [
+    lose,
+    idTournament,
+  ]);
+  await query(
+    "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
+    [0.5, idTournament, win],
+  );
+  if (groupe) {
+    await query(`update tournaments set vainqueur${groupe} = ? where id = ?`, [
+      pseudoWin,
+      idTournament,
+    ]);
+  } else {
+    await query(
+      "update tournaments set vainqueur = ?, start = 2 where id = ?",
+      [pseudoWin, idTournament],
+    );
+  }
+};
+
+const placePlayerMatches2 = async (
+  matches,
+  numero,
+  pseudo,
+  idTournament,
+  groupe,
+) => {
+  const minNumberNoPlayerA = Math.min(
+    ...matches
+      .filter((match) => match.id_playerA == 0)
+      .map((match) => match.number),
+  );
+  const minNumberNoPlayerB = Math.min(
+    ...matches
+      .filter((match) => match.id_playerB == 0)
+      .map((match) => match.number),
+  );
+  const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
+  const matchNumber = lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
+  await query(
+    `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and class = 0 and groupe = ?`,
+    [numero, pseudo, idTournament, matchNumber, groupe],
+  );
+};
 
 exports.winnerArbre = async (req, res) => {
   try {
@@ -11,18 +57,7 @@ exports.winnerArbre = async (req, res) => {
       [win, idTournament, win, win],
     );
     if (tour == 1) {
-      await query(
-        "delete from players where numero = ? and id_tournament = ?",
-        [lose, idTournament],
-      );
-      await query(
-        "update players set id_versus = 0, class = ? where id_tournament = ?",
-        [0.5, idTournament],
-      );
-      await query(
-        "update tournaments set vainqueur = ?, start = 2 where id = ?",
-        [pseudoWin, idTournament],
-      );
+      await defineBigWinner(win, lose, idTournament, pseudoWin);
       return res.status(200).send("Victoire validé");
     }
     const matches = await query(
@@ -113,18 +148,7 @@ exports.winnerCascade = async (req, res) => {
       if (matches.filter((m) => m.class >= 1).length == 0) {
         if (groupe == "A" || groupe == "C") {
           // ------------------- Code à replacer (déclarer un gagnant) -------------------
-          await query(
-            `update tournaments set vainqueur${groupe} = ? where id = ?`,
-            [pseudoWin, idTournament],
-          );
-          await query(
-            "delete from players where numero = ? and id_tournament = ?",
-            [lose, idTournament],
-          );
-          await query(
-            "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-            [0.5, idTournament, win],
-          );
+          await defineBigWinner(win, lose, idTournament, pseudoWin, groupe);
           return res.status(200).send("Victoire validé");
         } else {
           // ------------------ Code à regrouper (place le joueur en grande finale du B) ---------------------
@@ -141,12 +165,12 @@ exports.winnerCascade = async (req, res) => {
           ...matches.filter((m) => m.id_playerB == 0).map((m) => m.class),
         );
         matches = matches.filter((m) => m.class == tour);
+        // ----------------------- Code à regrouper (placer joueur dans matches2) ----------------------
         const minNumberNoPlayerA = Math.min(
           ...matches
             .filter((match) => match.id_playerA == 0)
             .map((match) => match.number),
         );
-        // ----------------------- Code à regrouper (placer joueur dans matches2) ----------------------
         const minNumberNoPlayerB = Math.min(
           ...matches
             .filter((match) => match.id_playerB == 0)
@@ -166,18 +190,7 @@ exports.winnerCascade = async (req, res) => {
       if (tour == 1) {
         if (groupe == "A" || groupe == "C") {
           // ------------------- Code à replacer (déclarer un gagnant) -------------------
-          await query(
-            `update tournaments set vainqueur${groupe} = ? where id = ?`,
-            [pseudoWin, idTournament],
-          );
-          await query(
-            "delete from players where numero = ? and id_tournament = ?",
-            [lose, idTournament],
-          );
-          await query(
-            "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-            [0.5, idTournament, win],
-          );
+          await defineBigWinner(win, lose, idTournament, pseudoWin, groupe);
           return res.status(200).send("Victoire validé");
         } else {
           // ------------------ Code à regrouper (place le joueur en grande finale du B) ---------------------
@@ -194,18 +207,7 @@ exports.winnerCascade = async (req, res) => {
         // -------------- Si le gagnant gagne la grande finale du B ------------------
       } else if (tour == 0.5) {
         // ------------------- Code à replacer (déclarer un gagnant) -------------------
-        await query(
-          `update tournaments set vainqueur${groupe} = ? where id = ?`,
-          [pseudoWin, idTournament],
-        );
-        await query(
-          "delete from players where numero = ? and id_tournament = ?",
-          [lose, idTournament],
-        );
-        await query(
-          "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-          [0.25, idTournament, win],
-        );
+        await defineBigWinner(win, lose, idTournament, pseudoWin, groupe);
         return res.status(200).send("Victoire validé");
         // -------------- Si le gagnant gagne dans arbre et que c'est pas une finale (donc continue) ------------------
       } else {
