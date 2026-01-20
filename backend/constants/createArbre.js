@@ -42,7 +42,7 @@ exports.createArbre = async (
   // Je crée les matches préliminaire et j'en profite pour ajouter tous les jouers car ces matches seront forcément rempli des joueurs
   for (let i = 1; i <= prelim / 2; i++) {
     await query(
-      "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class) values (?, ?, ?, ?, ?, ?, 0, ?)",
+      "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class, groupe, round) values (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)",
       [
         idTournament,
         number,
@@ -51,6 +51,8 @@ exports.createArbre = async (
         really ? tirage[(i - 1) * 2 + 1].numero : 0,
         really ? tirage[(i - 1) * 2 + 1].pseudo : "",
         p2,
+        !really ? groupe : "",
+        !really ? round : 0,
       ],
     );
     number--;

@@ -12,8 +12,6 @@ function shuffleArray(array) {
 }
 
 exports.goTournamentCascade = async (req, res) => {
-  console.log("rrr");
-
   try {
     const idTournament = req.params.id;
     const listPlayers = await query(
@@ -28,7 +26,6 @@ exports.goTournamentCascade = async (req, res) => {
     ]);
     const nb_joueurs = listPlayers.length;
     const listPlayersM = shuffleArray(listPlayers);
-    console.log(listPlayersM);
 
     let number = 1;
     const groupes = ["A", "B", "B2", "C"];
@@ -45,7 +42,7 @@ exports.goTournamentCascade = async (req, res) => {
       ],
       B2: [
         [0, 0],
-        [0, 0],
+        [1, 0],
         [0, 1],
       ],
       C: [
@@ -55,22 +52,16 @@ exports.goTournamentCascade = async (req, res) => {
       ],
     };
     for (const groupe of groupes) {
-      console.log("groupe : " + groupe);
-
       let nb_matches = nb_joueurs / 2;
-      console.log("matches : " + nb_matches);
       for (let i = 0; i < 3; i++) {
-        console.log("round : " + i);
+        const barrage =
+          !Number.isInteger(nb_matches) && barrages[groupe][i][0] == 1;
 
-        let barrage = false;
-        if (!Number.isInteger(nb_matches) && barrages[groupe][i][0]) {
-          barrage = true;
-          console.log("barrage");
-          nb_matches = Math.ceil(nb_matches);
-        }
+        nb_matches = Math.ceil(nb_matches);
+
         if (barrages[groupe][i][1]) {
           for (let j = 0; j < nb_matches; j++) {
-            await query(
+            const test = await query(
               "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, round, class, groupe, barrage) values(?,?,?,?,?,?,0,?,0,?,?)",
               [
                 idTournament,
@@ -84,20 +75,18 @@ exports.goTournamentCascade = async (req, res) => {
                 barrage && j == 0 ? 1 : 0,
               ],
             );
+            console.log(test);
+
             number++;
           }
         }
         if (barrage) nb_matches = nb_matches - 1;
+
         nb_matches = nb_matches / 2;
       }
+
       if (nb_matches != 0.5)
-        await createArbre(
-          Math.ceil(nb_matches) * 2,
-          idTournament,
-          false,
-          4,
-          groupe,
-        );
+        await createArbre(nb_matches * 2, idTournament, false, 4, groupe);
     }
     await query(
       "insert into matches2 (id_tournament, number, round, class, groupe) values (?, 1, 4, ?, ?)",
