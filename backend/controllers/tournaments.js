@@ -25,8 +25,6 @@ exports.charge = (req, res) => {
           vainqueurB: results[0].vainqueurB,
           vainqueurC: results[0].vainqueurC,
         };
-        console.log(vainqueur);
-
         const style = results[0].style;
 
         // Je récupère tous les joueurs qui sont inscrits

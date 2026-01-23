@@ -7,7 +7,6 @@ import NoStartTournament from "../components/tournamentComponents/NoStartTournam
 import ArbreTournament from "../components/tournaments/ArbreTournament";
 import Cascade from "../components/tournaments/Cascade";
 import ClassementTournament from "../components/tournaments/ClassementTournament";
-import createPaires from "../utils/CreatePaires";
 
 export const OrgaContext = createContext();
 
@@ -21,8 +20,6 @@ const Tournament = () => {
   const [listPlayers, setListPlayers] = useState({});
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
-  // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
-  const [pairesInfos, setPaireInfos] = useState({});
   useEffect(() => {
     if (!login) {
       navigate("/");
@@ -39,15 +36,11 @@ const Tournament = () => {
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
-    axios
-      .get(linkBackend + "tournaments/charge/" + idTournament)
-      .then((res) => {
-        console.log(res.data);
-        setListPlayers(res.data);
-        setResponseWin("");
-        const { rounds, groupes, tours } = createPaires(res.data.results);
-        setPaireInfos({ rounds, groupes, tours });
-      });
+    axios.get(linkBackend + "tournaments2/" + idTournament).then((res) => {
+      console.log(res.data);
+      setListPlayers(res.data);
+      setResponseWin("");
+    });
   };
 
   useEffect(() => {
