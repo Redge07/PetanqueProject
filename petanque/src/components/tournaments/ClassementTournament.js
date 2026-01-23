@@ -32,9 +32,6 @@ const ClassementTournament = ({
       .then((res) => setDataOrder(res.data));
   }, []);
 
-  console.log("test");
-  console.log(pairesInfos);
-
   // Fonction quand je déclare un vainqueur de phase de poule en mode classement
   const handleWinnerClassement = (e, numeroA, numeroB) => {
     e.preventDefault();
@@ -65,7 +62,7 @@ const ClassementTournament = ({
             lose,
             scoreWin,
             scoreLose,
-          }
+          },
         )
         .then((res) => {
           setResponseWin(res.data);
@@ -83,7 +80,7 @@ const ClassementTournament = ({
         linkBackend +
           "gotournaments/win_player_classement_arbre/" +
           idTournament,
-        { win, lose, tour: versus.class, groupe: versus.groupe }
+        { win, lose, tour: versus.class, groupe: versus.groupe },
       )
       .then((res) => {
         setResponseWin(res.data);
@@ -105,11 +102,11 @@ const ClassementTournament = ({
 
     if (A + B + C > dataOrder.length) {
       setErrorLengthArbre(
-        "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser"
+        "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser",
       );
     } else if ((B == 0) & (C > 0)) {
       setErrorLengthArbre(
-        "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B"
+        "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B",
       );
     } else {
       const listPlayersA = dataOrder
@@ -128,7 +125,7 @@ const ClassementTournament = ({
       axios
         .put(
           linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
-          { listPlayersA, listPlayersB, listPlayersC }
+          { listPlayersA, listPlayersB, listPlayersC },
         )
         .then((res) => {
           setResponseWin(res.data);
@@ -182,7 +179,7 @@ const ClassementTournament = ({
                       .sort(
                         (a, b) =>
                           ["A", "B", "C"].indexOf(a) -
-                          ["A", "B", "C"].indexOf(b)
+                          ["A", "B", "C"].indexOf(b),
                       )
                       .map((g) => {
                         const vainqueur = `vainqueur${g}`;
@@ -190,7 +187,7 @@ const ClassementTournament = ({
                           return null;
                         } else {
                           const matches = listPlayers.results.filter(
-                            (m) => m.groupe == g
+                            (m) => m.groupe == g,
                           );
                           return (
                             <div>
@@ -223,7 +220,7 @@ const ClassementTournament = ({
                             m.joueurA.numero == number ||
                             (m.joueurB
                               ? m.joueurB.numero == number
-                              : m.joueurA.numero == number)
+                              : m.joueurA.numero == number),
                         );
                         const pseudo =
                           potentielAdversaire.joueurA.numero == number
@@ -241,7 +238,7 @@ const ClassementTournament = ({
                                   handleWinnerClassement(
                                     e,
                                     m.joueurA.numero,
-                                    m.joueurB.numero
+                                    m.joueurB.numero,
                                   )
                                 }
                               >

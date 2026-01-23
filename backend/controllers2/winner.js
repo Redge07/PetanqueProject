@@ -205,3 +205,5 @@ exports.winnerCascade = async (req, res) => {
     return res.status(500).send(err);
   }
 };
+
+exports.winnerClassement = async (req, res) => {};
