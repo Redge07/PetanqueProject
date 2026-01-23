@@ -3,6 +3,10 @@ import ButtonWinner from "./ButtonsWinner";
 
 const Arbre = ({ pairesInfos, matches, handleWinner }) => {
   const sortedTours = [...pairesInfos.tours].sort((a, b) => a - b);
+  console.log("arbre");
+
+  console.log(matches);
+
   return (
     <div className="composant" style={{ border: "solid 2px blue" }}>
       <h4 style={{ color: "blue" }}>Composant qui est un arbre en entier</h4>
@@ -22,9 +26,7 @@ const Arbre = ({ pairesInfos, matches, handleWinner }) => {
               </h4>
               {t == 1 ? (
                 <h2>La finale</h2>
-              ) : t == 0.5 &&
-                matches[0].groupe == "B" &&
-                matches[0].tournament_style == "cascade" ? (
+              ) : t == 0.5 ? (
                 <h2>
                   Finale entre le vainqueur du groupe B et le vainqueur du
                   groupe B2
@@ -32,9 +34,11 @@ const Arbre = ({ pairesInfos, matches, handleWinner }) => {
               ) : (
                 <h2>Matchs de 1/{t}</h2>
               )}
-              {/* Une fois que c'est trier, j'affiche les matches qui correspondent aux filtres */}
               {matches
-                .filter((versus) => versus.class == t)
+                .filter(
+                  (versus) =>
+                    versus.class == t && versus.id_playerA && !versus.end,
+                )
                 .map((versus) => (
                   <ButtonWinner
                     versus={versus}
