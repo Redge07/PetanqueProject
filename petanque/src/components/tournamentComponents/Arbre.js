@@ -35,10 +35,7 @@ const Arbre = ({ pairesInfos, matches, handleWinner }) => {
                 <h2>Matchs de 1/{t}</h2>
               )}
               {matches
-                .filter(
-                  (versus) =>
-                    versus.class == t && versus.id_playerA && !versus.end,
-                )
+                .filter((versus) => versus.class == t)
                 .map((versus) => (
                   <ButtonWinner
                     versus={versus}

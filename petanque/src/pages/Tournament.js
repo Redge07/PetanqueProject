@@ -40,11 +40,16 @@ const Tournament = () => {
   const recharge = () => {
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
     axios.get(linkBackend + "tournaments2/" + idTournament).then((res) => {
-      console.log(res.data);
-      setListPlayers(res.data);
       setResponseWin("");
-      const filterMatches = 0;
-      const { rounds, groupes, tours } = createPaires(res.data.matches);
+      const filteredMatches = res.data.matches
+        ? res.data.matches.filter((match) => match.id_playerA && !match.end)
+        : [];
+
+      setListPlayers({
+        ...res.data,
+        matches: filteredMatches,
+      });
+      const { rounds, groupes, tours } = createPaires(filteredMatches);
       setPaireInfos({ rounds, groupes, tours });
     });
   };

@@ -15,13 +15,9 @@ const Cascade = ({
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = (win, lose, versus) => {
     const pseudoWin =
-      versus.joueurA.numero == win
-        ? versus.joueurA.pseudo
-        : versus.joueurB.pseudo;
+      versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
     const pseudoLose =
-      versus.joueurA.numero == lose
-        ? versus.joueurA.pseudo
-        : versus.joueurB.pseudo;
+      versus.id_playerA == lose ? versus.pseudo_A : versus.pseudo_B;
     axios
       .put(linkBackend + "winner/cascade/" + idTournament, {
         win,
@@ -67,7 +63,7 @@ const Cascade = ({
                   .sort((a, b) => b - a)
                   .map((r) => {
                     // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
-                    const matches = listPlayers.results.filter(
+                    const matches = listPlayers.matches.filter(
                       (v) => v.groupe == g && v.round == r,
                     );
                     if (matches.length == 0) {
@@ -92,7 +88,7 @@ const Cascade = ({
                             .sort((a, b) => a - b)
                             .map((t) => {
                               // On récupère tous les matchs qui correspondent a ce groupe, ce round et ce tour la
-                              const versusMain = listPlayers.results.filter(
+                              const versusMain = listPlayers.matches.filter(
                                 (versus) =>
                                   versus.groupe == g &&
                                   versus.round == r &&
