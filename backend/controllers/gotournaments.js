@@ -148,7 +148,7 @@ exports.go_tournament = (req, res) => {
                             p2,
                             tirage[i].numero,
                             req.params.id,
-                          ]
+                          ],
                         );
                       }
                       // Les joueurs qui vont attendre que les autres finissent leur premier match
@@ -159,7 +159,7 @@ exports.go_tournament = (req, res) => {
                         ) {
                           connection.query(
                             "update players set class = ? where numero = ? and id_tournament = ?",
-                            [p2 / 2, listPlayers[i].numero, req.params.id]
+                            [p2 / 2, listPlayers[i].numero, req.params.id],
                           );
                         } else {
                           connection.query(
@@ -171,7 +171,7 @@ exports.go_tournament = (req, res) => {
                               p2 / 2,
                               listPlayers[i].numero,
                               req.params.id,
-                            ]
+                            ],
                           );
                         }
                       }
@@ -189,7 +189,7 @@ exports.go_tournament = (req, res) => {
                             "A",
                             listPlayersM[i].numero,
                             req.params.id,
-                          ]
+                          ],
                         );
                       }
                       // Sinon c'est le mode classement
@@ -234,7 +234,7 @@ exports.go_tournament = (req, res) => {
                               result[p.numero].join("-"),
                               p.numero,
                               p.id_tournament,
-                            ]
+                            ],
                           );
                         });
                         // On remplit la table "matches"
@@ -248,7 +248,7 @@ exports.go_tournament = (req, res) => {
                               m.idB,
                               m.pseudoA,
                               m.pseudoB,
-                            ]
+                            ],
                           );
                         });
                         // Sinon faut indiquer que le nombre de joueur inscrit n'est pas bon pour commencer un tournoi en mode "classement"
@@ -256,26 +256,26 @@ exports.go_tournament = (req, res) => {
                         return res
                           .status(200)
                           .send(
-                            "Il faut au moins 8 joueurs ou alors 4 joueurs et que se soit un nombre de joueurs pair"
+                            "Il faut au moins 8 joueurs ou alors 4 joueurs et que se soit un nombre de joueurs pair",
                           );
                       }
                     }
                     // Et forcément j'actualise le fait que le tournoi a commencé
                     connection.query(
                       "update tournaments set start = 1 where id = ? ",
-                      [req.params.id]
+                      [req.params.id],
                     );
                     res.status(200).send("Tournoi lancé");
-                  }
+                  },
                 );
-              }
+              },
             );
-          }
+          },
         );
       } else {
         res.status(200).send("Il faut au moins 2 joueurs");
       }
-    }
+    },
   );
 };
 
@@ -304,7 +304,7 @@ exports.win_player_arbre = (req, res) => {
                   (p) =>
                     p.id_versus == 0 &&
                     p.class == tour / 2 &&
-                    p.id_tournament == req.params.id
+                    p.id_tournament == req.params.id,
                 );
                 // Si il n'y a aucun joueur qui peut etre le prochain adversaire du gagnant, alors on passe le joueur au tour suivant mais avec aucun adversaire pour le moment
                 if (!player_waiting) {
@@ -313,7 +313,7 @@ exports.win_player_arbre = (req, res) => {
                     [tour / 2, win, req.params.id],
                     (err, results) => {
                       res.send("Victoire validé");
-                    }
+                    },
                   );
                   // Sinon on a bien trouvé un joueur qui rempli les cases pour etre le prochain adversaire du gagnant
                 } else {
@@ -328,12 +328,12 @@ exports.win_player_arbre = (req, res) => {
                         [win, player_waiting.numero, req.params.id],
                         (err, results) => {
                           res.send("Victoire validé");
-                        }
+                        },
                       );
-                    }
+                    },
                   );
                 }
-              }
+              },
             );
             // Ca veut dire que le joueur a gagné la finale
           } else {
@@ -352,16 +352,16 @@ exports.win_player_arbre = (req, res) => {
                       [win, req.params.id],
                       (err, results) => {
                         res.send("Victoire validé");
-                      }
+                      },
                     );
-                  }
+                  },
                 );
-              }
+              },
             );
           }
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -434,8 +434,8 @@ const returnAdversaire = (infos, nb_joueurs_suite) => {
         Math.min(
           ...nb_joueurs_suite
             .filter((p) => p.id_versus == 0)
-            .map((p) => p.num_match)
-        )
+            .map((p) => p.num_match),
+        ),
     );
     num_match = adversaire.num_match;
   } else {
@@ -475,13 +475,13 @@ exports.win_player_cascade = (req, res) => {
             }
             // On récupère les joueurs qui sont dans le meme groupe et dans le tour d'au-dessus
             const nb_joueurs_suite = listPlayers.filter(
-              (p) => p.groupe == groupe && p.class == tour / 2
+              (p) => p.groupe == groupe && p.class == tour / 2,
             );
             // Ensuite on récupère l'adversaire potentiel et on met a jour les infos du gagnant, du perdant et du potentiel adversaire
             const nb_matchs = tour / 2;
             const { adversaire, num_match } = returnAdversaire(
               nb_matchs,
-              nb_joueurs_suite
+              nb_joueurs_suite,
             );
             const newTour = tour / 2;
             console.log(newTour);
@@ -491,7 +491,10 @@ exports.win_player_cascade = (req, res) => {
               const vainqueur = `vainqueur${groupe}`;
               connection.query(
                 `update tournaments set ${vainqueur} = ? where id = ?`,
-                [listPlayers.find((p) => p.numero == win).pseudo, req.params.id]
+                [
+                  listPlayers.find((p) => p.numero == win).pseudo,
+                  req.params.id,
+                ],
               );
             }
 
@@ -499,7 +502,10 @@ exports.win_player_cascade = (req, res) => {
               const vainqueur = `vainqueur${groupe}`;
               connection.query(
                 `update tournaments set ${vainqueur} = ? where id = ?`,
-                [listPlayers.find((p) => p.numero == win).pseudo, req.params.id]
+                [
+                  listPlayers.find((p) => p.numero == win).pseudo,
+                  req.params.id,
+                ],
               );
             }
 
@@ -511,7 +517,7 @@ exports.win_player_cascade = (req, res) => {
               groupe,
               0,
               listPlayers,
-              nb_joueurs
+              nb_joueurs,
             );
             // Si il s'agit d'un match qui conclut la phase de poules pour les 2 joueurs (donc passer au faits que le gagnant passe a l'arbre)
           } else if (round == 3 && barrage == 0) {
@@ -519,7 +525,7 @@ exports.win_player_cascade = (req, res) => {
             const infosArbre = verif_impaire(groupe, round, nb_joueurs, 0);
             // Les joueurs qui sont deja dans l'arbre
             let nb_joueurs_suite = listPlayers.filter(
-              (p) => p.groupe == groupe && p.class < nb_joueurs
+              (p) => p.groupe == groupe && p.class < nb_joueurs,
             );
             if (
               infosArbre[2] / (infosArbre[1] == 0 ? 2 : 1) == 0.5 &&
@@ -529,7 +535,10 @@ exports.win_player_cascade = (req, res) => {
               const vainqueur = `vainqueur${groupe}`;
               connection.query(
                 `update tournaments set ${vainqueur} = ? where id = ?`,
-                [listPlayers.find((p) => p.numero == win).pseudo, req.params.id]
+                [
+                  listPlayers.find((p) => p.numero == win).pseudo,
+                  req.params.id,
+                ],
               );
             }
             if (
@@ -548,12 +557,12 @@ exports.win_player_cascade = (req, res) => {
                 groupe,
                 0,
                 listPlayers,
-                nb_joueurs
+                nb_joueurs,
               );
               // Le premier joueur qui rentre permet de savoir si le groupe en question a une phase de pechage en cours (donc la le premier joueur déclenche le fait qu'il faut une phase de pechage)
               if (infosArbre[1] != 0) {
                 connection.query(
-                  `update tournaments set P${groupe} = 1 where id = ${req.params.id}`
+                  `update tournaments set P${groupe} = 1 where id = ${req.params.id}`,
                 );
               }
               // Sinon un joueur a deja intégré l'arbre
@@ -561,17 +570,17 @@ exports.win_player_cascade = (req, res) => {
               // Si y'a une phase de pechage en cours, alors le joueur vas y passer
               if (pechage["P" + groupe] == 1) {
                 nb_joueurs_suite = nb_joueurs_suite.filter(
-                  (p) => p.class == infosArbre[2]
+                  (p) => p.class == infosArbre[2],
                 );
                 const nb_matchs = infosArbre[1] / 2;
                 const { adversaire, num_match } = returnAdversaire(
                   nb_matchs,
-                  nb_joueurs_suite
+                  nb_joueurs_suite,
                 );
                 // Si le joueur prend la dernière place qui avait dans la phase de pechage alors il l'a cloture (plus personne ne pourra intégré cette phase et passera directement au tour suivant)
                 if (adversaire && num_match == infosArbre[1] / 2) {
                   connection.query(
-                    `update tournaments set P${groupe} = 0 where id = ${req.params.id}`
+                    `update tournaments set P${groupe} = 0 where id = ${req.params.id}`,
                   );
                 }
                 const newTour = infosArbre[2];
@@ -583,17 +592,17 @@ exports.win_player_cascade = (req, res) => {
                   groupe,
                   0,
                   listPlayers,
-                  nb_joueurs
+                  nb_joueurs,
                 );
                 // Il n'y a pas de phase de pechage en cours (soit y'en a pas de base soit un joueur a deja pris la dernière place qui restait), mettre le joueur dans la phase d'au-dessus (au final le tour classique pour débuter l'arbre)
               } else {
                 nb_joueurs_suite = nb_joueurs_suite.filter(
-                  (p) => p.class == infosArbre[2] / 2
+                  (p) => p.class == infosArbre[2] / 2,
                 );
                 const nb_matchs = infosArbre[2] / 2;
                 const { adversaire, num_match } = returnAdversaire(
                   nb_matchs,
-                  nb_joueurs_suite
+                  nb_joueurs_suite,
                 );
                 const newTour = infosArbre[2] / 2;
                 updatePlayers(
@@ -604,7 +613,7 @@ exports.win_player_cascade = (req, res) => {
                   groupe,
                   0,
                   listPlayers,
-                  nb_joueurs
+                  nb_joueurs,
                 );
               }
             }
@@ -615,14 +624,14 @@ exports.win_player_cascade = (req, res) => {
               (p) =>
                 p.groupe == groupe &&
                 p.round == parseInt(round) + (barrage == 1 ? 0 : 1) &&
-                p.id_tournament == req.params.id
+                p.id_tournament == req.params.id,
             );
             // On récupère l'info si le prochain round du gagnant nécessitera un barrage ou pas et aussi le nombre de match du prochain round concerné
             const impair = verif_impaire(
               groupe,
               barrage == 1 ? parseInt(round) - 1 : round,
               nb_joueurs,
-              0
+              0,
             );
             // Si le prochain tour est un tour qui nécessite un barrage et que le joueur sera placé sur le match qui concerne le barrage (concerne uniquement les joueurs qui ont gagné un match qui n'est pas un barrage evidemment)
             if (
@@ -638,7 +647,7 @@ exports.win_player_cascade = (req, res) => {
                   p.barrage == 1 &&
                   p.round == parseInt(round) + 1 &&
                   p.groupe == groupe &&
-                  p.id_tournament == req.params.id
+                  p.id_tournament == req.params.id,
               );
               // Actualisé les données du gagnant et le faire affronter potentiellement un adversaire de barrage
               updatePlayers(
@@ -649,13 +658,13 @@ exports.win_player_cascade = (req, res) => {
                 groupe,
                 1,
                 listPlayers,
-                nb_joueurs
+                nb_joueurs,
               );
               // Sinon le gagnant sera placés dans un match normal au prochain tour
             } else {
               const { adversaire, num_match } = returnAdversaire(
                 impair[1],
-                nb_joueurs_suite
+                nb_joueurs_suite,
               );
               updatePlayers(
                 adversaire,
@@ -666,13 +675,13 @@ exports.win_player_cascade = (req, res) => {
                 0,
                 listPlayers,
                 nb_joueurs,
-                barrage == 1 && 1
+                barrage == 1 && 1,
               );
             }
           }
-        }
+        },
       );
-    }
+    },
   );
 
   // Fonction qui met a jour les données du gagnant ou du perdant et change les données du potentiel adversaire
@@ -688,7 +697,7 @@ exports.win_player_cascade = (req, res) => {
     nb_joueurs = false,
     // dit que le joueur vient d'un match de barrage (fromBarrage plutot)
     goBarrage = 0,
-    looser = 0
+    looser = 0,
   ) => {
     if (adversaire) {
       connection.query(
@@ -710,9 +719,9 @@ exports.win_player_cascade = (req, res) => {
             () =>
               looser == 1
                 ? res.send("Victoire validé")
-                : handleLooser(listPlayers, nb_joueurs, goBarrage == 1 ? 1 : 0)
+                : handleLooser(listPlayers, nb_joueurs, goBarrage == 1 ? 1 : 0),
           );
-        }
+        },
       );
     } else {
       connection.query(
@@ -729,7 +738,7 @@ exports.win_player_cascade = (req, res) => {
         () =>
           looser == 1
             ? res.send("Victoire validé")
-            : handleLooser(listPlayers, nb_joueurs, goBarrage == 1 ? 1 : 0)
+            : handleLooser(listPlayers, nb_joueurs, goBarrage == 1 ? 1 : 0),
       );
     }
   };
@@ -741,31 +750,31 @@ exports.win_player_cascade = (req, res) => {
       connection.query(
         "delete from players where numero = ? and id_tournament = ?",
         [lose, req.params.id],
-        () => res.send("Victoire validé")
+        () => res.send("Victoire validé"),
       );
       // Sinon on va le faire rétrograder au groupe d'en-dessous
     } else {
       // On récupère le joueurs qui a perdu
       const looser = listPlayers.find(
-        (p) => p.numero == lose && p.id_tournament == req.params.id
+        (p) => p.numero == lose && p.id_tournament == req.params.id,
       );
       // On récupère le prochain groupe du perdant puisqu'il a perdu et le nombre de mmatch du prochain round, change en fonction si le gars a perdu en barrage ou pas
       const verif_looser = verif_impaire(
         looser.groupe,
         barrage == 1 ? parseInt(looser.round) - 1 : looser.round,
         nb_joueurs,
-        1
+        1,
       );
       // Les joueurs qui peuvent etre potentiellement l'adversaire de celui qui a perdu
       const nb_joueurs_suite = listPlayers.filter(
         (p) =>
           p.id_tournament == req.params.id &&
           p.round == parseInt(looser.round) + (barrage == 1 ? 0 : 1) &&
-          p.groupe == verif_looser[0]
+          p.groupe == verif_looser[0],
       );
       const { adversaire, num_match } = returnAdversaire(
         verif_looser[1],
-        nb_joueurs_suite
+        nb_joueurs_suite,
       );
       updatePlayers(
         adversaire,
@@ -777,7 +786,7 @@ exports.win_player_cascade = (req, res) => {
         0,
         0,
         0,
-        1
+        1,
       );
     }
   };
@@ -787,7 +796,7 @@ exports.win_player_cascade = (req, res) => {
       [lose, req.params.id],
       () => {
         const adversaire = listPlayers.find(
-          (p) => p.class == 0.5 && p.groupe == "B"
+          (p) => p.class == 0.5 && p.groupe == "B",
         );
 
         if (adversaire) {
@@ -800,9 +809,9 @@ exports.win_player_cascade = (req, res) => {
                 [win, adversaire.numero, req.params.id],
                 () => {
                   return res.send("Victoire validé");
-                }
+                },
               );
-            }
+            },
           );
         } else {
           return connection.query(
@@ -810,10 +819,10 @@ exports.win_player_cascade = (req, res) => {
             [win, req.params.id],
             () => {
               return res.send("Victoire validé");
-            }
+            },
           );
         }
-      }
+      },
     );
   };
 };
@@ -849,7 +858,7 @@ exports.win_player_classement = (req, res) => {
               // Si le vainqueur a gagné son troisième match de poule alors on le fait passer au round 4 pour dire qu'il est potentiellment pret pour continuer dans le tournoi en arbre mais on sait pas si il aura assez de points justement
               if (
                 listPlayers.find(
-                  (p) => p.numero == win && p.id_tournament == req.params.id
+                  (p) => p.numero == win && p.id_tournament == req.params.id,
                 ).round == 3
               ) {
                 // Faire passer le vainqueur et le perdant au round 4
@@ -860,28 +869,28 @@ exports.win_player_classement = (req, res) => {
                     connection.query(
                       "update players set id_versus = 0, round = 4 where numero = ? and id_tournament = ?",
                       [lose, req.params.id],
-                      () => res.send("victoire validé")
+                      () => res.send("victoire validé"),
                     );
-                  }
+                  },
                 );
                 // Sinon alors les joueurs vont continuer dans la suite de la phase de poule normalement avec la fonction updatePlayers
               } else {
                 updatePlayers(listPlayers, win);
               }
-            }
+            },
           );
-        }
+        },
       );
-    }
+    },
   );
 
   // Fonction qui met a jour les prochains adversaire du vainqueur et du looser pour la phase de poule
   const updatePlayers = (listPlayers, numero) => {
     const players = listPlayers.find(
-      (p) => p.numero == numero && p.id_tournament == req.params.id
+      (p) => p.numero == numero && p.id_tournament == req.params.id,
     );
     const adversaire = listPlayers.find(
-      (p) => p.numero == players.matches.split("-")[players.round]
+      (p) => p.numero == players.matches.split("-")[players.round],
     );
     // On met a jour les données du gagnant ou du perdant
     connection.query(
@@ -901,7 +910,7 @@ exports.win_player_classement = (req, res) => {
             () =>
               numero == win
                 ? updatePlayers(listPlayers, lose)
-                : res.send("Victoire validé")
+                : res.send("Victoire validé"),
           );
           // Sinon on passe a la suite, si on vient de finir de mettre a jour les données du vainqueur faut bien les faire aussi pour le perdant, sinon ça veut dire qu'on a mis a jour les données du perdant et qu'on peut dire qu'on a validé la fin du match et que tout est a jour
         } else {
@@ -909,7 +918,7 @@ exports.win_player_classement = (req, res) => {
             ? updatePlayers(listPlayers, lose)
             : res.send("Victoire validé");
         }
-      }
+      },
     );
   };
 };
@@ -931,20 +940,20 @@ exports.win_player_classement_arbre = (req, res) => {
             const vainqueur = `vainqueur${groupe}`;
             connection.query(
               `update tournaments set ${vainqueur} = ? where id = ?`,
-              [results[0].pseudo, req.params.id]
+              [results[0].pseudo, req.params.id],
             );
           }
           const nb_joueurs_suite = results.filter((j) => j.class == tour / 2);
           const num_max = Math.max(
             0,
-            ...nb_joueurs_suite.map((j) => j.num_match)
+            ...nb_joueurs_suite.map((j) => j.num_match),
           );
           // Ca veut dire qu'il n'aura pas encore d'adversaire attribué et donc qu'on peut modifier les données du gagnat et donner la réponse l'API et partir
           if (num_max < tour / 2) {
             connection.query(
               "update players set id_versus = 0, class = ?, num_match = ? where numero = ? and id_tournament = ?",
               [tour / 2, num_max + 1, win, req.params.id],
-              () => res.send("Victoire validé")
+              () => res.send("Victoire validé"),
             );
             // Sinon il aura un adversaire attribué
           } else {
@@ -954,8 +963,8 @@ exports.win_player_classement_arbre = (req, res) => {
                 Math.min(
                   ...nb_joueurs_suite
                     .filter((j) => j.id_versus == 0)
-                    .map((j) => j.num_match)
-                )
+                    .map((j) => j.num_match),
+                ),
             );
             // On modifie les données du gagnant et de l'adversaire, et on peut finir l'API
             connection.query(
@@ -973,14 +982,14 @@ exports.win_player_classement_arbre = (req, res) => {
                   [win, adversaire.numero, req.params.id],
                   () => {
                     res.send("Victoire validé");
-                  }
+                  },
                 );
-              }
+              },
             );
           }
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -1025,7 +1034,7 @@ exports.charge_classement = (req, res) => {
         }
       });
       res.json(players);
-    }
+    },
   );
 };
 
@@ -1066,9 +1075,9 @@ exports.create_arbre_classement = async (req, res) => {
             const vainqueur = `vainqueur${groupes[j]}`;
             connection.query(
               `update tournaments set ${vainqueur} = ? where id = ?`,
-              [g[0].pseudo, req.params.id]
+              [g[0].pseudo, req.params.id],
             );
-          }
+          },
         );
       } else {
         // On parcourt tous les joueurs de ce groupe en question
@@ -1085,7 +1094,7 @@ exports.create_arbre_classement = async (req, res) => {
                 p.numero,
                 req.params.id,
               ],
-              () => resolve()
+              () => resolve(),
             );
           });
         }
@@ -1097,7 +1106,7 @@ exports.create_arbre_classement = async (req, res) => {
     connection.query(
       "delete from players where groupe is null and id_tournament = ?",
       [req.params.id],
-      () => resolve()
+      () => resolve(),
     );
   });
   res.send("Le tournoi est lancé");

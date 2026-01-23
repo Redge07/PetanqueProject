@@ -36,11 +36,6 @@ const Tournament = () => {
   };
   const TournamentComponent = formatTournament[listPlayers.style];
 
-  console.log("ee");
-
-  console.log(pairesInfos);
-  console.log(listPlayers);
-
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
@@ -68,6 +63,7 @@ const Tournament = () => {
             listPlayers={listPlayers}
             recharge={recharge}
             idTournament={idTournament}
+            style={listPlayers.style}
           />
         )}
         {/* Le tournoi a commencé */}

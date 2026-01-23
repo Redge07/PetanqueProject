@@ -9,13 +9,14 @@ exports.charge = (req, res) => {
     (err, results) => {
       // Si le tournoi n'a pas commencé
       if (results[0].start == 0) {
+        const style = results[0].style;
         // On récupère tous les joueurs en lien avec le tournoi
         connection.query(
           "select * from players where id_tournament = ?",
           [req.params.id],
           (err, results) => {
-            res.json({ res: 0, results: results });
-          }
+            res.json({ res: 0, results, style });
+          },
         );
         // Sinon le tournoi a commencé
       } else if (results[0].start == 1) {
@@ -78,7 +79,7 @@ exports.charge = (req, res) => {
               style: style,
               vainqueur: vainqueur,
             });
-          }
+          },
         );
 
         // Le tournoi est fini et il y a un vainqueur
@@ -92,10 +93,10 @@ exports.charge = (req, res) => {
               results: [],
               msg: "Le vainqueur est " + results[0].vainqueur,
             });
-          }
+          },
         );
       }
-    }
+    },
   );
 };
 
@@ -111,7 +112,7 @@ exports.delete_players_attente = (req, res) => {
         id: req.params.id,
         msg: "Le joueur a été supprimé du tournoi",
       });
-    }
+    },
   );
 };
 
@@ -127,7 +128,7 @@ exports.delete_players_valid = (req, res) => {
         numero: req.body.numero,
         msg: "Le joueur a été supprimé du tournoi",
       });
-    }
+    },
   );
 };
 
@@ -148,9 +149,9 @@ exports.valid = (req, res) => {
             id: req.params.id,
             msg: "Le joueur a été ajouté au tournoi",
           });
-        }
+        },
       );
-    }
+    },
   );
 };
 
@@ -167,8 +168,8 @@ exports.add_player = (req, res) => {
         [pseudo, req.params.id, results.length + 1],
         (err, results) => {
           res.send("Le joueur a été ajouté");
-        }
+        },
       );
-    }
+    },
   );
 };

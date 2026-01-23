@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 
-const NoStartTournament = ({ listPlayers, recharge, idTournament }) => {
+const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
 
@@ -33,7 +33,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament }) => {
     axios
       .delete(
         linkBackend + "tournaments/delete_players_valid/" + idTournament,
-        { data: { numero: value } }
+        { data: { numero: value } },
       )
       .then((res) => handleApiResponse(res));
   };
@@ -60,7 +60,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament }) => {
   // Fonction quand je décide de démarrer le tournoi
   const handleGoTournament = () => {
     axios
-      .put(linkBackend + "gotournaments2/arbre/" + idTournament)
+      .put(linkBackend + `gotournaments2/${style}/` + idTournament)
       .then((res) => {
         setResponseGoTournament(res.data);
         setTimeout(() => {
