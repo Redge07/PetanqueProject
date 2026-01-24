@@ -5,11 +5,11 @@ const VainqueurGroupe = ({ listPlayers }) => {
     <div>
       {["A", "B", "C"].map((g) => {
         const vainqueur = `vainqueur${g}`;
-        if (listPlayers.vainqueur[vainqueur]) {
+        if (listPlayers.vainqueurs[vainqueur]) {
           return (
             <div>
               <h2>Groupe {g}</h2>
-              <p>Le gagnant est {listPlayers.vainqueur[vainqueur]}</p>
+              <p>Le gagnant est {listPlayers.vainqueurs[vainqueur]}</p>
             </div>
           );
         }

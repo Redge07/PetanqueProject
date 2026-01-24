@@ -84,7 +84,7 @@ exports.goTournamentClassement = async (req, res) => {
     for (let i = 0; i < matches.length; i++) {
       const m = matches[i];
       await query(
-        "insert into matches2 (id_tournament, number, round, id_playerA, id_playerB, pseudo_A, pseudo_B, score_V, score_L, id_winner, end) values(?,?,?,?,?,?,?,0,0,0,?)",
+        "insert into matches2 (id_tournament, number, round, id_playerA, id_playerB, pseudo_A, pseudo_B, score_A, score_B, id_winner, end) values(?,?,?,?,?,?,?,0,0,0,?)",
         [
           req.params.id,
           number,
@@ -93,7 +93,7 @@ exports.goTournamentClassement = async (req, res) => {
           m.idB,
           m.pseudoA,
           m.pseudoB,
-          m.round == 1 ? 0 : -1,
+          m.round == 1 ? 0 : -2,
         ],
       );
       number++;

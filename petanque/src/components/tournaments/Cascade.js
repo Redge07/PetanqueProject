@@ -48,7 +48,7 @@ const Cascade = ({
         .map((g) => {
           // Si y'a personne dans ce groupe on peut arreter la et ne rien n'afficher
           const vainqueur = `vainqueur${g}`;
-          if (listPlayers.vainqueur[vainqueur]) {
+          if (listPlayers.vainqueurs[vainqueur]) {
             return null;
           } else {
             return (

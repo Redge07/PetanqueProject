@@ -42,7 +42,9 @@ const Tournament = () => {
     axios.get(linkBackend + "tournaments2/" + idTournament).then((res) => {
       setResponseWin("");
       const filteredMatches = res.data.matches
-        ? res.data.matches.filter((match) => match.id_playerA && !match.end)
+        ? res.data.matches.filter(
+            (match) => match.id_playerA && (!match.end || match.end == -1),
+          )
         : [];
 
       setListPlayers({
