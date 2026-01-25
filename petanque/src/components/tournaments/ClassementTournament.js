@@ -28,15 +28,14 @@ const ClassementTournament = ({
 
   useEffect(() => {
     axios
-      .get(linkBackend + "gotournaments/charge_classement/" + idTournament)
-      .then((res) => setDataOrder(res.data));
+      .get(linkBackend + "tournaments2/classement/" + idTournament)
+      .then((res) => {
+        setDataOrder(res.data);
+      });
   }, []);
 
-  console.log("test");
-  console.log(pairesInfos);
-
   // Fonction quand je déclare un vainqueur de phase de poule en mode classement
-  const handleWinnerClassement = (e, numeroA, numeroB) => {
+  const handleWinnerClassement = (e, numeroA, numeroB, round) => {
     e.preventDefault();
     if (e.target.elements.scoreA.value == e.target.elements.scoreB.value) {
       setResponseWin("Il ne peut pas y avoir d'égalité ou de cases vides");
@@ -58,15 +57,13 @@ const ClassementTournament = ({
               e.target.elements.scoreA.value,
             ];
       axios
-        .put(
-          linkBackend + "gotournaments/win_player_classement/" + idTournament,
-          {
-            win,
-            lose,
-            scoreWin,
-            scoreLose,
-          }
-        )
+        .put(linkBackend + "winner/classement/" + idTournament, {
+          win,
+          lose,
+          scoreWin,
+          scoreLose,
+          round,
+        })
         .then((res) => {
           setResponseWin(res.data);
           setTimeout(() => {
@@ -83,7 +80,7 @@ const ClassementTournament = ({
         linkBackend +
           "gotournaments/win_player_classement_arbre/" +
           idTournament,
-        { win, lose, tour: versus.class, groupe: versus.groupe }
+        { win, lose, tour: versus.class, groupe: versus.groupe },
       )
       .then((res) => {
         setResponseWin(res.data);
@@ -93,10 +90,8 @@ const ClassementTournament = ({
       });
   };
 
-  console.log(dataOrder);
-
   // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
-  const handleGoArbreClassement = (e) => {
+  const handleGoArbreClassement = async (e) => {
     e.preventDefault();
 
     const A = Number(e.target.elements.A.value);
@@ -105,11 +100,11 @@ const ClassementTournament = ({
 
     if (A + B + C > dataOrder.length) {
       setErrorLengthArbre(
-        "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser"
+        "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser",
       );
     } else if ((B == 0) & (C > 0)) {
       setErrorLengthArbre(
-        "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B"
+        "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B",
       );
     } else {
       const listPlayersA = dataOrder
@@ -117,37 +112,54 @@ const ClassementTournament = ({
         .slice(0, A);
       const listPlayersB =
         B == 0
-          ? null
+          ? []
           : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
       const listPlayersC =
         e.target.elements.C.value == 0
-          ? null
+          ? []
           : dataOrder
               .sort((a, b) => b.points - a.points)
               .slice(A + B, A + B + C);
-      axios
-        .put(
-          linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
-          { listPlayersA, listPlayersB, listPlayersC }
-        )
-        .then((res) => {
-          setResponseWin(res.data);
-          setTimeout(() => {
-            recharge();
-          }, 1000);
-        });
+      console.log(listPlayersA);
+      console.log(listPlayersB);
+      console.log(listPlayersC);
+      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+        listPlayersA,
+      });
+      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+        listPlayersB,
+      });
+      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+        listPlayersC,
+      });
+
+      setResponseWin("Tous les tournois crées");
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+      // axios
+      //   .put(
+      //     linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
+      //     { listPlayersA, listPlayersB, listPlayersC },
+      //   )
+      //   .then((res) => {
+      //     setResponseWin(res.data);
+      //     setTimeout(() => {
+      //       recharge();
+      //     }, 1000);
+      //   });
     }
   };
 
   const formArbre =
     dataOrder.length != 0 &&
-    !listPlayers.vainqueur.vainqueurA &&
-    !listPlayers.vainqueur.vainqueurB &&
-    !listPlayers.vainqueur.vainqueurC &&
+    !listPlayers.vainqueurs.vainqueurA &&
+    !listPlayers.vainqueurs.vainqueurB &&
+    !listPlayers.vainqueurs.vainqueurC &&
     dataOrder.filter((j) => j.nb_matchs_jouer == 3).length ==
       dataOrder.length &&
-    listPlayers.results.filter((m) => m.joueurB).length == 0 &&
-    listPlayers.results.filter((m) => m.class == 0.5).length == 0;
+    listPlayers.matches.filter((m) => m.id_playerB).length == 0 &&
+    listPlayers.matches.filter((m) => m.class == 0.5).length == 0;
   return (
     <div>
       {formArbre && !orga && (
@@ -182,15 +194,15 @@ const ClassementTournament = ({
                       .sort(
                         (a, b) =>
                           ["A", "B", "C"].indexOf(a) -
-                          ["A", "B", "C"].indexOf(b)
+                          ["A", "B", "C"].indexOf(b),
                       )
                       .map((g) => {
                         const vainqueur = `vainqueur${g}`;
-                        if (listPlayers.vainqueur[vainqueur]) {
+                        if (listPlayers.vainqueurs[vainqueur]) {
                           return null;
                         } else {
-                          const matches = listPlayers.results.filter(
-                            (m) => m.groupe == g
+                          const matches = listPlayers.matches.filter(
+                            (m) => m.groupe == g,
                           );
                           return (
                             <div>
@@ -213,58 +225,46 @@ const ClassementTournament = ({
                 return (
                   <div key={r}>
                     <h3>Round {r}</h3>
-                    {listPlayers.results
+                    {listPlayers.matches
                       .filter((m) => m.round == r)
                       .map((m) => {
-                        const number =
-                          m.joueurA.matches.split("-")[m.round - 1];
-                        const potentielAdversaire = listPlayers.results.find(
-                          (m) =>
-                            m.joueurA.numero == number ||
-                            (m.joueurB
-                              ? m.joueurB.numero == number
-                              : m.joueurA.numero == number)
-                        );
-                        const pseudo =
-                          potentielAdversaire.joueurA.numero == number
-                            ? potentielAdversaire.joueurA.pseudo
-                            : potentielAdversaire.joueurB.pseudo;
                         return (
                           <div key={m.key}>
                             <p>
-                              {m.joueurA.pseudo} vs{" "}
-                              {m.joueurB ? m.joueurB.pseudo : pseudo}
+                              {m.pseudo_A} vs{" "}
+                              {m.id_playerB ? m.pseudo_B : "personne"}
                             </p>
                             {orga && (
                               <form
                                 onSubmit={(e) =>
                                   handleWinnerClassement(
                                     e,
-                                    m.joueurA.numero,
-                                    m.joueurB.numero
+                                    m.id_playerA,
+                                    m.id_playerB,
+                                    m.round,
                                   )
                                 }
                               >
                                 <input
                                   type="number"
                                   defaultValue={0}
-                                  placeholder={`Entrer le score de ${m.joueurA.pseudo}`}
-                                  disabled={!m.joueurB}
+                                  placeholder={`Entrer le score de ${m.pseudo_A}`}
+                                  disabled={m.end == -1}
                                   name="scoreA"
                                 />
                                 <input
                                   type="number"
                                   defaultValue={1}
                                   placeholder={`Entrer le score de ${
-                                    m.joueurB ? m.joueurB.pseudo : pseudo
+                                    m.id_playerB ? m.pseudo_B : "personne"
                                   }`}
-                                  disabled={!m.joueurB}
+                                  disabled={m.end == -1}
                                   name="scoreB"
                                 />
                                 <input
                                   type="submit"
                                   value="Valider"
-                                  disabled={!m.joueurB}
+                                  disabled={m.end == -1}
                                 />
                               </form>
                             )}

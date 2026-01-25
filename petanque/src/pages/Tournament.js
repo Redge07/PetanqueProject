@@ -39,15 +39,21 @@ const Tournament = () => {
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
-    axios
-      .get(linkBackend + "tournaments/charge/" + idTournament)
-      .then((res) => {
-        console.log(res.data);
-        setListPlayers(res.data);
-        setResponseWin("");
-        const { rounds, groupes, tours } = createPaires(res.data.results);
-        setPaireInfos({ rounds, groupes, tours });
+    axios.get(linkBackend + "tournaments2/" + idTournament).then((res) => {
+      setResponseWin("");
+      const filteredMatches = res.data.matches
+        ? res.data.matches.filter(
+            (match) => match.id_playerA && (!match.end || match.end == -1),
+          )
+        : [];
+
+      setListPlayers({
+        ...res.data,
+        matches: filteredMatches,
       });
+      const { rounds, groupes, tours } = createPaires(filteredMatches);
+      setPaireInfos({ rounds, groupes, tours });
+    });
   };
 
   useEffect(() => {
@@ -86,7 +92,7 @@ const Tournament = () => {
         {/* Le tournoi est fini est on affiche le vainqueur */}
         {listPlayers.res == 2 && (
           <div>
-            <h1>{listPlayers.msg}</h1>
+            <h1>Le vainqueur est {listPlayers.vainqueur}</h1>
           </div>
         )}
         <NavLink to="/Home">Retour</NavLink>

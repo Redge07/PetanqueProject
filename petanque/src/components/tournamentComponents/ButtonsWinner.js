@@ -4,14 +4,16 @@ import { OrgaContext } from "../../pages/Tournament";
 const ButtonWinner = ({ versus, handleWinner }) => {
   const context = useContext(OrgaContext);
   const orga = context?.orga;
+  console.log("bonsoir");
+
   return (
     <div className="composant" style={{ border: "solid 2px green" }}>
       <h4 style={{ color: "green" }}>Balise qui représente un versuss</h4>
       {/* Montre infos entre joueur A et joueur B potentiel */}
       <p>
-        Le joueur numéro {versus.joueurA.numero} ({versus.joueurA.pseudo}){" "}
-        {versus.joueurB
-          ? `affronte le joueur numéro ${versus.joueurB.numero} (${versus.joueurB.pseudo})`
+        Le joueur numéro {versus.id_playerA} ({versus.pseudo_A}){" "}
+        {versus.id_playerB
+          ? `affronte le joueur numéro ${versus.id_playerB} (${versus.pseudo_B})`
           : "n'a pas encore d'adversaire attitré"}
         {/* Précise si s'agit d'un match de barrage */}
         {versus.barrage && (
@@ -26,21 +28,21 @@ const ButtonWinner = ({ versus, handleWinner }) => {
         )}
       </p>
       {/* Si y'a bien joueur B pour le match alors on peut déclarer un vainqueur et donc afficher les boutons*/}
-      {versus.joueurB && orga && (
+      {versus.id_playerB && orga && (
         <div>
           <button
             onClick={() =>
-              handleWinner(versus.joueurA.numero, versus.joueurB.numero, versus)
+              handleWinner(versus.id_playerA, versus.id_playerB, versus)
             }
           >
-            Victoire de {versus.joueurA.pseudo}
+            Victoire de {versus.pseudo_A}
           </button>
           <button
             onClick={() =>
-              handleWinner(versus.joueurB.numero, versus.joueurA.numero, versus)
+              handleWinner(versus.id_playerA, versus.id_playerB, versus)
             }
           >
-            Victoire de {versus.joueurB.pseudo}
+            Victoire de {versus.pseudo_B}
           </button>
         </div>
       )}

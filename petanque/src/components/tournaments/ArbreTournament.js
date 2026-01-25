@@ -13,9 +13,7 @@ const ArbreTournament = ({
   // Fonction quand je déclare le vainqueur dans un tournoi arbre
   const handleWinnerArbre = (win, lose, versus) => {
     const pseudoWin =
-      versus.joueurA.numero == win
-        ? versus.joueurA.pseudo
-        : versus.joueurB.pseudo;
+      versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
     axios
       .put(linkBackend + "winner/arbre/" + idTournament, {
         win: win,
@@ -32,7 +30,7 @@ const ArbreTournament = ({
   };
   return (
     <Arbre
-      matches={listPlayers.results}
+      matches={listPlayers.matches}
       pairesInfos={pairesInfos}
       handleWinner={handleWinnerArbre}
     />
