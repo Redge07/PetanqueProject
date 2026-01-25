@@ -92,7 +92,7 @@ const Tournament = () => {
         {/* Le tournoi est fini est on affiche le vainqueur */}
         {listPlayers.res == 2 && (
           <div>
-            <h1>{listPlayers.msg}</h1>
+            <h1>Le vainqueur est {listPlayers.vainqueur}</h1>
           </div>
         )}
         <NavLink to="/Home">Retour</NavLink>

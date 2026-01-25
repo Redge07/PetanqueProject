@@ -13,21 +13,21 @@ exports.create_players = (req, res) => {
     players.push([
       `Test${i}`, // pseudo
       0, // id_versus
-      nbPlayers, // class
+      0, // class
       idTournament, // id_tournament
       -1, // id_user
       1, // valider
       i, // numero
       1, // round
       groupe, // groupe
-      null, // num_match
+      1, // dispo
       null, // barrage
     ]);
   }
 
   const sql = `
     INSERT INTO players
-    (pseudo, id_versus, class, id_tournament, id_user, valider, numero, round, groupe, num_match, barrage)
+    (pseudo, id_versus, class, id_tournament, id_user, valider, numero, round, groupe, dispo, barrage)
     VALUES ?
   `;
 

@@ -34,7 +34,7 @@ exports.createArbre = async (
     for (let j = 1; j <= i; j++) {
       await query(
         "insert into matches2 (id_tournament, number, end, class, round, groupe) values (?, ?, 0, ?, ?, ?)",
-        [idTournament, number, i, really ? 0 : round, really ? "" : groupe],
+        [idTournament, number, i, round, groupe],
       );
       number--;
     }
@@ -51,8 +51,8 @@ exports.createArbre = async (
         really ? tirage[(i - 1) * 2 + 1].numero : 0,
         really ? tirage[(i - 1) * 2 + 1].pseudo : "",
         p2,
-        !really ? groupe : "",
-        !really ? round : 0,
+        groupe,
+        round,
       ],
     );
     number--;

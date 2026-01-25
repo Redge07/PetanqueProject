@@ -91,7 +91,7 @@ const ClassementTournament = ({
   };
 
   // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
-  const handleGoArbreClassement = (e) => {
+  const handleGoArbreClassement = async (e) => {
     e.preventDefault();
 
     const A = Number(e.target.elements.A.value);
@@ -112,25 +112,42 @@ const ClassementTournament = ({
         .slice(0, A);
       const listPlayersB =
         B == 0
-          ? null
+          ? []
           : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
       const listPlayersC =
         e.target.elements.C.value == 0
-          ? null
+          ? []
           : dataOrder
               .sort((a, b) => b.points - a.points)
               .slice(A + B, A + B + C);
-      axios
-        .put(
-          linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
-          { listPlayersA, listPlayersB, listPlayersC },
-        )
-        .then((res) => {
-          setResponseWin(res.data);
-          setTimeout(() => {
-            recharge();
-          }, 1000);
-        });
+      console.log(listPlayersA);
+      console.log(listPlayersB);
+      console.log(listPlayersC);
+      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+        listPlayersA,
+      });
+      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+        listPlayersB,
+      });
+      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+        listPlayersC,
+      });
+
+      setResponseWin("Tous les tournois crées");
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+      // axios
+      //   .put(
+      //     linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
+      //     { listPlayersA, listPlayersB, listPlayersC },
+      //   )
+      //   .then((res) => {
+      //     setResponseWin(res.data);
+      //     setTimeout(() => {
+      //       recharge();
+      //     }, 1000);
+      //   });
     }
   };
 
@@ -181,7 +198,7 @@ const ClassementTournament = ({
                       )
                       .map((g) => {
                         const vainqueur = `vainqueur${g}`;
-                        if (listPlayers.vainqueur[vainqueur]) {
+                        if (listPlayers.vainqueurs[vainqueur]) {
                           return null;
                         } else {
                           const matches = listPlayers.matches.filter(
