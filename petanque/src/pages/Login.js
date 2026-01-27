@@ -22,14 +22,13 @@ const Login = () => {
         if (res.data.res == 1) {
           setTimeout(() => {
             chargeHome(res.data);
-            setLoad(false);
           }, 1000);
         }
       })
       .catch((err) => {
         console.log(err.response.data);
-        setLoad(false);
-      });
+      })
+      .finally(() => setLoad(false));
   };
   const handleSignIn = (e) => {
     setLoad(true);
@@ -45,13 +44,16 @@ const Login = () => {
         if (res.data.res == 1) {
           setTimeout(() => {
             chargeHome(res.data);
-            setLoad(false);
           }, 1000);
         }
       })
       .catch((err) => {
         console.log(err);
-        setLoad(false);
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setLoad(false);
+        }, 1000);
       });
   };
 

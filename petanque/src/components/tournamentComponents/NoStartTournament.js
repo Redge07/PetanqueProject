@@ -24,24 +24,23 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // Fonction pour supprimer un joueur du tournoi en attente
   const handleDeleteAttente = (value) => {
     axios
-      .delete(linkBackend + "tournaments/delete_players_attente/" + value)
+      .delete(linkBackend + "tournaments/players_attente/" + value)
       .then((res) => handleApiResponse(res));
   };
 
   // Fonction pour supprimer un joueur du tournoi en valid
   const handleDeleteValid = (value) => {
     axios
-      .delete(
-        linkBackend + "tournaments/delete_players_valid/" + idTournament,
-        { data: { numero: value } },
-      )
+      .delete(linkBackend + "tournaments/" + idTournament, {
+        data: { numero: value },
+      })
       .then((res) => handleApiResponse(res));
   };
 
   // Fonction pour accepté un joueur
   const handleValid = (value) => {
     axios
-      .put(linkBackend + "tournaments/valid/" + idTournament, {
+      .put(linkBackend + "tournaments/" + idTournament, {
         id_user: value,
       })
       .then((res) => handleApiResponse(res));
@@ -51,7 +50,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   const handleAddPlayer = (e) => {
     e.preventDefault();
     axios
-      .post(linkBackend + "tournaments/add_player/" + idTournament, {
+      .post(linkBackend + "tournaments/" + idTournament, {
         pseudo: e.target.elements.pseudo.value,
       })
       .then((res) => handleApiResponse(res));

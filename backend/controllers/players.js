@@ -76,7 +76,7 @@ exports.charge = async (req, res) => {
     // Le joueur est dans un tournoi en cours et on voit si il a un adversaire actuellement
     const adversaireTab = await query(
       "select * from players where numero = ? and id_tournament = ?",
-      [player.id_versus, player.id_tournament]
+      [player.id_versus, player.id_tournament],
     );
     const adversaire = adversaireTab.length == 0 ? null : adversaireTab[0];
     return res.status(200).json({
@@ -97,7 +97,7 @@ exports.search = async (req, res) => {
     const idTournament = req.params.id;
     const tournamentTab = await query(
       "select * from tournaments where id = ?",
-      [idTournament]
+      [idTournament],
     );
     // Si le tableau est vide alors aucun tournoi ne correspond à l'id envoyé à l'API
     if (tournamentTab.length == 0)
@@ -128,7 +128,7 @@ exports.add_player = async (req, res) => {
     const { idUser, idTournament, pseudo } = req.body;
     await query(
       "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider) values (?, 0, 0, ?, ?, 0)",
-      [pseudo, idTournament, idUser]
+      [pseudo, idTournament, idUser],
     );
     return res.status(200).json({
       res: "Vous avez été ajouté au tournoi numéro " + idTournament,

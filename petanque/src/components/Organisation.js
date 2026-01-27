@@ -12,7 +12,7 @@ const Organisation = ({ player }) => {
   const recharge = () => {
     console.log(player);
     axios
-      .get(linkBackend + "organisateurs/charge/" + player.id)
+      .get(linkBackend + "organisateurs/" + player.id)
       .then((res) => setTournaments(res.data));
   };
   useEffect(() => {
@@ -23,7 +23,7 @@ const Organisation = ({ player }) => {
   const createTournament = async (e) => {
     e.preventDefault();
     setAddTournament(false);
-    await axios.post(linkBackend + "organisateurs/create/" + player.id, {
+    await axios.post(linkBackend + "organisateurs/" + player.id, {
       name: e.target.elements.name.value,
       style: e.target.elements.style_tournament.value,
     });
@@ -32,7 +32,7 @@ const Organisation = ({ player }) => {
 
   // Fonction qui supprime un tournoi
   const deleteTournament = async (value) => {
-    await axios.delete(linkBackend + "organisateurs/delete/" + value);
+    await axios.delete(linkBackend + "organisateurs/" + value);
     recharge();
   };
   return (

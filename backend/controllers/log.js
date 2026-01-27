@@ -1,51 +1,37 @@
-const connection = require("../config/db");
+const { query } = require("../constants/query");
 
-// Api pour l'inscription
-exports.inscription = (req, res) => {
-  const { pseudo, password } = req.body;
-  connection.query(
-    "select * from users where pseudo = ?",
-    [pseudo],
-    (err, results) => {
-      if (results.length > 0) {
-        return res.json({ res: "Il y a deja un pseudo portant ce nom" });
-      } else {
-        connection.query(
-          "insert into users (pseudo, password) values (?, ?)",
-          [pseudo, password],
-          (err, results) => {
-            connection.query(
-              "select * from users where pseudo = ?",
-              [pseudo],
-              (err, results) => {
-                if (results.length > 0) {
-                  // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
-                  res.json({ res: 1, player: results[0] });
-                } else {
-                  res.json({ res: 0 });
-                }
-              }
-            );
-          }
-        );
-      }
-    }
-  );
+exports.inscription = async (req, res) => {
+  try {
+    const { pseudo, password } = req.body;
+    let user = (
+      await query("select * from users where pseudo = ?", [pseudo])
+    )[0];
+    if (user)
+      return res
+        .status(200)
+        .json({ res: "Il y a deja un pseudo portant ce nom" });
+    await query("insert into users (pseudo, password) values (?, ?)", [
+      pseudo,
+      password,
+    ]);
+    user = (await query("select * from users where pseudo = ?", [pseudo]))[0];
+    return res.status(200).json({ res: 1, player: user });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
 };
 
-// Api pour la connexion
-exports.connection = (req, res) => {
+exports.connection = async (req, res) => {
   const { pseudo, password } = req.body;
-  connection.query(
+  const user = await query(
     "select * from users where pseudo = ? and password = ?",
     [pseudo, password],
-    (err, results) => {
-      if (results.length > 0) {
-        // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
-        res.json({ res: 1, player: results[0] });
-      } else {
-        res.json({ res: 0 });
-      }
-    }
   );
+  if (user[0]) {
+    // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
+    res.json({ res: 1, player: user[0] });
+  } else {
+    res.json({ res: 0 });
+  }
 };
