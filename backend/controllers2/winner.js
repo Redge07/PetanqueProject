@@ -1,14 +1,21 @@
 const { query } = require("../constants/query");
 const { updatePlayers } = require("../constants/updatePlayers");
 
-const defineBigWinner = async (win, lose, idTournament, pseudoWin, groupe) => {
+const defineBigWinner = async (
+  win,
+  lose,
+  idTournament,
+  pseudoWin,
+  groupe,
+  tour = 0.5,
+) => {
   await query("delete from players where numero = ? and id_tournament = ?", [
     lose,
     idTournament,
   ]);
   await query(
     "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-    [0.5, idTournament, win],
+    [tour, idTournament, win],
   );
   if (groupe) {
     await query(`update tournaments set vainqueur${groupe} = ? where id = ?`, [
@@ -52,18 +59,18 @@ const placePlayerMatches2 = async (
 exports.winnerArbre = async (req, res) => {
   try {
     const idTournament = req.params.id;
-    const { win, lose, pseudoWin, tour } = req.body;
+    const { win, lose, pseudoWin, tour, groupe = "" } = req.body;
     await query(
       "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
       [win, idTournament, win, win],
     );
     if (tour == 1) {
-      await defineBigWinner(win, lose, idTournament, pseudoWin);
+      await defineBigWinner(win, lose, idTournament, pseudoWin, groupe);
       return res.status(200).send("Victoire validé");
     }
     const matches = await query(
-      "select * from matches2 where id_tournament = ? and class = ? and id_playerB = 0",
-      [idTournament, tour / 2],
+      "select * from matches2 where id_tournament = ? and class = ? and id_playerB = 0 and groupe = ?",
+      [idTournament, tour / 2, groupe],
     );
     await placePlayerMatches2(
       matches,
@@ -71,7 +78,7 @@ exports.winnerArbre = async (req, res) => {
       pseudoWin,
       idTournament,
       ">= 1",
-      "",
+      groupe,
     );
 
     await updatePlayers([win, lose], idTournament);
@@ -180,7 +187,7 @@ exports.winnerCascade = async (req, res) => {
         }
         // -------------- Si le gagnant gagne la grande finale du B ------------------
       } else if (tour == 0.5) {
-        await defineBigWinner(win, lose, idTournament, pseudoWin, groupe);
+        await defineBigWinner(win, lose, idTournament, pseudoWin, groupe, 0.25);
         return res.status(200).send("Victoire validé");
         // -------------- Si le gagnant gagne dans arbre et que c'est pas une finale (donc continue) ------------------
       } else {

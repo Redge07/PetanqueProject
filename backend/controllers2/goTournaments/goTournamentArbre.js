@@ -1,6 +1,6 @@
-const { createArbre } = require("../constants/createArbre");
-const { query } = require("../constants/query");
-const { updatePlayers } = require("../constants/updatePlayers");
+const { createArbre } = require("../../constants/createArbre");
+const { query } = require("../../constants/query");
+const { updatePlayers } = require("../../constants/updatePlayers");
 
 exports.goTournamentArbre = async (req, res) => {
   try {

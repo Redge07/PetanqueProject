@@ -75,13 +75,16 @@ const ClassementTournament = ({
 
   // Fonction quand je déclare un vainqueur de l'arbre du mode classement
   const handleWinnerClassementArbre = (win, lose, versus) => {
+    const pseudoWin =
+      versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
     axios
-      .put(
-        linkBackend +
-          "gotournaments/win_player_classement_arbre/" +
-          idTournament,
-        { win, lose, tour: versus.class, groupe: versus.groupe },
-      )
+      .put(linkBackend + "winner/arbre/" + idTournament, {
+        win,
+        lose,
+        tour: versus.class,
+        groupe: versus.groupe,
+        pseudoWin,
+      })
       .then((res) => {
         setResponseWin(res.data);
         setTimeout(() => {
@@ -137,17 +140,6 @@ const ClassementTournament = ({
       setTimeout(() => {
         recharge();
       }, 1000);
-      // axios
-      //   .put(
-      //     linkBackend + "gotournaments/create_arbre_classement/" + idTournament,
-      //     { listPlayersA, listPlayersB, listPlayersC },
-      //   )
-      //   .then((res) => {
-      //     setResponseWin(res.data);
-      //     setTimeout(() => {
-      //       recharge();
-      //     }, 1000);
-      //   });
     }
   };
 

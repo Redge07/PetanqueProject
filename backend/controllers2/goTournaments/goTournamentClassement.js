@@ -1,5 +1,5 @@
-const { query } = require("../constants/query");
-const { updatePlayers } = require("../constants/updatePlayers");
+const { query } = require("../../constants/query");
+const { updatePlayers } = require("../../constants/updatePlayers");
 
 function roundRobinPairs(ids) {
   const n = ids.length;

@@ -57,4 +57,10 @@ Divers :
 	- Pour le système stripe il faut gérer les erreurs, les remboursement,les factures ect...
 	- Avoir comme un tuto de l'application
 	- Fichier htaccess
-	
+
+Mettre code backend log au propre
+Mettre code backend organisateurs au propre
+Mettre les fonctions backend tournaments au propres (valid, delete, add player)
+Découpé les fonctions winner
+Voir si on peut factoriser des fonctions (comme supprimer un joueur par exemple)
+Tout commenter (en profiter pour faire les détails comme faire du try catch au front-end pour que se soit propre)

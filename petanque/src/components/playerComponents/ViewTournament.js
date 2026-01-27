@@ -20,14 +20,21 @@ const ViewTournament = ({ idTournament, style }) => {
 
   useEffect(() => {
     const getInfosTournament = () => {
-      axios
-        .get(linkBackend + "tournaments/charge/" + idTournament)
-        .then((res) => {
-          setInfosTournament(res.data);
-          const { rounds, groupes, tours } = CreatePaires(res.data.results);
-          setReady(true);
-          setPaireInfos({ rounds, groupes, tours });
+      axios.get(linkBackend + "tournaments2/" + idTournament).then((res) => {
+        const filteredMatches = res.data.matches
+          ? res.data.matches.filter(
+              (match) => match.id_playerA && (!match.end || match.end == -1),
+            )
+          : [];
+
+        setInfosTournament({
+          ...res.data,
+          matches: filteredMatches,
         });
+        const { rounds, groupes, tours } = CreatePaires(filteredMatches);
+        setReady(true);
+        setPaireInfos({ rounds, groupes, tours });
+      });
     };
     getInfosTournament();
   }, []);

@@ -8,7 +8,7 @@ const ButtonWinner = ({ versus, handleWinner }) => {
 
   return (
     <div className="composant" style={{ border: "solid 2px green" }}>
-      <h4 style={{ color: "green" }}>Balise qui représente un versuss</h4>
+      <h4 style={{ color: "green" }}>Balise qui représente un versus</h4>
       {/* Montre infos entre joueur A et joueur B potentiel */}
       <p>
         Le joueur numéro {versus.id_playerA} ({versus.pseudo_A}){" "}
@@ -39,7 +39,7 @@ const ButtonWinner = ({ versus, handleWinner }) => {
           </button>
           <button
             onClick={() =>
-              handleWinner(versus.id_playerA, versus.id_playerB, versus)
+              handleWinner(versus.id_playerB, versus.id_playerA, versus)
             }
           >
             Victoire de {versus.pseudo_B}

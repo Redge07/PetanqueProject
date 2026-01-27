@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import ClassementTournament from "../tournaments/ClassementTournament";
-import CascadeTournament from "../tournaments/Cascade";
-import ArbreTournament from "../tournaments/ArbreTournament";
+import ClassementPlayer from "../playerComponents/ClassementPlayer";
+import CascadePlayer from "../playerComponents/CascadePlayer";
+import ArbrePlayer from "../playerComponents/ArbrePlayer";
 import ViewTournament from "./ViewTournament";
 import Order from "../tournamentComponents/Order";
 
@@ -11,9 +11,9 @@ const DirectTournament = ({ dataPlayer }) => {
   const [showDetailsTournament, setShowDetailsTournament] = useState(false);
 
   const formatTournament = {
-    arbre: ArbreTournament,
-    cascade: CascadeTournament,
-    classement: ClassementTournament,
+    arbre: ArbrePlayer,
+    cascade: CascadePlayer,
+    classement: ClassementPlayer,
   };
 
   const TournamentComponent = formatTournament[dataPlayer.style];

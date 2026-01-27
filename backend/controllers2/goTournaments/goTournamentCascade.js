@@ -1,6 +1,6 @@
-const { createArbre } = require("../constants/createArbre");
-const { query } = require("../constants/query");
-const { updatePlayers } = require("../constants/updatePlayers");
+const { createArbre } = require("../../constants/createArbre");
+const { query } = require("../../constants/query");
+const { updatePlayers } = require("../../constants/updatePlayers");
 
 function shuffleArray(array) {
   const arr = [...array]; // copie pour ne pas modifier l'original
