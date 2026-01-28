@@ -39,7 +39,7 @@ const Tournament = () => {
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
-    axios.get(linkBackend + "tournaments2/" + idTournament).then((res) => {
+    axios.get(linkBackend + "tournaments/" + idTournament).then((res) => {
       setResponseWin("");
       const filteredMatches = res.data.matches
         ? res.data.matches.filter(

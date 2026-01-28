@@ -1,3 +1,5 @@
+const { query } = require("./query");
+
 exports.defineBigWinner = async (
   win,
   lose,

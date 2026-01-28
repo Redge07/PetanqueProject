@@ -11,15 +11,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/gotournaments", require("./routes/gotournaments"));
+app.use("/winner", require("./routes/winner"));
+app.use("/tournaments", require("./routes/tournaments"));
 app.use("/log", require("./routes/log"));
 app.use("/players", require("./routes/players"));
 app.use("/organisateurs", require("./routes/organisateurs"));
-app.use("/tournaments", require("./routes/tournaments"));
-app.use("/gotournaments", require("./routes/gotournaments"));
-
-app.use("/gotournaments2", require("./routes2/gotournaments2"));
-app.use("/winner", require("./routes2/winner"));
-app.use("/tournaments2", require("./routes2/tournaments"));
 
 // app.listen(port, () => {
 //   console.log("Go server in Render");

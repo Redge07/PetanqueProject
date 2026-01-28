@@ -1,94 +1,9 @@
-const { query } = require("../constants/query");
-const { updatePlayers } = require("../constants/updatePlayers");
+const { query } = require("../../constants/query");
+const { defineBigWinner } = require("../../constants/defineBigWinner");
+const { placePlayerMatches2 } = require("../../constants/placePlayerMatches2");
+const { updatePlayers } = require("../../constants/updatePlayers");
 
-const defineBigWinner = async (
-  win,
-  lose,
-  idTournament,
-  pseudoWin,
-  groupe,
-  tour = 0.5,
-) => {
-  await query("delete from players where numero = ? and id_tournament = ?", [
-    lose,
-    idTournament,
-  ]);
-  await query(
-    "update players set id_versus = 0, class = ? where id_tournament = ? and numero = ?",
-    [tour, idTournament, win],
-  );
-  if (groupe) {
-    await query(`update tournaments set vainqueur${groupe} = ? where id = ?`, [
-      pseudoWin,
-      idTournament,
-    ]);
-  } else {
-    await query(
-      "update tournaments set vainqueur = ?, start = 2 where id = ?",
-      [pseudoWin, idTournament],
-    );
-  }
-};
-
-const placePlayerMatches2 = async (
-  matches,
-  numero,
-  pseudo,
-  idTournament,
-  tour,
-  groupe,
-) => {
-  const minNumberNoPlayerA = Math.min(
-    ...matches
-      .filter((match) => match.id_playerA == 0)
-      .map((match) => match.number),
-  );
-  const minNumberNoPlayerB = Math.min(
-    ...matches
-      .filter((match) => match.id_playerB == 0)
-      .map((match) => match.number),
-  );
-  const lettre = minNumberNoPlayerA != Infinity ? "A" : "B";
-  const matchNumber = lettre == "A" ? minNumberNoPlayerA : minNumberNoPlayerB;
-  await query(
-    `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and class ${tour} and groupe = ?`,
-    [numero, pseudo, idTournament, matchNumber, groupe],
-  );
-};
-
-exports.winnerArbre = async (req, res) => {
-  try {
-    const idTournament = req.params.id;
-    const { win, lose, pseudoWin, tour, groupe = "" } = req.body;
-    await query(
-      "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
-      [win, idTournament, win, win],
-    );
-    if (tour == 1) {
-      await defineBigWinner(win, lose, idTournament, pseudoWin, groupe);
-      return res.status(200).send("Victoire validé");
-    }
-    const matches = await query(
-      "select * from matches2 where id_tournament = ? and class = ? and id_playerB = 0 and groupe = ?",
-      [idTournament, tour / 2, groupe],
-    );
-    await placePlayerMatches2(
-      matches,
-      win,
-      pseudoWin,
-      idTournament,
-      ">= 1",
-      groupe,
-    );
-
-    await updatePlayers([win, lose], idTournament);
-    return res.status(200).send("Victoire validé");
-  } catch (err) {
-    return res.status(500).send(err);
-  }
-};
-
-exports.winnerCascade = async (req, res) => {
+exports.cascade = async (req, res) => {
   try {
     // ------------------------ La Base ------------------------
     const idTournament = req.params.id;
@@ -207,64 +122,6 @@ exports.winnerCascade = async (req, res) => {
     }
     await updatePlayers([win, lose], idTournament);
     return res.status(200).send("Victoire validé");
-  } catch (err) {
-    console.log(err);
-    return res.status(500).send(err);
-  }
-};
-
-exports.winnerClassement = async (req, res) => {
-  try {
-    const { win, lose, scoreWin, scoreLose, round } = req.body;
-    const idTournament = req.params.id;
-    const matches = await query(
-      "select * from matches2 where id_tournament = ?",
-      [idTournament],
-    );
-    const match = matches.find(
-      (match) =>
-        (match.id_playerA == win || match.id_playerB == win) &&
-        match.end == 0 &&
-        match.id_tournament == idTournament,
-    );
-    const lettre = match.id_playerA == win ? "A" : "B";
-    await query(
-      "update matches2 set id_winner = ?, end = 1, score_A = ?, score_B = ? where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
-      [
-        win,
-        lettre == "A" ? scoreWin : scoreLose,
-        lettre == "B" ? scoreWin : scoreLose,
-        idTournament,
-        win,
-        win,
-      ],
-    );
-    if (round < 3) {
-      for (let i = 0; i < 2; i++) {
-        const numero = i == 0 ? win : lose;
-        const match = matches.find(
-          (match) =>
-            match.round == round + 1 &&
-            match.id_tournament == idTournament &&
-            (match.id_playerA == numero || match.id_playerB == numero),
-        );
-        await query(
-          "update matches2 set end = ? where round = ? and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
-          [match.end + 1, round + 1, idTournament, numero, numero],
-        );
-      }
-      await updatePlayers([win, lose], idTournament);
-    }
-    if (round == 3) {
-      for (let i = 0; i < 2; i++) {
-        const numero = i == 0 ? win : lose;
-        await query(
-          "update players set id_versus = 0, round = 4, dispo = 0 where id_tournament = ? and numero = ?",
-          [idTournament, numero],
-        );
-      }
-    }
-    return res.status(200).send("Victoire !");
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);

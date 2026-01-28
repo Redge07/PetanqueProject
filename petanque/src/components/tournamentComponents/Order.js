@@ -8,7 +8,7 @@ const Order = ({ idTournament }) => {
 
   useEffect(() => {
     axios
-      .get(linkBackend + "tournaments2/classement/" + idTournament)
+      .get(linkBackend + "tournaments/classement/" + idTournament)
       .then((res) => setDataOrder(res.data));
   }, []);
 

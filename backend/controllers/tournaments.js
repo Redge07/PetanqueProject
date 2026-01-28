@@ -1,173 +1,187 @@
-const connection = require("../config/db");
+const { query } = require("../constants/query");
 
-// API pour savoir si le tournoi a commencé et pour récupérer les joueurs
-exports.charge = (req, res) => {
-  // On récupère le tournoi
-  connection.query(
-    "select * from tournaments where id = ?",
-    [req.params.id],
-    (err, results) => {
-      // Si le tournoi n'a pas commencé
-      if (results[0].start == 0) {
-        const style = results[0].style;
-        // On récupère tous les joueurs en lien avec le tournoi
-        connection.query(
-          "select * from players where id_tournament = ?",
-          [req.params.id],
-          (err, results) => {
-            res.json({ res: 0, results, style });
-          },
-        );
-        // Sinon le tournoi a commencé
-      } else if (results[0].start == 1) {
-        const vainqueur = {
-          vainqueurA: results[0].vainqueurA,
-          vainqueurB: results[0].vainqueurB,
-          vainqueurC: results[0].vainqueurC,
-        };
-        const style = results[0].style;
+const status = {
+  noStart: 0,
+  start: 1,
+  end: 2,
+};
 
-        // Je récupère tous les joueurs qui sont inscrits
-        connection.query(
-          "select * from players where id_tournament = ?",
-          [req.params.id],
-          // Tous les joueurs ont deja leur adversaire attribué mais on fait un beau algo pour envoyer les confrontations correctement au front-end
-          (err, results) => {
-            // On déclare le tableau qui contiendra les matches au propres
-            let matches = [];
-            // On fait un tour de tous les joueurs (forcément il y a des doublons car 2 joueurs se rencontrent forcément)
-            for (let i = 0; i < results.length; i++) {
-              const key = [
-                Math.min(results[i].numero, results[i].id_versus),
-                Math.max(results[i].numero, results[i].id_versus),
-              ].join("-");
+exports.charge = async (req, res) => {
+  try {
+    const idTournament = req.params.id;
+    const tournament = (
+      await query("select * from tournaments where id = ?", [idTournament])
+    )[0];
+    const vainqueurs = {
+      vainqueurA: tournament.vainqueurA,
+      vainqueurB: tournament.vainqueurB,
+      vainqueurC: tournament.vainqueurC,
+    };
+    if (tournament.start == 0) {
+      const listPlayers = await query(
+        "select * from players where id_tournament = ?",
+        [idTournament],
+      );
+      return res.status(200).json({
+        res: status.noStart,
+        results: listPlayers,
+        style: tournament.style,
+      });
+    }
+    const matches = await query(
+      "select * from matches2 where id_tournament = ?",
+      [idTournament],
+    );
+    if (tournament.start == 1) {
+      return res.status(200).json({
+        res: status.start,
+        matches,
+        style: tournament.style,
+        vainqueurs,
+      });
+    }
+    if (tournament.start == 2) {
+      return res
+        .status(200)
+        .json({ res: status.end, matches, vainqueur: tournament.vainqueur });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
+};
 
-              let match = matches.find((m) => m.key == key);
-              if (!match) {
-                match = {
-                  key,
-                  joueurA: null,
-                  joueurB: null,
-                  class: results[i].class,
-                  round: results[i].round,
-                  groupe: results[i].groupe,
-                  num_match: results[i].num_match,
-                  barrage: results[i].barrage,
-                  tournament_style: style,
-                };
-                matches.push(match);
-              }
-              if (!match.joueurA) {
-                match.joueurA = {
-                  numero: results[i].numero,
-                  pseudo: results[i].pseudo,
-                  matches: results[i].matches,
-                };
-              } else {
-                match.joueurB = {
-                  numero: results[i].numero,
-                  pseudo: results[i].pseudo,
-                  matches: results[i].matches,
-                };
-              }
-            }
-            res.json({
-              res: 1,
-              results: matches,
-              style: style,
-              vainqueur: vainqueur,
-            });
-          },
-        );
-
-        // Le tournoi est fini et il y a un vainqueur
-      } else {
-        connection.query(
-          "select * from tournaments where id = ?",
-          [req.params.id],
-          (err, results) => {
-            res.json({
-              res: 2,
-              results: [],
-              msg: "Le vainqueur est " + results[0].vainqueur,
-            });
-          },
-        );
+exports.charge_classement = async (req, res) => {
+  try {
+    const idTournament = req.params.id;
+    const matches = await query(
+      "select * from matches2 where id_tournament = ? and round < 4",
+      [idTournament],
+    );
+    let players = [];
+    matches.forEach((match) => {
+      let playerA = players.find((p) => p.numero == match.id_playerA);
+      if (!playerA) {
+        players.push({
+          numero: match.id_playerA,
+          pseudo: match.pseudo_A,
+          points:
+            match.id_winner == match.id_playerA
+              ? match.score_A + 5
+              : match.score_A,
+          nb_matchs_jouer: match.id_winner > 0 ? 1 : 0,
+        });
+      } else if (match.id_winner > 0) {
+        const points = playerA.points;
+        const nb_matchs_jouer = playerA.nb_matchs_jouer;
+        playerA.points =
+          points +
+          (match.id_winner == playerA.numero
+            ? match.score_A + 5
+            : match.score_A);
+        playerA.nb_matchs_jouer = nb_matchs_jouer + 1;
       }
-    },
-  );
+      let playerB = players.find((p) => p.numero == match.id_playerB);
+      if (!playerB) {
+        players.push({
+          numero: match.id_playerB,
+          pseudo: match.pseudo_B,
+          points:
+            match.id_winner == match.id_playerB
+              ? match.score_B + 5
+              : match.score_B,
+          nb_matchs_jouer: match.id_winner > 0 ? 1 : 0,
+        });
+      } else if (match.id_winner > 0) {
+        const points = playerB.points;
+        const nb_matchs_jouer = playerB.nb_matchs_jouer;
+        playerB.points =
+          points +
+          (match.id_winner == playerB.numero
+            ? match.score_B + 5
+            : match.score_B);
+        playerB.nb_matchs_jouer = nb_matchs_jouer + 1;
+      }
+    });
+    return res.status(200).json(players);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
 };
 
-// API pour supprimer un joueur en attente
-exports.delete_players_attente = (req, res) => {
-  connection.query(
-    "delete from players where id_user = ?",
-    [req.params.id],
-    (err, results) => {
-      // Renvoyer un message pour dire que ce joueur a bien été supprimer
-      res.json({
-        res: 1,
-        id: req.params.id,
-        msg: "Le joueur a été supprimé du tournoi",
-      });
-    },
-  );
+exports.delete_players_attente = async (req, res) => {
+  try {
+    const idUser = req.params.id;
+    await query("delete from players where id_user = ?", [idUser]);
+    return res.status(200).json({
+      res: 1,
+      id: idUser,
+      msg: "Le joueur a été supprimé du tournoi",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
 };
 
-// API pour supprimer un joueur validé
-exports.delete_players_valid = (req, res) => {
-  connection.query(
-    "delete from players where numero = ? and id_tournament = ?",
-    [req.body.numero, req.params.id],
-    (err, results) => {
-      // Renvoyer un message pour dire que ce joueur a bien été supprimer
-      res.json({
-        res: 1,
-        numero: req.body.numero,
-        msg: "Le joueur a été supprimé du tournoi",
-      });
-    },
-  );
+exports.delete_players_valid = async (req, res) => {
+  try {
+    const { numero } = req.body;
+    const idTournament = req.params.id;
+    await query("delete from players where numero = ? and id_tournament = ?", [
+      numero,
+      idTournament,
+    ]);
+    return res.status(200).json({
+      res: 1,
+      numero: req.body.numero,
+      msg: "Le joueur a été supprimé du tournoi",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
 };
 
-// API pour accepter la demande d'un joueur
-exports.valid = (req, res) => {
-  connection.query(
-    "select * from players where id_tournament = ? and valider = 1",
-    [req.params.id],
-    (err, results) => {
-      console.log(req.body.id_user);
-      connection.query(
-        "update players set valider = 1, numero = ? where id_user = ?",
-        [results.length + 1, req.body.id_user],
-        (err, results) => {
-          // Renvoyer un message pour dire que ce joueur a bien été accepté
-          res.json({
-            res: 1,
-            id: req.params.id,
-            msg: "Le joueur a été ajouté au tournoi",
-          });
-        },
-      );
-    },
-  );
+exports.valid = async (req, res) => {
+  try {
+    const idTournament = req.params.id;
+    const idUser = req.body.id_user;
+    const listPlayers = await query(
+      "select * from players where id_tournament = ? and valider = 1",
+      [idTournament],
+    );
+    await query(
+      "update players set valider = 1, numero = ? where id_user = ?",
+      [listPlayers.length + 1, idUser],
+    );
+    return res.status(200).json({
+      res: 1,
+      id: idTournament,
+      msg: "Le joueur a été ajouté au tournoi",
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
 };
 
-//API pour ajouter un joueur manuellement
-exports.add_player = (req, res) => {
-  const { pseudo } = req.body;
-
-  connection.query(
-    "select * from players where id_tournament = ? and valider = 1",
-    [req.params.id],
-    (err, results) => {
-      connection.query(
-        "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider, numero) values(?, 0, 0, ?, -1, 1, ?)",
-        [pseudo, req.params.id, results.length + 1],
-        (err, results) => {
-          res.send("Le joueur a été ajouté");
-        },
-      );
-    },
-  );
+exports.add_player = async (req, res) => {
+  try {
+    const { pseudo } = req.body;
+    const idTournament = req.params.id;
+    const listPlayers = await query(
+      "select * from players where id_tournament = ? and valider = 1",
+      [idTournament],
+    );
+    await query(
+      "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider, numero) values(?, 0, 0, ?, -1, 1, ?)",
+      [pseudo, idTournament, listPlayers.length + 1],
+    );
+    return res.status(200).send("Le joueur a été ajouté");
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
 };

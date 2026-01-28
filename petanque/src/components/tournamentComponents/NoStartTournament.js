@@ -31,7 +31,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // Fonction pour supprimer un joueur du tournoi en valid
   const handleDeleteValid = (value) => {
     axios
-      .delete(linkBackend + "tournaments/" + idTournament, {
+      .delete(linkBackend + "tournaments2/" + idTournament, {
         data: { numero: value },
       })
       .then((res) => handleApiResponse(res));
@@ -59,7 +59,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // Fonction quand je décide de démarrer le tournoi
   const handleGoTournament = () => {
     axios
-      .put(linkBackend + `gotournaments2/${style}/` + idTournament)
+      .put(linkBackend + `gotournaments/${style}/` + idTournament)
       .then((res) => {
         setResponseGoTournament(res.data);
         setTimeout(() => {

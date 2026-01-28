@@ -28,7 +28,7 @@ const ClassementTournament = ({
 
   useEffect(() => {
     axios
-      .get(linkBackend + "tournaments2/classement/" + idTournament)
+      .get(linkBackend + "tournaments/classement/" + idTournament)
       .then((res) => {
         setDataOrder(res.data);
       });
@@ -126,13 +126,13 @@ const ClassementTournament = ({
       console.log(listPlayersA);
       console.log(listPlayersB);
       console.log(listPlayersC);
-      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+      await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
         listPlayersA,
       });
-      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+      await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
         listPlayersB,
       });
-      await axios.put(linkBackend + "gotournaments2/arbre/" + idTournament, {
+      await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
         listPlayersC,
       });
 

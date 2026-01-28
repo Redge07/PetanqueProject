@@ -1,3 +1,5 @@
+const { query } = require("./query");
+
 exports.placePlayerMatches2 = async (
   matches,
   numero,

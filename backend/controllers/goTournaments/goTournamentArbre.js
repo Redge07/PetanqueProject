@@ -118,3 +118,49 @@ exports.goTournamentArbre = async (req, res) => {
     return res.status(500).send(err);
   }
 };
+
+const connection = require("../../config/db");
+
+// API pour créer automatiquement X joueurs dans un tournoi donné
+exports.create_players = (req, res) => {
+  console.log("yo");
+
+  const idTournament = req.params.id;
+  const { nbPlayers, groupe = "A" } = req.body; // ex : { nbPlayers: 30 }
+
+  if (!nbPlayers || nbPlayers < 2)
+    return res.status(400).json({ message: "Nombre de joueurs invalide" });
+
+  const players = [];
+  for (let i = 1; i <= nbPlayers; i++) {
+    players.push([
+      `Test${i}`, // pseudo
+      0, // id_versus
+      nbPlayers, // class
+      idTournament, // id_tournament
+      -1, // id_user
+      1, // valider
+      i, // numero
+      1, // round
+      groupe, // groupe
+      1, // num_match
+      null, // barrage
+    ]);
+  }
+
+  const sql = `
+    INSERT INTO players
+    (pseudo, id_versus, class, id_tournament, id_user, valider, numero, round, groupe, dispo, barrage)
+    VALUES ?
+  `;
+
+  connection.query(sql, [players], (err) => {
+    if (err) {
+      console.error("Erreur SQL :", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({
+      message: `${nbPlayers} joueurs créés pour le tournoi ${idTournament}`,
+    });
+  });
+};

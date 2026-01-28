@@ -20,7 +20,7 @@ const ViewTournament = ({ idTournament, style }) => {
 
   useEffect(() => {
     const getInfosTournament = () => {
-      axios.get(linkBackend + "tournaments2/" + idTournament).then((res) => {
+      axios.get(linkBackend + "tournaments/" + idTournament).then((res) => {
         const filteredMatches = res.data.matches
           ? res.data.matches.filter(
               (match) => match.id_playerA && (!match.end || match.end == -1),

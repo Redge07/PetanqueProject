@@ -1,4 +1,5 @@
 const connection = require("../config/db");
+const { query } = require("../constants/query");
 const status = {
   player: {
     notPlay: 0,
@@ -12,16 +13,6 @@ const status = {
     noStart: 1,
     End: 2,
   },
-};
-
-// Le return est celui de "connection", car oui le promise s'arrete si il voit "reject" mais le connection lui continue et s'en fout si il n'y a pas le return
-const query = (sql, params = []) => {
-  return new Promise((resolve, reject) => {
-    connection.query(sql, params, (err, results) => {
-      if (err) return reject(err);
-      else resolve(results);
-    });
-  });
 };
 
 // API pour récupérer la situation d'un utilisateur sur sa situation de joueur

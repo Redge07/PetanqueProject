@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const tournaments = require("../controllers/tournaments");
 
-router.get("/charge/:id", tournaments.charge);
+router.get("/classement/:id", tournaments.charge_classement);
+router.get("/:id", tournaments.charge);
 router.delete("/players_attente/:id", tournaments.delete_players_attente);
 router.delete("/:id", tournaments.delete_players_valid);
 router.put("/:id", tournaments.valid);
