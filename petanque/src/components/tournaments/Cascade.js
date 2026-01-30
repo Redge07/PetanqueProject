@@ -1,9 +1,10 @@
 import axios from "axios";
-import React from "react";
+import React, { useContext } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import Arbre from "../tournamentComponents/Arbre";
 import ButtonWinner from "../tournamentComponents/ButtonsWinner";
 import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
+import { UsersContext } from "../../App";
 
 const Cascade = ({
   listPlayers,
@@ -12,8 +13,10 @@ const Cascade = ({
   setResponseWin,
   idTournament,
 }) => {
+  const { setLoad } = useContext(UsersContext);
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = (win, lose, versus) => {
+    setLoad(true);
     const pseudoWin =
       versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
     const pseudoLose =
@@ -34,10 +37,12 @@ const Cascade = ({
         setTimeout(() => {
           recharge();
         }, 1000);
-      });
+      })
+      .finally(() => setLoad(false));
   };
   return (
     <div>
+      {/* On  affichera directement les vainqueurs si il y en a  */}
       <VainqueurGroupe listPlayers={listPlayers} />
       {/* On tri par les groupes */}
       {pairesInfos.groupes
@@ -46,11 +51,12 @@ const Cascade = ({
             ["A", "B", "B2", "C"].indexOf(a) - ["A", "B", "B2", "C"].indexOf(b),
         )
         .map((g) => {
-          // Si y'a personne dans ce groupe on peut arreter la et ne rien n'afficher
+          // Si ce groupe a déjà un vainqueur alors on affiche rien car c'est fini
           const vainqueur = `vainqueur${g}`;
           if (listPlayers.vainqueurs[vainqueur]) {
             return null;
           } else {
+            // Sinon on affiche bien les matches de ce groupe
             return (
               <div
                 className="composant"
@@ -62,12 +68,13 @@ const Cascade = ({
                 {pairesInfos.rounds
                   .sort((a, b) => b - a)
                   .map((r) => {
-                    // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
                     const matches = listPlayers.matches.filter(
                       (v) => v.groupe == g && v.round == r,
                     );
+                    // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
                     if (matches.length == 0) {
                       return null;
+                      // Sinon si y'a bien des matches et qu'on est dans les matches en phase finale on va les afficher differemment qui si on était en phase de groupe au début
                     } else if (r == 4) {
                       return (
                         <Arbre
@@ -76,6 +83,7 @@ const Cascade = ({
                           handleWinner={handleWinnerCascade}
                         />
                       );
+                      // Sinon on est bien en phase du début
                     } else {
                       return (
                         <div
@@ -84,36 +92,18 @@ const Cascade = ({
                           key={r}
                         >
                           <h3>Round {r}</h3>
-                          {pairesInfos.tours
-                            .sort((a, b) => a - b)
-                            .map((t) => {
-                              // On récupère tous les matchs qui correspondent a ce groupe, ce round et ce tour la
-                              const versusMain = listPlayers.matches.filter(
-                                (versus) =>
-                                  versus.groupe == g &&
-                                  versus.round == r &&
-                                  versus.class == t,
+                          <div key={r}>
+                            {/* J'affiche les confrontations qui respectent les filtres */}
+                            {matches.map((versus) => {
+                              return (
+                                <ButtonWinner
+                                  versus={versus}
+                                  handleWinner={handleWinnerCascade}
+                                  key={versus.key}
+                                />
                               );
-                              // Si y'a aucun match dans ce round, ce groupe et ce tour on peut arreter la et ne rien n'afficher
-                              if (versusMain.length == 0) {
-                                return null;
-                              } else {
-                                return (
-                                  <div key={t}>
-                                    {/* J'affiche les confrontations qui respectent les filtres */}
-                                    {versusMain.map((versus) => {
-                                      return (
-                                        <ButtonWinner
-                                          versus={versus}
-                                          handleWinner={handleWinnerCascade}
-                                          key={versus.key}
-                                        />
-                                      );
-                                    })}
-                                  </div>
-                                );
-                              }
                             })}
+                          </div>
                         </div>
                       );
                     }

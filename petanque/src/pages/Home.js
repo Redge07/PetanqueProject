@@ -6,7 +6,7 @@ import Participant from "../components/Participant";
 
 const Home = () => {
   // Je récupère le fait de savoir si je suis connecté et les informations du compte sur lequel je suis connecté
-  const { login, player, setLogin, setPlayer } = useContext(UsersContext);
+  const { login, player, setLogin } = useContext(UsersContext);
   // State pour savoir si je fait apparaitre les boutons pour choisir si je suis organisateur ou participant
   const [choice, setChoice] = useState(false);
   // Savoir si je suis en mode organisateur ou participant

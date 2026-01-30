@@ -1,24 +1,31 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
+import { UsersContext } from "../../App";
 
 const SearchTournament = ({ player, recharge }) => {
   // State qui va récupérer le tournoi qui a été chercher dans la barre de recherche pour vouloir s'inscrire a un tournoi, -1 par défaut pour dire que aucune recherche n'a été essayer, 0 pour dire que le résultat de la recherche n'a pas trouvé de tournoi correspondant a cette id, 1 a trouver un tournoi qui correspond a cette id et 2 qui dit que le tournoi a été trouver mais a deja commencé
   const [dataTournament, setDataTournament] = useState({ res: -1 });
   // Récupérer un petit message pour dire que l'utilisateur a bien été inscrit au tournoi
   const [responseInscription, setResponseInscription] = useState("");
+  const { setLoad } = useContext(UsersContext);
   // Fonction pour récupérer le tournoi trouver grace a la recherche (quand on veut trouver un tournoi pour s'inscrire)
   const handleSearch = (e) => {
     e.preventDefault();
+    setLoad(true);
     const idSearch = e.target.elements.id.value;
     console.log(idSearch);
-    axios.get(linkBackend + "players/search/" + idSearch).then((res) => {
-      console.log(res.data);
-      setDataTournament(res.data);
-    });
+    axios
+      .get(linkBackend + "players/search/" + idSearch)
+      .then((res) => {
+        console.log(res.data);
+        setDataTournament(res.data);
+      })
+      .finally(() => setLoad(false));
   };
   // Fonction pour s'inscrire a un tournoi
   const handleInscrire = (e) => {
+    setLoad(true);
     e.preventDefault();
     const pseudo = e.target.elements.pseudo.value;
     axios
@@ -32,7 +39,8 @@ const SearchTournament = ({ player, recharge }) => {
         setTimeout(() => {
           recharge();
         }, 1000);
-      });
+      })
+      .finally(() => setLoad(false));
   };
   return (
     <div className="composant" style={{ border: "solid 2px red" }}>

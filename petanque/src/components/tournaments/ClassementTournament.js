@@ -6,6 +6,7 @@ import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import Arbre from "../tournamentComponents/Arbre";
 import { OrgaContext } from "../../pages/Tournament";
 import Order from "../tournamentComponents/Order";
+import { UsersContext } from "../../App";
 
 const ClassementTournament = ({
   listPlayers,
@@ -14,6 +15,7 @@ const ClassementTournament = ({
   setResponseWin,
   idTournament,
 }) => {
+  const { setLoad } = useContext(UsersContext);
   const context = useContext(OrgaContext);
   const orga = context?.orga;
 
@@ -27,11 +29,13 @@ const ClassementTournament = ({
   const [errorLengthArbre, setErrorLengthArbre] = useState("");
 
   useEffect(() => {
+    setLoad(true);
     axios
       .get(linkBackend + "tournaments/classement/" + idTournament)
       .then((res) => {
         setDataOrder(res.data);
-      });
+      })
+      .finally(() => setLoad(false));
   }, []);
 
   // Fonction quand je déclare un vainqueur de phase de poule en mode classement
@@ -40,6 +44,7 @@ const ClassementTournament = ({
     if (e.target.elements.scoreA.value == e.target.elements.scoreB.value) {
       setResponseWin("Il ne peut pas y avoir d'égalité ou de cases vides");
     } else {
+      setLoad(true);
       // On récupère l'id du gagnant et du perdant et le score du gagnant et du perdant
       const [win, lose, scoreWin, scoreLose] =
         Number(e.target.elements.scoreA.value) >
@@ -69,12 +74,14 @@ const ClassementTournament = ({
           setTimeout(() => {
             recharge();
           }, 1000);
-        });
+        })
+        .finally(() => setLoad(false));
     }
   };
 
   // Fonction quand je déclare un vainqueur de l'arbre du mode classement
   const handleWinnerClassementArbre = (win, lose, versus) => {
+    setLoad(true);
     const pseudoWin =
       versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
     axios
@@ -90,13 +97,14 @@ const ClassementTournament = ({
         setTimeout(() => {
           recharge();
         }, 1000);
-      });
+      })
+      .finally(() => setLoad(false));
   };
 
   // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
   const handleGoArbreClassement = async (e) => {
     e.preventDefault();
-
+    setLoad(true);
     const A = Number(e.target.elements.A.value);
     const B = Number(e.target.elements.B.value);
     const C = Number(e.target.elements.C.value);
@@ -135,6 +143,7 @@ const ClassementTournament = ({
       await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
         listPlayersC,
       });
+      setLoad(false);
 
       setResponseWin("Tous les tournois crées");
       setTimeout(() => {
@@ -142,7 +151,7 @@ const ClassementTournament = ({
       }, 1000);
     }
   };
-
+  // Variable pour savoir si on respecte les conditions pour afficher le formulaire pour lancer la suite quand les 3 matches de poules sont fini
   const formArbre =
     dataOrder.length != 0 &&
     !listPlayers.vainqueurs.vainqueurA &&
@@ -154,34 +163,41 @@ const ClassementTournament = ({
     listPlayers.matches.filter((m) => m.class == 0.5).length == 0;
   return (
     <div>
+      {/* Pour un joueur quand tous les 3 matches sont fini */}
       {formArbre && !orga && (
         <p>
           La phase de poule est fini, il faut attendre le tirage au sort pour la
           suite en arbre
         </p>
       )}
+      {/* Pour un orga, il peut choisir d'afficher les matches ou le classsement */}
       {orga && (
         <div>
           <button onClick={() => setOrder(false)}>Matchs</button>
           <button onClick={() => setOrder(true)}>Classement</button>
         </div>
       )}
-
+      {/* Quand les 3 matches sont fini, l'orga voit le formulaire pour créer les tournois en arbre apparaitre */}
       {formArbre && orga && (
         <CreateTournamentArbreClassement
           handleGoArbreClassement={handleGoArbreClassement}
           errorLengthArbre={errorLengthArbre}
         />
       )}
+      {/* Si on veut afficher les matches */}
       {!order && (
         <div>
+          {/* On affiche les vainqueurs si il y en a */}
           <VainqueurGroupe listPlayers={listPlayers} />
+          {/* On va commencer avec les rounds tout en haut (car énorme diff entre r = 4 et r inferieur 3 */}
           {pairesInfos.rounds
             .sort((a, b) => b - a)
             .map((r) => {
+              // Si on est dans la phase arbre et que y'a des groupes qui ont été récupéré
               if (r == 4 && pairesInfos.groupes[0] != null) {
                 return (
                   <div>
+                    {/* Apres le round on fait les groupes */}
                     {pairesInfos.groupes
                       .sort(
                         (a, b) =>
@@ -189,16 +205,17 @@ const ClassementTournament = ({
                           ["A", "B", "C"].indexOf(b),
                       )
                       .map((g) => {
+                        // Si y'a vainqueur deja dans ce groupe on affiche rien
                         const vainqueur = `vainqueur${g}`;
                         if (listPlayers.vainqueurs[vainqueur]) {
                           return null;
                         } else {
+                          // On prend tous les matches du groupe auquel on est actuellement dans la boucle
                           const matches = listPlayers.matches.filter(
                             (m) => m.groupe == g,
                           );
                           return (
                             <div>
-                              {/* {g ? <h2>Groupe {g}</h2> : null} */}
                               <h2>Groupe {g}</h2>
                               <Arbre
                                 pairesInfos={pairesInfos}
@@ -213,9 +230,11 @@ const ClassementTournament = ({
                 );
                 // return <h3>On verra plus tard round 4 (arbre)</h3>;
               }
+              // Sinon on est dans les matches de poules
               if (r < 4) {
                 return (
                   <div key={r}>
+                    {/* J'affiche les rounds et y'a pas besoin de groupe */}
                     <h3>Round {r}</h3>
                     {listPlayers.matches
                       .filter((m) => m.round == r)
@@ -226,6 +245,7 @@ const ClassementTournament = ({
                               {m.pseudo_A} vs{" "}
                               {m.id_playerB ? m.pseudo_B : "personne"}
                             </p>
+                            {/* Si on est un orga on a les boutons qui apparaisse pour déclarer le vainqueur */}
                             {orga && (
                               <form
                                 onSubmit={(e) =>
@@ -269,6 +289,7 @@ const ClassementTournament = ({
             })}
         </div>
       )}
+      {/* Si le state order est a true on fait apparaitre le classement */}
       {order && (
         <div>
           <Order idTournament={idTournament} />

@@ -1,10 +1,12 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
+import { UsersContext } from "../../App";
 
 const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
+  const { setLoad } = useContext(UsersContext);
 
   // State qui affiche le message quand le tournoi est bien lancé
   const [responseGoTournament, setResponseGoTournament] = useState("");
@@ -23,41 +25,50 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
 
   // Fonction pour supprimer un joueur du tournoi en attente
   const handleDeleteAttente = (value) => {
+    setLoad(true);
     axios
       .delete(linkBackend + "tournaments/players_attente/" + value)
-      .then((res) => handleApiResponse(res));
+      .then((res) => handleApiResponse(res))
+      .finally(() => setLoad(false));
   };
 
   // Fonction pour supprimer un joueur du tournoi en valid
   const handleDeleteValid = (value) => {
+    setLoad(true);
     axios
       .delete(linkBackend + "tournaments2/" + idTournament, {
         data: { numero: value },
       })
-      .then((res) => handleApiResponse(res));
+      .then((res) => handleApiResponse(res))
+      .finally(() => setLoad(false));
   };
 
   // Fonction pour accepté un joueur
   const handleValid = (value) => {
+    setLoad(true);
     axios
       .put(linkBackend + "tournaments/" + idTournament, {
         id_user: value,
       })
-      .then((res) => handleApiResponse(res));
+      .then((res) => handleApiResponse(res))
+      .finally(() => setLoad(false));
   };
 
   // Fonction pour ajouter un joueur manuellement
   const handleAddPlayer = (e) => {
     e.preventDefault();
+    setLoad(true);
     axios
       .post(linkBackend + "tournaments/" + idTournament, {
         pseudo: e.target.elements.pseudo.value,
       })
-      .then((res) => handleApiResponse(res));
+      .then((res) => handleApiResponse(res))
+      .finally(() => setLoad(false));
   };
 
   // Fonction quand je décide de démarrer le tournoi
   const handleGoTournament = () => {
+    setLoad(true);
     axios
       .put(linkBackend + `gotournaments/${style}/` + idTournament)
       .then((res) => {
@@ -65,7 +76,8 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         setTimeout(() => {
           recharge();
         }, 1000);
-      });
+      })
+      .finally(() => setLoad(false));
   };
   return (
     <div className="composant" style={{ border: "solid 2px red" }}>

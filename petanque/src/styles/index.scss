@@ -16,9 +16,12 @@
   border-radius: 50%;
   border: 10px solid #2c2c2c;
   border-top: 10px solid #00ffcc;
-  box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffcc, 0 0 45px #00ffcc;
+  box-shadow:
+    0 0 15px #00ffcc,
+    0 0 30px #00ffcc,
+    0 0 45px #00ffcc;
   animation: move 2s linear infinite;
-  position: absolute;
+  position: fixed;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);

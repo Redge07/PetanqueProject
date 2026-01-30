@@ -15,7 +15,7 @@ const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
   const { idTournament } = useParams();
   // State qui récupère une variable global pour savoir si on est connecté
-  const { login } = useContext(UsersContext);
+  const { login, setLoad } = useContext(UsersContext);
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
   const [listPlayers, setListPlayers] = useState({});
@@ -38,28 +38,33 @@ const Tournament = () => {
 
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = () => {
+    setLoad(true);
     // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
-    axios.get(linkBackend + "tournaments/" + idTournament).then((res) => {
-      setResponseWin("");
-      const filteredMatches = res.data.matches
-        ? res.data.matches.filter(
-            (match) => match.id_playerA && (!match.end || match.end == -1),
-          )
-        : [];
+    axios
+      .get(linkBackend + "tournaments/" + idTournament)
+      .then((res) => {
+        setResponseWin("");
+        const filteredMatches = res.data.matches
+          ? res.data.matches.filter(
+              (match) => match.id_playerA && (!match.end || match.end == -1),
+            )
+          : [];
 
-      setListPlayers({
-        ...res.data,
-        matches: filteredMatches,
-      });
-      const { rounds, groupes, tours } = createPaires(filteredMatches);
-      setPaireInfos({ rounds, groupes, tours });
-    });
+        setListPlayers({
+          ...res.data,
+          matches: filteredMatches,
+        });
+        const { rounds, groupes, tours } = createPaires(filteredMatches);
+        setPaireInfos({ rounds, groupes, tours });
+      })
+      .finally(() => setLoad(false));
   };
 
   useEffect(() => {
     recharge();
   }, []);
   return (
+    // Comme on est un organisateur on définit une variable "orga" a true qui fera des diiferences entre un participant ou un organisateur qui affiche un tournoi
     <OrgaContext.Provider value={{ orga: true }}>
       <div>
         <h2>Tournament {idTournament}</h2>

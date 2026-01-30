@@ -1,19 +1,23 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { linkBackend } from "../constants/LinkBackend";
+import { UsersContext } from "../App";
 
 const Organisation = ({ player }) => {
   // State qui contiendra les tournoi que gère ce compte en question
   const [tournaments, setTournaments] = useState({ res: 0 });
   // State qui gère l'apparition du formulaire pour crée un tournoi pour le joueur connecté
   const [addTournament, setAddTournament] = useState(false);
+  const { setLoad } = useContext(UsersContext);
   // Fonction qui récupère les tournoi que gère le joueur
   const recharge = () => {
+    setLoad(true);
     console.log(player);
     axios
       .get(linkBackend + "organisateurs/" + player.id)
-      .then((res) => setTournaments(res.data));
+      .then((res) => setTournaments(res.data))
+      .finally(() => setLoad(false));
   };
   useEffect(() => {
     recharge();

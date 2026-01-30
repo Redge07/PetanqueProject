@@ -1,15 +1,20 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
+import { UsersContext } from "../../App";
 
 const Order = ({ idTournament }) => {
   // State pour avoir les données du classement
   const [dataOrder, setDataOrder] = useState([]);
+  const { setLoad } = useContext(UsersContext);
 
+  // On récupérer toutes les données du classement pret a etre bien afficher
   useEffect(() => {
+    setLoad(true);
     axios
       .get(linkBackend + "tournaments/classement/" + idTournament)
-      .then((res) => setDataOrder(res.data));
+      .then((res) => setDataOrder(res.data))
+      .finally(() => setLoad(false));
   }, []);
 
   return (

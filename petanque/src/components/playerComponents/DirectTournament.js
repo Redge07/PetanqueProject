@@ -8,8 +8,10 @@ import Order from "../tournamentComponents/Order";
 const DirectTournament = ({ dataPlayer }) => {
   // State pour afficher ou non le classement
   const [showOrder, setShowOrder] = useState(false);
+  // State pour afficher le détails/autre match du tournoi
   const [showDetailsTournament, setShowDetailsTournament] = useState(false);
 
+  // En fonction du tournoi auquel est inscrit le joueur, on affiche quelque chose de différent sur sa situation
   const formatTournament = {
     arbre: ArbrePlayer,
     cascade: CascadePlayer,
@@ -38,6 +40,7 @@ const DirectTournament = ({ dataPlayer }) => {
                 ${dataPlayer.idVersus}`
           : "Vous n'avez pas d'adversaire"}
       </p>
+      {/* Si on est dans un tournoi "classement" */}
       {dataPlayer.style == "classement" && (
         <div
           className="composant"
@@ -49,6 +52,7 @@ const DirectTournament = ({ dataPlayer }) => {
             Balise pour montrer le classement du tournoi
           </h4>
 
+          {/* On peut afficher le classement */}
           <div>
             {showOrder ? (
               <button onClick={() => setShowOrder(false)}>
@@ -73,6 +77,7 @@ const DirectTournament = ({ dataPlayer }) => {
         <h4 style={{ color: "green" }}>
           Balise pour montrer les infos du tournoi auquel il participe
         </h4>
+        {/* On peut montrer les autres matches du tournoi pour voir on en est ou */}
         {showDetailsTournament ? (
           <button onClick={() => setShowDetailsTournament(false)}>
             Ne plus voir le détails des matches

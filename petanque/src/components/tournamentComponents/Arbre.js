@@ -2,6 +2,7 @@ import React from "react";
 import ButtonWinner from "./ButtonsWinner";
 
 const Arbre = ({ pairesInfos, matches, handleWinner }) => {
+  // On trie les tours qu'on a reçu
   const sortedTours = [...pairesInfos.tours].sort((a, b) => a - b);
   console.log("arbre");
 
