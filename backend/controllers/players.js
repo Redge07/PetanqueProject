@@ -1,4 +1,3 @@
-const connection = require("../config/db");
 const { query } = require("../constants/query");
 const status = {
   player: {
@@ -22,17 +21,19 @@ exports.charge = async (req, res) => {
     const playerTab = await query("select * from players where id_user = ?", [
       idPlayer,
     ]);
-    // Si le tableau est vide ça veut dire que l'id de l'utilisateur n'a pas été trouvé comme joueur
+    // Si le tableau est vide ça veut dire que l'utilisateur ne participe à aucun tournoi
     if (playerTab.length == 0)
       return res.status(200).json({ res: status.player.notPlay });
+    // Sinon il participie bien à un tournoi
     const player = playerTab[0];
+    // On en profite pour récupérer le tournoi auquel il participe
     const tournament = (
       await query("select style, name, start from tournaments where id = ?", [
         player.id_tournament,
       ])
     )[0];
 
-    //Variable binaire pour savoir si les caractéristique du joueur sont celles d'un vainqueur de tournoi
+    // Variable binaire pour savoir si les caractéristique du joueur sont celles d'un vainqueur de tournoi
     const isWinner =
       (player.class == 0.5 &&
         (tournament.style != "cascade" ||
@@ -83,6 +84,7 @@ exports.charge = async (req, res) => {
   }
 };
 
+// API quand un joueur souhaite rechercher un tournoi dans le but de s'inscrire
 exports.search = async (req, res) => {
   try {
     const idTournament = req.params.id;
@@ -90,7 +92,7 @@ exports.search = async (req, res) => {
       "select * from tournaments where id = ?",
       [idTournament],
     );
-    // Si le tableau est vide alors aucun tournoi ne correspond à l'id envoyé à l'API
+    // Si le tableau est vide alors aucun tournoi ne correspond à l'id envoyé
     if (tournamentTab.length == 0)
       return res.status(200).json({ res: status.tournament.noExist });
     const tournament = tournamentTab[0];
