@@ -2,6 +2,7 @@ const { createArbre } = require("../../constants/createArbre");
 const { query } = require("../../constants/query");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+// Fonction pour mélanger un tableau
 function shuffleArray(array) {
   const arr = [...array]; // copie pour ne pas modifier l'original
   for (let i = arr.length - 1; i > 0; i--) {
@@ -11,6 +12,7 @@ function shuffleArray(array) {
   return arr;
 }
 
+// API pour démarrer un tournoi en cascade
 exports.goTournamentCascade = async (req, res) => {
   try {
     const idTournament = req.params.id;
