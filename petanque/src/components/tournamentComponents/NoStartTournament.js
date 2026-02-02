@@ -6,6 +6,8 @@ import { UsersContext } from "../../App";
 const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
+  const [nbPlayers, setNbPlayers] = useState("");
+
   const { setLoad } = useContext(UsersContext);
 
   // State qui affiche le message quand le tournoi est bien lancé
@@ -79,6 +81,26 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       })
       .finally(() => setLoad(false));
   };
+  const handleCreatePlayers = () => {
+    if (!nbPlayers || nbPlayers <= 0) return;
+
+    setLoad(true);
+    axios
+      .post(
+        linkBackend + "gotournaments/create_players/" + idTournament,
+        new URLSearchParams({
+          nbPlayers: nbPlayers,
+        }),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        },
+      )
+      .then((res) => handleApiResponse(res))
+      .finally(() => setLoad(false));
+  };
+
   return (
     <div className="composant" style={{ border: "solid 2px red" }}>
       <h4 style={{ color: "red" }}>
@@ -142,6 +164,18 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         <input type="text" name="pseudo" placeholder="Entrez un pseudo..." />
         <input type="submit" value="Inscrire le joueur" />
       </form>
+      <h3>Créer des joueurs automatiquement</h3>
+
+      <input
+        type="number"
+        min="1"
+        placeholder="Nombre de joueurs"
+        value={nbPlayers}
+        onChange={(e) => setNbPlayers(e.target.value)}
+      />
+
+      <button onClick={handleCreatePlayers}>Créer les joueurs</button>
+
       <button onClick={handleGoTournament}>Lancer le tournoi</button>
       <p>{responseGoTournament}</p>
     </div>

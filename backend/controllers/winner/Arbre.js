@@ -3,24 +3,28 @@ const { defineBigWinner } = require("../../constants/defineBigWinner");
 const { placePlayerMatches2 } = require("../../constants/placePlayerMatches2");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+// API pour déclarer un vainqueur dans un tournoi en mode arbre
 exports.arbre = async (req, res) => {
-  console.log("yo");
-
   try {
     const idTournament = req.params.id;
+    // On récupère le numéro du gagnant, le numéro du perdant, le pseudo du gagnant, le tour du match qui s'est terminé et le groupe dans lequel s'est déroulé ce match
     const { win, lose, pseudoWin, tour, groupe = "" } = req.body;
+    // Directement on dit que le match en question est terminée
     await query(
       "update matches2 set id_winner = ?, end = 1 where end = 0 and id_tournament = ? and (id_playerA = ? or id_playerB = ?)",
       [win, idTournament, win, win],
     );
+    // Si c'était le match de la finale, alors on déclare le gagnant du tournoi
     if (tour == 1) {
       await defineBigWinner(win, lose, idTournament, pseudoWin, groupe);
       return res.status(200).send("Victoire validé");
     }
+    // Sinon la suite du tournoi continue et on récupère les matches qui représente le tour suivant
     const matches = await query(
       "select * from matches2 where id_tournament = ? and class = ? and id_playerB = 0 and groupe = ?",
       [idTournament, tour / 2, groupe],
     );
+    // Une fois qu'on a ses possibles matches suivants, on place le gagnant dans l'un d'eux
     await placePlayerMatches2(
       matches,
       win,
@@ -30,6 +34,7 @@ exports.arbre = async (req, res) => {
       groupe,
     );
 
+    // On met a jour les infos des joueurs dans la table players
     await updatePlayers([win, lose], idTournament);
     return res.status(200).send("Victoire validé");
   } catch (err) {
