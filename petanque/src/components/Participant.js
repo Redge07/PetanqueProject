@@ -46,6 +46,7 @@ const Participant = ({ player }) => {
   return (
     <div>
       <h2>Participant</h2>
+      <button onClick={recharge}>Recharger la page</button>
       {/* Si le joueur n'est lier a aucun tournoi, on propose une barre de recherche */}
       {dataPlayer.res == 0 && (
         <SearchTournament player={player} recharge={recharge} />
