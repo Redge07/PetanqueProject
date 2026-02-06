@@ -34,8 +34,22 @@ exports.connection = async (req, res) => {
   );
   if (user[0]) {
     // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
+    console.log(user);
+
     res.json({ res: 1, player: user[0] });
   } else {
     res.json({ res: 0 });
   }
+};
+
+exports.registerSignin = async (req, res) => {
+  pushToken = req.body.token;
+  id = req.body.id;
+  console.log(pushToken);
+
+  await query("update push_tokens set token = ? where user_id = ?", [
+    pushToken,
+    id,
+  ]);
+  res.json({ ok: true });
 };
