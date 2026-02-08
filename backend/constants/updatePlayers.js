@@ -1,4 +1,7 @@
 const { query } = require("./query");
+const { Expo } = require("expo-server-sdk");
+
+const expo = new Expo();
 
 // Fonction pour mettre a jour les données d'un joueur dans la table players, au final c'est juste copié coller par rapport aux infos qu'il y a dans la table matches 2 car c'est vraiment la table de vérité sur laquelle tout se base
 exports.updatePlayers = async (list_id, idTournament) => {
@@ -46,7 +49,44 @@ exports.updatePlayers = async (list_id, idTournament) => {
           idTournament,
         ],
       );
-      // Si on n'a pas trouvé de match en cours pour le joueur ça veut tout simplement dire qu'il a été éliminé du tournoi et qu'il faut le supprimer
+      const player = await query(
+        "select * from players where numero = ? and id_tournament = ?",
+        [id, idTournament],
+      );
+      console.log("user");
+
+      console.log(player);
+
+      // Si le joueur est un vrai utilisateur
+      if (player[0].id_user > 0) {
+        console.log("bonsoir3");
+
+        const token = await query(
+          "select token from push_tokens where user_id = ?",
+          [player[0].id_user],
+        );
+        console.log(token);
+
+        if (token[0].token) {
+          console.log("bonsoir");
+
+          if (Expo.isExpoPushToken(token[0].token)) {
+            console.log("bonsoir2");
+
+            // Envoyer une notification push pour dire que le match du joueur a commencé
+            const messages = [
+              {
+                to: token[0].token,
+                sound: "default",
+                title: "L'aventure continue !",
+                body: "Votre match a commencé, rendez-vous dans l'application pour voir votre adversaire et le score en direct !",
+              },
+            ];
+            expo.sendPushNotificationsAsync(messages);
+          }
+        }
+        // Si on n'a pas trouvé de match en cours pour le joueur ça veut tout simplement dire qu'il a été éliminé du tournoi et qu'il faut le supprimer
+      }
     } else {
       await query(
         "delete from players where id_tournament = ? and numero = ?",

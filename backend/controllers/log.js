@@ -18,9 +18,10 @@ exports.inscription = async (req, res) => {
       password,
     ]);
     user = (await query("select * from users where pseudo = ?", [pseudo]))[0];
+    query("insert into push_tokens (user_id) values (?)", [user.id]);
+    console.log(user);
     return res.status(200).json({ res: 1, player: user });
   } catch (err) {
-    console.log(err);
     return res.status(500).send(err);
   }
 };
@@ -34,7 +35,6 @@ exports.connection = async (req, res) => {
   );
   if (user[0]) {
     // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
-    console.log(user);
 
     res.json({ res: 1, player: user[0] });
   } else {
@@ -42,7 +42,7 @@ exports.connection = async (req, res) => {
   }
 };
 
-exports.registerSignin = async (req, res) => {
+exports.register = async (req, res) => {
   pushToken = req.body.token;
   id = req.body.id;
   console.log(pushToken);

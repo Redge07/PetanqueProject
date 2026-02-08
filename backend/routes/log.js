@@ -4,6 +4,6 @@ const log = require("../controllers/log");
 
 router.post("/inscription", log.inscription);
 router.post("/connexion", log.connection);
-router.post("/register_signin", log.registerSignin);
+router.post("/register", log.register);
 
 module.exports = router;

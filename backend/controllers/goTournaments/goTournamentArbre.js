@@ -10,6 +10,8 @@ exports.goTournamentArbre = async (req, res) => {
     let groupe = "";
     let round = 0;
     const body = Object.keys(req.body || {}).length;
+    console.log(body);
+
     // Si on a pas envoyé un body à l'API alors ça veut dire qu'on lançe un arbre classique
     if (!body) {
       // On récupère tous les joueurs inscrit du tournoi
@@ -123,6 +125,7 @@ exports.goTournamentArbre = async (req, res) => {
       idTournament,
     );
     // On a fini de créer le tournoi pour le groupe en question, si c'est le groupe C alors faut supprimer les joueurs non sélectionnées pour la suite du tournoi
+
     if (groupe == "C")
       await query(
         "delete from players where id_versus = 0 and id_tournament = ?",
