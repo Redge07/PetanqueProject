@@ -17,7 +17,7 @@ exports.goTournamentCascade = async (req, res) => {
   try {
     const idTournament = req.params.id;
     const listPlayers = await query(
-      "select * from players where id_tournament = ?",
+      "select * from players where id_tournament = ? and valider = 1",
       [idTournament],
     );
     // Pour lançer le tournoi il faut au moins 8 joueurs
@@ -25,6 +25,9 @@ exports.goTournamentCascade = async (req, res) => {
       return res.status(200).send("Il faut au moins 8 joueurs");
     await query("update tournaments set start = ? where id = ?", [
       1,
+      idTournament,
+    ]);
+    await query("delete from players where id_tournament = ? and valider = 0", [
       idTournament,
     ]);
     const nb_joueurs = listPlayers.length;

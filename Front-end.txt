@@ -22,7 +22,7 @@ Back-end :
 		- Pour le tournoi classement quand la poule est finit, prendre en compte les choix de l'organisateur pour crée les tournois en arbre
 		- Faire que le vainqueur de B affronte le vainqueur de B2 (adapter si les groupes B et B2 ont directement leur vainqueur a la sortie des 3 matchs)
 		- Quand un tournoi est finit ou alors un groupe est finit dans un tournoi, il faut garder en mémoire le nom du gagnant pour afficher le vainqueur histoire d'avoir quelque chose à afficher
-	- Les fichiers controllers sont beaucoup trop volumineux, il faudrait par exemple séparé les algorithmes des tournois en plusieurs fichiers javascript pour y voir plus clair (en profiter pour faire un code clair et structuré en faisant plein de fonctions differente (POO))
+		- Les fichiers controllers sont beaucoup trop volumineux, il faudrait par exemple séparé les algorithmes des tournois en plusieurs fichiers javascript pour y voir plus clair (en profiter pour faire un code clair et structuré en faisant plein de fonctions differente (POO))
 		- Il faut que les fonctions soit asynchrones parce que a des moments j'enchaine des requetes sql, et une requete sql peut se terminer plus rapide qu'une autre 
 			et donc créer un décalage. Il faut ajouter les async et les promise pour avoir un code clair.
 	- Faire des callback si le backend plante (si on a validé le vainqueur mais pas le perdant a cause d'un bug la BD est mal mis a jour)
@@ -57,10 +57,4 @@ Divers :
 	- Pour le système stripe il faut gérer les erreurs, les remboursement,les factures ect...
 	- Avoir comme un tuto de l'application
 	- Fichier htaccess
-
-Mettre code backend log au propre
-Mettre code backend organisateurs au propre
-Mettre les fonctions backend tournaments au propres (valid, delete, add player)
-Découpé les fonctions winner
-Voir si on peut factoriser des fonctions (comme supprimer un joueur par exemple)
-Tout commenter (en profiter pour faire les détails comme faire du try catch au front-end pour que se soit propre)
+	- Ne pas avoir un téléphone destinataire de 2 notification pour 2 utilisateurs different

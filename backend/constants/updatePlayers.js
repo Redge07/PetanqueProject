@@ -4,7 +4,7 @@ const { Expo } = require("expo-server-sdk");
 const expo = new Expo();
 
 // Fonction pour mettre a jour les données d'un joueur dans la table players, au final c'est juste copié coller par rapport aux infos qu'il y a dans la table matches 2 car c'est vraiment la table de vérité sur laquelle tout se base
-exports.updatePlayers = async (list_id, idTournament) => {
+exports.updatePlayers = async (list_id, idTournament, create = false) => {
   // On récupère tous les matches du tournoi qui sont en cours ou y'a au moins le joueur A de rempli dans le match en question
   const tournament = await query(
     "select * from matches2 where (end = 0 or end = -1) and id_tournament = ?",
@@ -53,33 +53,26 @@ exports.updatePlayers = async (list_id, idTournament) => {
         "select * from players where numero = ? and id_tournament = ?",
         [id, idTournament],
       );
-      console.log("user");
-
-      console.log(player);
-
       // Si le joueur est un vrai utilisateur
       if (player[0].id_user > 0) {
-        console.log("bonsoir3");
-
         const token = await query(
           "select token from push_tokens where user_id = ?",
           [player[0].id_user],
         );
-        console.log(token);
 
         if (token[0].token) {
-          console.log("bonsoir");
-
           if (Expo.isExpoPushToken(token[0].token)) {
-            console.log("bonsoir2");
-
             // Envoyer une notification push pour dire que le match du joueur a commencé
             const messages = [
               {
                 to: token[0].token,
                 sound: "default",
-                title: "L'aventure continue !",
-                body: "Votre match a commencé, rendez-vous dans l'application pour voir votre adversaire et le score en direct !",
+                title: create
+                  ? "Le tournoi démarre !"
+                  : "L'aventure continue !",
+                body: player[0].id_versus
+                  ? `Votre adversaire est le joueur numéro ${player[0].id_versus} !`
+                  : "Votre adversaire n'est pas encore connu, préparez-vous à affronter votre prochain adversaire !",
               },
             ];
             expo.sendPushNotificationsAsync(messages);

@@ -50,7 +50,7 @@ exports.goTournamentClassement = async (req, res) => {
   try {
     const idTournament = req.params.id;
     const listPlayers = await query(
-      "select * from players where id_tournament = ?",
+      "select * from players where id_tournament = ? and valider = 1",
       [idTournament],
     );
     // Pour pouvoir lançer le tournoi il faut soit 4 joueurs, soit + de 7 joueurs et un nombre paire
@@ -65,6 +65,9 @@ exports.goTournamentClassement = async (req, res) => {
         );
     await query("update tournaments set start = ? where id = ?", [
       1,
+      idTournament,
+    ]);
+    await query("delete from players where id_tournament = ? and valider = 0", [
       idTournament,
     ]);
     // On récupère un tableau qui montre les 3 adversaires de chaque joueur

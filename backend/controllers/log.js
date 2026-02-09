@@ -43,13 +43,22 @@ exports.connection = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  pushToken = req.body.token;
-  id = req.body.id;
-  console.log(pushToken);
-
-  await query("update push_tokens set token = ? where user_id = ?", [
-    pushToken,
-    id,
-  ]);
+  const pushToken = req.body.token;
+  const id = req.body.id;
+  const longitude = req.body.longitude;
+  const latitude = req.body.latitude;
+  await query(
+    "update push_tokens set token = ?, longitude = ?, latitude = ?, last_position_at = NOW() where user_id = ?",
+    [pushToken, longitude, latitude, id],
+  );
   res.json({ ok: true });
+};
+
+exports.positions = async (req, res) => {
+  const positions = await query(
+    "select latitude, longitude, last_position_at from push_tokens",
+  );
+  console.log(positions);
+
+  res.json(positions);
 };

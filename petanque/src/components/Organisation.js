@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "../App";
+import Map from "./tournamentComponents/Map";
 
 const Organisation = ({ player }) => {
   // State qui contiendra les tournoi que gère ce compte en question
@@ -86,6 +87,7 @@ const Organisation = ({ player }) => {
           <button onClick={() => setAddTournament(false)}>Annuler</button>
         </form>
       )}
+      <Map />
     </div>
   );
 };

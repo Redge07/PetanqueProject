@@ -121,6 +121,7 @@ exports.goTournamentArbre = async (req, res) => {
       [
         ...listPlayers.map((player) => player.numero),
         ...tirage.map((player) => player.numero),
+        true,
       ],
       idTournament,
     );
