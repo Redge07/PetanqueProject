@@ -59,7 +59,7 @@ exports.updatePlayers = async (list_id, idTournament, create = false) => {
           "select token from push_tokens where user_id = ?",
           [player[0].id_user],
         );
-console.log("test");
+        console.log("test");
         if (token[0].token) {
           console.log("test2");
           if (Expo.isExpoPushToken(token[0].token)) {

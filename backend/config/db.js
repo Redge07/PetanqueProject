@@ -1,6 +1,6 @@
 const mysql = require("mysql2");
 
-const connection = mysql.createPool({
+const pool = mysql.createPool({
   // host: "srv2057.hstgr.io",
   // user: "u976121835_Redge7Petanque",
   // password: "Suarezbarca.9",
@@ -14,4 +14,4 @@ const connection = mysql.createPool({
   port: process.env.DB_PORT,
 });
 
-module.exports = connection;
+module.exports = pool;

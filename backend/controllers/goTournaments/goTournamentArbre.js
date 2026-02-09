@@ -121,9 +121,9 @@ exports.goTournamentArbre = async (req, res) => {
       [
         ...listPlayers.map((player) => player.numero),
         ...tirage.map((player) => player.numero),
-        true,
       ],
       idTournament,
+      true,
     );
     // On a fini de créer le tournoi pour le groupe en question, si c'est le groupe C alors faut supprimer les joueurs non sélectionnées pour la suite du tournoi
 
@@ -140,10 +140,8 @@ exports.goTournamentArbre = async (req, res) => {
   }
 };
 
-const connection = require("../../config/db");
-
 // API pour créer automatiquement X joueurs dans un tournoi donné
-exports.create_players = (req, res) => {
+exports.create_players = async (req, res) => {
   console.log("yo");
 
   const idTournament = req.params.id;
@@ -175,13 +173,8 @@ exports.create_players = (req, res) => {
     VALUES ?
   `;
 
-  connection.query(sql, [players], (err) => {
-    if (err) {
-      console.error("Erreur SQL :", err);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({
-      message: `${nbPlayers} joueurs créés pour le tournoi ${idTournament}`,
-    });
+  await query(sql, [players]);
+  res.json({
+    message: `${nbPlayers} joueurs créés pour le tournoi ${idTournament}`,
   });
 };

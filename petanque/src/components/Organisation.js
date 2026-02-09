@@ -13,7 +13,6 @@ const Organisation = ({ player }) => {
   const { setLoad } = useContext(UsersContext);
   // Fonction qui récupère les tournoi que gère le joueur
   const recharge = () => {
-    setLoad(true);
     console.log(player);
     axios
       .get(linkBackend + "organisateurs/" + player.id)
@@ -21,12 +20,14 @@ const Organisation = ({ player }) => {
       .finally(() => setLoad(false));
   };
   useEffect(() => {
+    setLoad(true);
     recharge();
   }, []);
 
   // Fonction qui crée un nouveau tournoi pour le joueur connecté
   const createTournament = async (e) => {
     e.preventDefault();
+    setLoad(true);
     setAddTournament(false);
     await axios.post(linkBackend + "organisateurs/" + player.id, {
       name: e.target.elements.name.value,
@@ -37,7 +38,8 @@ const Organisation = ({ player }) => {
 
   // Fonction qui supprime un tournoi
   const deleteTournament = async (value) => {
-    await axios.delete(linkBackend + "organisateurs/" + value);
+    setLoad(true);
+    axios.delete(linkBackend + "organisateurs/" + value);
     recharge();
   };
   return (
