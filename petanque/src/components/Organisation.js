@@ -39,7 +39,7 @@ const Organisation = ({ player }) => {
   // Fonction qui supprime un tournoi
   const deleteTournament = async (value) => {
     setLoad(true);
-    axios.delete(linkBackend + "organisateurs/" + value);
+    await axios.delete(linkBackend + "organisateurs/" + value);
     recharge();
   };
   return (

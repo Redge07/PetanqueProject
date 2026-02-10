@@ -38,7 +38,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   const handleDeleteValid = (value) => {
     setLoad(true);
     axios
-      .delete(linkBackend + "tournaments2/" + idTournament, {
+      .delete(linkBackend + "tournaments/" + idTournament, {
         data: { numero: value },
       })
       .then((res) => handleApiResponse(res))
@@ -78,6 +78,11 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         setTimeout(() => {
           recharge();
         }, 1000);
+      })
+      .catch((err) => {
+        setResponseGoTournament(
+          "Une erreur est survenue, impossible de lancer le tournoi",
+        );
       })
       .finally(() => setLoad(false));
   };

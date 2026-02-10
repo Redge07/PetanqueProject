@@ -9,6 +9,7 @@ exports.placePlayerMatches2 = async (
   idTournament,
   tour,
   groupe,
+  conn,
 ) => {
   // Parmi la liste des matches suivants on prend les matches qui n'ont pas encore de joueur A (donc ça veut dire qu'il n'y a meme pas de joueur B non plus) et on prend celui qui a le numéro de match le plus petit
   const minNumberNoPlayerA = Math.min(
@@ -29,5 +30,6 @@ exports.placePlayerMatches2 = async (
   await query(
     `update matches2 set id_player${lettre} = ?, pseudo_${lettre} = ? where id_tournament = ? and number = ? and class ${tour} and groupe = ?`,
     [numero, pseudo, idTournament, matchNumber, groupe],
+    conn,
   );
 };
