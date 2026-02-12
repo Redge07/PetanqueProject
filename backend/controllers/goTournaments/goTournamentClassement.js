@@ -1,6 +1,9 @@
 const { query, withTransaction } = require("../../constants/query");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+const { Expo } = require("expo-server-sdk");
+const expo = new Expo();
+
 // Fonction pour aider la création de 3 adversaire différent par joueur
 function roundRobinPairs(ids) {
   const n = ids.length;
@@ -49,6 +52,7 @@ function generateMatches(players, nbAdversaires = 3) {
 exports.goTournamentClassement = async (req, res) => {
   try {
     const idTournament = req.params.id;
+    let notifs = [];
     const message = await withTransaction(async (conn) => {
       const listPlayers = await query(
         "select * from players where id_tournament = ? and valider = 1",
@@ -116,13 +120,18 @@ exports.goTournamentClassement = async (req, res) => {
         number++;
       }
       // On a crée tous les matchs, maintenant il faut mettre a jour les infos des joueurs
-      await updatePlayers(
+      notifs = await updatePlayers(
         listPlayers.map((player) => player.numero),
         idTournament,
-        true,
         conn,
+        true,
       );
       return "Go tournoi !";
+    });
+    notifs.forEach((n) => {
+      if (Expo.isExpoPushToken(n.to)) {
+        expo.sendPushNotificationsAsync([n]);
+      }
     });
     res.status(200).send(message);
   } catch (err) {

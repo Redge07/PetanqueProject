@@ -137,8 +137,8 @@ exports.goTournamentArbre = async (req, res) => {
           ...tirage.map((player) => player.numero),
         ],
         idTournament,
-        true,
         conn,
+        true,
       );
       // On a fini de créer le tournoi pour le groupe en question, si c'est le groupe C alors faut supprimer les joueurs non sélectionnées pour la suite du tournoi
 

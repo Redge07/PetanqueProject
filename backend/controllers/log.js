@@ -55,10 +55,12 @@ exports.register = async (req, res) => {
 };
 
 exports.positions = async (req, res) => {
+  const idTournament = req.params.id;
   const positions = await query(
-    "select latitude, longitude, last_position_at from push_tokens",
+    "SELECT p.latitude, p.longitude, p.last_position_at, pl.id_tournament, pl.numero, pl.pseudo FROM users u LEFT JOIN push_tokens p ON u.id = p.user_id LEFT JOIN players pl ON u.id = pl.id_user WHERE id_tournament = ?",
+    [idTournament],
   );
   console.log(positions);
 
-  res.json(positions);
+  res.status(200).json(positions);
 };

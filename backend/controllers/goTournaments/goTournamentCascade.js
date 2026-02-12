@@ -2,6 +2,9 @@ const { createArbre } = require("../../constants/createArbre");
 const { query, withTransaction } = require("../../constants/query");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+const { Expo } = require("expo-server-sdk");
+const expo = new Expo();
+
 // Fonction pour mélanger un tableau
 function shuffleArray(array) {
   const arr = [...array];
@@ -16,6 +19,7 @@ function shuffleArray(array) {
 exports.goTournamentCascade = async (req, res) => {
   try {
     const idTournament = req.params.id;
+    let notifs = [];
     const message = await withTransaction(async (conn) => {
       const listPlayers = await query(
         "select * from players where id_tournament = ? and valider = 1",
@@ -125,13 +129,18 @@ exports.goTournamentCascade = async (req, res) => {
         conn,
       );
       // Comme la table matches 2 est complète et représente la vérite on peut copier les infos dans la table players
-      await updatePlayers(
+      notifs = await updatePlayers(
         listPlayers.map((player) => player.numero),
         idTournament,
-        true,
         conn,
+        true,
       );
       return "Go tournoi !";
+    });
+    notifs.forEach((n) => {
+      if (Expo.isExpoPushToken(n.to)) {
+        expo.sendPushNotificationsAsync([n]);
+      }
     });
     res.status(200).send(message);
   } catch (err) {

@@ -1,7 +1,7 @@
 const { query } = require("./query");
 
 // Fonction pour mettre a jour les données d'un joueur dans la table players, au final c'est juste copié coller par rapport aux infos qu'il y a dans la table matches 2 car c'est vraiment la table de vérité sur laquelle tout se base
-exports.updatePlayers = async (list_id, idTournament, create = false, conn) => {
+exports.updatePlayers = async (list_id, idTournament, conn, create = false) => {
   // On récupère tous les matches du tournoi qui sont en cours ou y'a au moins le joueur A de rempli dans le match en question
   const tournament = await query(
     "select * from matches2 where (end = 0 or end = -1) and id_tournament = ?",

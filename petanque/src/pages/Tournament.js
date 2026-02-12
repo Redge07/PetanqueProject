@@ -8,6 +8,7 @@ import ArbreTournament from "../components/tournaments/ArbreTournament";
 import Cascade from "../components/tournaments/Cascade";
 import ClassementTournament from "../components/tournaments/ClassementTournament";
 import createPaires from "../utils/CreatePaires";
+import Map from "../components/tournamentComponents/Map";
 
 export const OrgaContext = createContext();
 
@@ -101,6 +102,7 @@ const Tournament = () => {
           </div>
         )}
         <NavLink to="/Home">Retour</NavLink>
+        <Map idTournament={idTournament} />
       </div>
     </OrgaContext.Provider>
   );

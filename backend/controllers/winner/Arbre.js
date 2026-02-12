@@ -3,10 +3,14 @@ const { defineBigWinner } = require("../../constants/defineBigWinner");
 const { placePlayerMatches2 } = require("../../constants/placePlayerMatches2");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+const { Expo } = require("expo-server-sdk");
+const expo = new Expo();
+
 // API pour déclarer un vainqueur dans un tournoi en mode arbre
 exports.arbre = async (req, res) => {
   try {
     const idTournament = req.params.id;
+    let notifs = [];
     // On récupère le numéro du gagnant, le numéro du perdant, le pseudo du gagnant, le tour du match qui s'est terminé et le groupe dans lequel s'est déroulé ce match
     const { win, lose, pseudoWin, tour, groupe = "" } = req.body;
     const message = await withTransaction(async (conn) => {
@@ -39,8 +43,13 @@ exports.arbre = async (req, res) => {
       );
 
       // On met a jour les infos des joueurs dans la table players
-      await updatePlayers([win, lose], idTournament, false, conn);
+      notifs = await updatePlayers([win, lose], idTournament, conn);
       return "Victoire validé";
+    });
+    notifs.forEach((n) => {
+      if (Expo.isExpoPushToken(n.to)) {
+        expo.sendPushNotificationsAsync([n]);
+      }
     });
     return res.status(200).send(message);
   } catch (err) {

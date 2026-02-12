@@ -22,12 +22,12 @@ L.Icon.Default.mergeOptions({
 
 const { BaseLayer } = LayersControl;
 
-const Map = () => {
+const Map = ({ idTournament }) => {
   const [positions, setPositions] = useState([]);
 
   useEffect(() => {
     axios
-      .get(linkBackend + "log/positions")
+      .get(linkBackend + "log/positions/" + idTournament)
       .then((res) => setPositions(res.data))
       .catch((error) =>
         console.error("Erreur lors de la récupération des positions:", error),
@@ -46,7 +46,7 @@ const Map = () => {
   return (
     <div
       style={{
-        height: "400px",
+        height: "500px",
         width: "100%",
         borderRadius: 12,
         overflow: "hidden",
@@ -59,7 +59,7 @@ const Map = () => {
       >
         <LayersControl position="topright">
           {/* Plan */}
-          <BaseLayer checked name="Plan">
+          <BaseLayer name="Plan">
             <TileLayer
               attribution="© OpenStreetMap"
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -67,7 +67,7 @@ const Map = () => {
           </BaseLayer>
 
           {/* Satellite */}
-          <BaseLayer name="Satellite">
+          <BaseLayer checked name="Satellite">
             <TileLayer
               attribution="Tiles © Esri"
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -81,7 +81,9 @@ const Map = () => {
             position={[Number(p.latitude), Number(p.longitude)]}
           >
             <Popup>
-              <strong>{p.name || `Joueur ${p.id}`}</strong>
+              <strong>
+                {p.pseudo} numéro {p.numero}
+              </strong>
               <br />
               Dernière position :
               <br />
@@ -90,6 +92,13 @@ const Map = () => {
             </Popup>
           </Marker>
         ))}
+        <Marker key="unknown" position={[44.808036, 4.352189]}>
+          <Popup>
+            <strong>Inconnu</strong>
+            <br />
+            Dernière position : Jamais
+          </Popup>
+        </Marker>
       </MapContainer>
     </div>
   );
