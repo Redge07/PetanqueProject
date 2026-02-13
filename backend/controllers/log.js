@@ -1,4 +1,14 @@
 const { query } = require("../constants/query");
+const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const generateToken = (user) => {
+  return jwt.sign({ player: user }, JWT_SECRET, {
+    expiresIn: "1d",
+  });
+};
 
 // API pour l'inscription d'un utilisateur
 exports.inscription = async (req, res) => {
@@ -19,8 +29,8 @@ exports.inscription = async (req, res) => {
     ]);
     user = (await query("select * from users where pseudo = ?", [pseudo]))[0];
     query("insert into push_tokens (user_id) values (?)", [user.id]);
-    console.log(user);
-    return res.status(200).json({ res: 1, player: user });
+    const token = generateToken(user);
+    return res.status(200).json({ res: 1, player: user, token });
   } catch (err) {
     return res.status(500).send(err);
   }
@@ -35,8 +45,8 @@ exports.connection = async (req, res) => {
   );
   if (user[0]) {
     // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
-
-    res.json({ res: 1, player: user[0] });
+    const token = generateToken(user[0]);
+    res.json({ res: 1, player: user[0], token });
   } else {
     res.json({ res: 0 });
   }
@@ -65,7 +75,33 @@ exports.positions = async (req, res) => {
   res.status(200).json(positions);
 };
 
-exports.getToken = async (req, res) => {
-  const id = req.params.id;
-  res.status(200).json({ token: "JWT : " + id });
+exports.verifToken = async (req, res) => {
+  const token = req.body.token;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    res.json({ res: true, player: decoded.player });
+  } catch (err) {
+    res.json({ res: false });
+  }
+};
+
+exports.sendNotification = async (req, res) => {
+  const { infos } = req.params;
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "mathonregis28@gmail.com",
+      pass: "toum venf skgu igdi",
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+  await transporter.sendMail({
+    from: "mathonregis28@gmail.com",
+    to: "mathonregis28@gmail.com",
+    subject: "Notification",
+    text: `C'est quand meme fou tout ce qu'on peut faire, PS : ${infos}`,
+  });
+  res.json({ ok: true });
 };

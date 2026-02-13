@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState } from "react";
 import axios from "axios";
 import { UsersContext } from "../App";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +6,7 @@ import { linkBackend } from "../constants/LinkBackend";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setLogin, setPlayer, setLoad } = useContext(UsersContext);
+  const { setPlayer, setLoad } = useContext(UsersContext);
   const [res, setRes] = useState({ res: "en attente" });
   const handleSignUp = (e) => {
     setLoad(true);
@@ -20,6 +20,7 @@ const Login = () => {
       .then((res) => {
         setRes(res.data);
         if (res.data.res == 1) {
+          localStorage.setItem("token", res.data.token);
           setTimeout(() => {
             chargeHome(res.data);
           }, 1000);
@@ -42,6 +43,7 @@ const Login = () => {
       .then((res) => {
         setRes(res.data);
         if (res.data.res == 1) {
+          localStorage.setItem("token", res.data.token);
           setTimeout(() => {
             chargeHome(res.data);
           }, 1000);
@@ -58,9 +60,8 @@ const Login = () => {
   };
 
   const chargeHome = (value) => {
-    setLogin(true);
     setPlayer(value);
-    navigate("/Home");
+    navigate("/");
   };
   return (
     <div>

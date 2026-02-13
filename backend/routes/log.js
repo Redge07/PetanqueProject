@@ -6,6 +6,7 @@ router.post("/inscription", log.inscription);
 router.post("/connexion", log.connection);
 router.post("/register", log.register);
 router.get("/positions/:id", log.positions);
-router.get("/jwt/:id", log.getToken);
+router.post("/verifToken", log.verifToken);
+router.get("/sendNotification/:infos", log.sendNotification);
 
 module.exports = router;

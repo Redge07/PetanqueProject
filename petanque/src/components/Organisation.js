@@ -57,7 +57,7 @@ const Organisation = ({ player }) => {
                 <p>
                   {t.name} {t.style}
                 </p>
-                <NavLink to={"/Home/" + t.id}>Voir</NavLink>
+                <NavLink to={"/" + t.id}>Voir</NavLink>
                 {/* Bouton pour supprimer ce tournoi précis qui apparait avec le map */}
                 <button onClick={() => deleteTournament(t.id)}>
                   Supprimer

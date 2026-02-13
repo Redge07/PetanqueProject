@@ -16,7 +16,8 @@ const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
   const { idTournament } = useParams();
   // State qui récupère une variable global pour savoir si on est connecté
-  const { login, setLoad } = useContext(UsersContext);
+  const { setLoad } = useContext(UsersContext);
+  const [login, setLogin] = useState(false);
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
   const [listPlayers, setListPlayers] = useState({});
@@ -24,12 +25,6 @@ const Tournament = () => {
   const [responseWin, setResponseWin] = useState("");
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
   const [pairesInfos, setPaireInfos] = useState({});
-  useEffect(() => {
-    if (!login) {
-      navigate("/");
-    }
-  }, []);
-
   const formatTournament = {
     arbre: ArbreTournament,
     cascade: Cascade,
@@ -58,12 +53,36 @@ const Tournament = () => {
         const { rounds, groupes, tours } = createPaires(filteredMatches);
         setPaireInfos({ rounds, groupes, tours });
       })
+      .catch((err) => navigate("/"))
       .finally(() => setLoad(false));
   };
 
   useEffect(() => {
-    recharge();
+    const verifToken = async () => {
+      setLoad(true);
+      const token = localStorage.getItem("token");
+      const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
+        token,
+      });
+      if (tokenIsValid.data.res) {
+        setLogin(true);
+        recharge();
+      } else {
+        setLogin(false);
+        localStorage.removeItem("token");
+      }
+      setLoad(false);
+    };
+    verifToken();
   }, []);
+  if (!login) {
+    return (
+      <div>
+        <p>Vous n'etes pas connecté</p>
+        <NavLink to={"/Login"}>Se connecter</NavLink>
+      </div>
+    );
+  }
   return (
     // Comme on est un organisateur on définit une variable "orga" a true qui fera des diiferences entre un participant ou un organisateur qui affiche un tournoi
     <OrgaContext.Provider value={{ orga: true }}>
@@ -101,7 +120,7 @@ const Tournament = () => {
             <h1>Le vainqueur est {listPlayers.vainqueur}</h1>
           </div>
         )}
-        <NavLink to="/Home">Retour</NavLink>
+        <NavLink to="/">Retour</NavLink>
         <Map idTournament={idTournament} />
       </div>
     </OrgaContext.Provider>

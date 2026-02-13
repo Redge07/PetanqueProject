@@ -3,29 +3,48 @@ import { UsersContext } from "../App";
 import { NavLink, useNavigate } from "react-router-dom";
 import Organisation from "../components/Organisation";
 import Participant from "../components/Participant";
+import axios from "axios";
+import { linkBackend } from "../constants/LinkBackend";
 
 const Home = () => {
   // Je récupère le fait de savoir si je suis connecté et les informations du compte sur lequel je suis connecté
-  const { login, player, setLogin } = useContext(UsersContext);
+  const { player, setLoad, setPlayer } = useContext(UsersContext);
   // State pour savoir si je fait apparaitre les boutons pour choisir si je suis organisateur ou participant
   const [choice, setChoice] = useState(false);
+  const [login, setLogin] = useState(false);
   // Savoir si je suis en mode organisateur ou participant
   const [admin, setAdmin] = useState(false);
   const navigate = useNavigate();
   // Fonction pour me déconnecter et je repars au composant "Login" qui représente l'URL "/"
   const handleDisconnect = () => {
-    setLogin(false);
-    navigate("/");
+    localStorage.removeItem("token");
+    navigate("/Login");
   };
-  // useEffect(() => {
-  //   setLogin(true);
-  //   setPlayer({ player: { id: 1, pseudo: "Régis" } });
-  // }, []);
+  useEffect(() => {
+    setLoad(true);
+    const verifToken = async () => {
+      const token = localStorage.getItem("token");
+      const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
+        token,
+      });
+      if (tokenIsValid.data.res) {
+        setPlayer(tokenIsValid.data);
+        console.log(tokenIsValid.data);
+
+        setLogin(true);
+      } else {
+        setLogin(false);
+        localStorage.removeItem("token");
+      }
+      setLoad(false);
+    };
+    verifToken();
+  }, []);
   if (!login) {
     return (
       <div>
-        <p>Vous n'etes pas connecté car votre id est {player.res}</p>
-        <NavLink to={"/"}>Se connecter</NavLink>
+        <p>Vous n'etes pas connecté</p>
+        <NavLink to={"/Login"}>Se connecter</NavLink>
       </div>
     );
   }
