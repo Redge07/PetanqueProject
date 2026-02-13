@@ -30,7 +30,7 @@ Back-end :
 		- Utiliser les res.status pour avoir une réponse API très clair et propre pour les utilisateurs
 	- Pour les insert, éviter de faire 200 allers-retours et plutot faire un gros insert en une fois
 	- Quand on fait des requetes SQL avec des select, il faudrait préciser les colonnes qu'on veut pour avoir que des données qui nous intéressent.
-	- Quand je fais des requetes SQL, il vaut mieux faire une requetes SQL qui récupère toutes les données d'un coup pour les manipuler en JS au lieu de faire plusieurs appels a des requetes SQL
+		- Quand je fais des requetes SQL, il vaut mieux faire une requetes SQL qui récupère toutes les données d'un coup pour les manipuler en JS au lieu de faire plusieurs appels a des requetes SQL
 		- Changé toutes la logique, faire la génération du tournoi au lancement et pas un calcul a chaque victoire
 	- Dans le classement il faut des critères précis pour séparer les joueurs qui ont le meme nombre de points 
 		- Utiliser la tables matches pour garder les résultats des matches en mémoire au cas où ça pourrait servir, pour faire un historique par exemple
@@ -46,7 +46,7 @@ Divers :
 	- Avoir un système d'authentification comme on peut trouver n'importe où. Avec l'inscription par mail, avec la possibilité de "continuer avec google", 
 		pouvoir envoyer des mails facilement, avoir un système de bcrypt pour les mot de passe, avoir des tokens pour gérer les sessions de connexion et pouvoir resté connecter. 
 		Utiliser les tokens JWT POUR gérer ça facilement
-	- Il faut pouvoir de déconnecter et donc détruire le token actuelle
+	- Il faut pouvoir se déconnecter et donc détruire le token actuelle
 	- Avoir un système de géolocalisation, le but serait que les joueurs partage leur position et donc que les organisateurs aient une map pour visualiser les positions des joueurs 
 		qui participent au tournoi en question.
 	- Pour la localisation, peut etre avoir un système de recherche d'un joueur sur la carte
