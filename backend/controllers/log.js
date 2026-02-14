@@ -1,6 +1,8 @@
 const { query } = require("../constants/query");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -86,22 +88,35 @@ exports.verifToken = async (req, res) => {
 };
 
 exports.sendNotification = async (req, res) => {
-  const { infos } = req.params;
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
-  await transporter.sendMail({
-    from: "mathonregis28@gmail.com",
-    to: "mathonregis28@gmail.com",
-    subject: "Notification",
-    text: `C'est quand meme fou tout ce qu'on peut faire, PS : ${infos}`,
-  });
-  res.json({ ok: true });
+  try {
+    const { infos } = req.params;
+
+    await resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: "mathonregis28@gmail.com",
+      subject: "Notification",
+      html: `
+        <div style="font-family: Arial; padding:20px;">
+      <h1 style="color:#ff7b00;">🏆 Pétanque Project</h1>
+      <p>Un nouvel événement vient d’avoir lieu :</p>
+      <div style="
+        background:#f4f4f4;
+        padding:15px;
+        border-radius:8px;
+        margin:10px 0;
+      ">
+        ${infos}
+      </div>
+      <p style="font-size:12px;color:gray;">
+        Cet email a été envoyé automatiquement.
+      </p>
+    </div>
+      `,
+    });
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("EMAIL ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
 };
