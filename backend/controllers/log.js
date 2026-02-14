@@ -92,13 +92,15 @@ exports.sendNotification = async (req, res) => {
     const { infos } = req.params;
 
     await resend.emails.send({
-      from: "onboarding@resend.dev",
+      // from: `"Pétanque Management" <onboarding@resend.dev>`,
+      from: `"Pétanque Management" <contact@stat-football.fr>`,
       to: "mathonregis28@gmail.com",
+      // to: "baptistemarhon@icloud.com",
       subject: "Notification",
       html: `
         <div style="font-family: Arial; padding:20px;">
       <h1 style="color:#ff7b00;">🏆 Pétanque Project</h1>
-      <p>Un nouvel événement vient d’avoir lieu :</p>
+      <p>Petit test pour l'envoi de mail, c'est toujours sympa</p>
       <div style="
         background:#f4f4f4;
         padding:15px;
