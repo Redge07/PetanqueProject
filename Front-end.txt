@@ -1,3 +1,7 @@
+Try/catch cohérent entre le backend et le frontend, utiliser toujours la meme structure
+Fusionné table users et push_tokens
+Commenter toutes les nouveautés
+
 Front-end : 
 		- Quand on a fini la phase de poules d'un tournoi en classement, permettre à l'utilisateur de choisir comment organiser les arbres pour la suite du tournoi. 
 			Par exemple il choisit que on fera un arbre pour le A avec les 8 premiers et un tournoi en arbre pour le B avec les joueurs entre la 9ème et 24ème place. 
@@ -39,6 +43,7 @@ Back-end :
 		et doivent les répartir comme bon leurs semble. Proposé des calculs automatique et des choix de l'utilisateur lui meme
 	- Pour les tournois, peut etre laissé plus de flexibilité a l'utilisateur, par exemple si il souhaite le groupe A et B pour le tournoi en cascade 
 		au lieu des groupes A, B et C,il faut peut etre que le backend s'adapte
+	- Imaginer des scénarios ou des utilisateur appuie en meme temps sur des boutons
 
 Divers :
 	- Avoir un bon système de notification pour l'application mobile, ça doit etre intégré au backend, par exemple si un match s'est fini alors annoncé le nouvel adversaire d'un joueur 
@@ -58,3 +63,4 @@ Divers :
 	- Avoir comme un tuto de l'application
 	- Fichier htaccess
 	- Ne pas avoir un téléphone destinataire de 2 notification pour 2 utilisateurs different
+	- Protéger nos routes backend pour pas que n'importe qui puissent les utiliser

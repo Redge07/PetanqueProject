@@ -52,6 +52,7 @@ const Map = ({ idTournament }) => {
         overflow: "hidden",
       }}
     >
+      <p>{positions.length} positions</p>
       <MapContainer
         center={center}
         zoom={13}

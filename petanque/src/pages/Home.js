@@ -43,7 +43,7 @@ const Home = () => {
   if (!login) {
     return (
       <div>
-        <p>Vous n'etes pas connecté</p>
+        <p>Vous n'etes pas connectés</p>
         <NavLink to={"/Login"}>Se connecter</NavLink>
       </div>
     );

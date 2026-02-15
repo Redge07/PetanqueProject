@@ -8,5 +8,6 @@ router.post("/register", log.register);
 router.get("/positions/:id", log.positions);
 router.post("/verifToken", log.verifToken);
 router.get("/sendNotification/:infos", log.sendNotification);
+router.get("/verify/:token", log.verifyEmail);
 
 module.exports = router;
