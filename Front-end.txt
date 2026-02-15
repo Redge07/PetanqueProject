@@ -1,6 +1,8 @@
-Try/catch cohérent entre le backend et le frontend, utiliser toujours la meme structure
-Fusionné table users et push_tokens
-Commenter toutes les nouveautés
+Etre bien a jour sur le projet : 
+	Try/catch cohérent entre le backend et le frontend, utiliser toujours la meme structure
+	Fusionné table users et push_tokens
+	Commenter toutes les nouveautés
+	Bien documenter (google doc, canvas)
 
 Front-end : 
 		- Quand on a fini la phase de poules d'un tournoi en classement, permettre à l'utilisateur de choisir comment organiser les arbres pour la suite du tournoi. 
