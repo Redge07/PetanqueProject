@@ -1,17 +1,15 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { UsersContext } from "../App";
 import { NavLink, useNavigate } from "react-router-dom";
 import Organisation from "../components/Organisation";
 import Participant from "../components/Participant";
-import axios from "axios";
-import { linkBackend } from "../constants/LinkBackend";
+import NotConnect from "../constants/NotConnect";
 
 const Home = () => {
   // Je récupère le fait de savoir si je suis connecté et les informations du compte sur lequel je suis connecté
-  const { player, setLoad, setPlayer } = useContext(UsersContext);
+  const { player } = useContext(UsersContext);
   // State pour savoir si je fait apparaitre les boutons pour choisir si je suis organisateur ou participant
   const [choice, setChoice] = useState(false);
-  const [login, setLogin] = useState(false);
   // Savoir si je suis en mode organisateur ou participant
   const [admin, setAdmin] = useState(false);
   const navigate = useNavigate();
@@ -20,34 +18,7 @@ const Home = () => {
     localStorage.removeItem("token");
     navigate("/Login");
   };
-  useEffect(() => {
-    setLoad(true);
-    const verifToken = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
-          token,
-        });
-        setPlayer(tokenIsValid.data.user);
-        setLogin(true);
-      } catch (err) {
-        setLogin(false);
-        console.log(err);
-        localStorage.removeItem("token");
-      } finally {
-        setLoad(false);
-      }
-    };
-    verifToken();
-  }, []);
-  if (!login) {
-    return (
-      <div>
-        <p>Vous n'etes pas connectés</p>
-        <NavLink to={"/Login"}>Se connecter</NavLink>
-      </div>
-    );
-  }
+  if (!player) return <NotConnect />;
   return (
     <div>
       <h1>Home</h1>

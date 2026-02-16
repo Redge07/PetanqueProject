@@ -2,8 +2,10 @@ const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Fonction pour envoyer un mail a une personne
 exports.sendMail = async (email, subject, token) => {
   try {
+    // Sera le lien de la page pour valider de manière officielle l'inscription de l'utilisateur
     const link = `${process.env.FRONTEND_URL}verify/${token}`;
     await resend.emails.send({
       from: `"Pétanque Management" <contact@stat-football.fr>`,

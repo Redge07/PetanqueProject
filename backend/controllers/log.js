@@ -6,9 +6,11 @@ const crypto = require("crypto");
 const { sendMail } = require("../constants/sendMail");
 const { log } = require("console");
 
+// Clé API de Resend pour envoyer des mails
 const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Fonction pour générer un token JWT pour un utilisateur
 const generateToken = (user) => {
   return jwt.sign({ user }, JWT_SECRET, {
     expiresIn: "1d",
@@ -19,13 +21,15 @@ const generateToken = (user) => {
 exports.inscription = async (req, res) => {
   log("Tentative d'inscription pour l'email:", req.body.email);
   try {
+    // On récupère l'email, le pseudo et le password rentré par l'utilisateur
     const { pseudo, email, password } = req.body;
     let user = (await query("select * from users where email = ?", [email]))[0];
-    // Si il y a déjà un utilisateur avec le pseudo renseigné alors on peut pas s'inscrire
+    // Si il y a déjà un utilisateur avec l'email renseigné alors on peut pas s'inscrire
     if (user)
       return res.status(200).json({ res: 0, message: "Email déjà utilisé" });
-    // Sinon on peut inscrire le pseudo dans la table
+    // Sinon on peut lancer l'inscription dans la base de données
     const hashedPassword = await bcrypt.hash(password, 10);
+    // On génère un token de vérification aléatoire qui nous permettra d'avoir un lien unique pour valider le fait que l'utilisateur a reçu le mail d'inscription et qu'il clique sur le lien pour valider son inscription
     const verificationToken = crypto.randomBytes(32).toString("hex");
     await query(
       "insert into users (pseudo, email, password, verification_token) values (?, ?, ?, ?)",
@@ -53,6 +57,7 @@ exports.connection = async (req, res) => {
         .status(200)
         .json({ res: 0, message: "Email ou mot de passe incorrect" });
     }
+    // Si le compte existe bien mais qu'il n'a pas encore été vérifié alors on refuse la connexion (ça veut que la personne n'a pas ouvert le mail d'inscription et n'a pas pas cliqué sur le lien dans le mail)
     if (!user.is_verified) {
       return res.status(200).json({
         res: 0,
@@ -64,6 +69,7 @@ exports.connection = async (req, res) => {
       return res.json({ res: 0, message: "Email ou mot de passe incorrect" });
     }
     // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
+    // Si tout est bon pour la connexion on peut créer un token qui permettra de revenir sur le site sans avoir besoin de se reconnecter a nouveau
     const token = generateToken(user);
     res.json({ res: 1, user, token });
   } catch (err) {
@@ -72,11 +78,13 @@ exports.connection = async (req, res) => {
   }
 };
 
+// API pour mettre a jour des données d'un utilisateur quand il se connecte
 exports.register = async (req, res) => {
   const pushToken = req.body.token;
   const id = req.body.id;
   const longitude = req.body.longitude;
   const latitude = req.body.latitude;
+  // Il met a jour la position et le token qui permet d'envoyer des notifications a l'utilisateur
   await query(
     `update push_tokens ${pushToken ? "set token = ?, longitude = ?, latitude = ?, last_position_at = NOW()" : "set longitude = ?, latitude = ?, last_position_at = NOW()"} where user_id = ?`,
     pushToken
@@ -86,6 +94,7 @@ exports.register = async (req, res) => {
   res.json({ ok: true });
 };
 
+// API pour récupérer les positions de tous les joueurs d'un tournoi
 exports.positions = async (req, res) => {
   const idTournament = req.params.id;
   const positions = await query(
@@ -97,6 +106,7 @@ exports.positions = async (req, res) => {
   res.status(200).json(positions);
 };
 
+// API qui permet de vérifier si le token stocké dans le localStorage est bon et donc permettre a la personne de se connecter snas passer par le formulaire de connexion classique
 exports.verifToken = async (req, res) => {
   const token = req.body.token;
   try {
@@ -143,6 +153,7 @@ exports.sendNotification = async (req, res) => {
   }
 };
 
+// API pour confirmer l'inscription d'un utilisateur de manière officielle
 exports.verifyEmail = async (req, res) => {
   const { token } = req.params;
   try {
@@ -152,10 +163,12 @@ exports.verifyEmail = async (req, res) => {
     if (!user) {
       return res.status(200).send("Token invalide");
     }
+    // On dit que le user est officiellement vérifié
     await query(
       "update users set is_verified = 1, verification_token = NULL where id = ?",
       [user.id],
     );
+    // On en profite pour lui créer une ligne qui permettra de stocker son token de notifications et sa position quand il se connectera pour la première fois
     await query("insert into push_tokens (user_id) values (?)", [user.id]);
     res.send("Email vérifié avec succès");
   } catch (err) {

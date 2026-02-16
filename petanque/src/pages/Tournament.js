@@ -9,6 +9,7 @@ import Cascade from "../components/tournaments/Cascade";
 import ClassementTournament from "../components/tournaments/ClassementTournament";
 import createPaires from "../utils/CreatePaires";
 import Map from "../components/tournamentComponents/Map";
+import NotConnect from "../constants/NotConnect";
 
 export const OrgaContext = createContext();
 
@@ -16,8 +17,7 @@ const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
   const { idTournament } = useParams();
   // State qui récupère une variable global pour savoir si on est connecté
-  const { setLoad, setError, setPlayer } = useContext(UsersContext);
-  const [login, setLogin] = useState(false);
+  const { setLoad, setError, player } = useContext(UsersContext);
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
   const [listPlayers, setListPlayers] = useState({});
@@ -34,12 +34,9 @@ const Tournament = () => {
 
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
   const recharge = async () => {
-    console.log("bonsoir");
-
     setLoad(true);
     try {
       const res = await axios.get(linkBackend + "tournaments/" + idTournament);
-      console.log(linkBackend + "tournaments/" + idTournament);
       setResponseWin("");
       const filteredMatches = res.data.matches
         ? res.data.matches.filter(
@@ -62,35 +59,10 @@ const Tournament = () => {
       setLoad(false);
     }
   };
-
   useEffect(() => {
-    const verifToken = async () => {
-      setLoad(true);
-      const token = localStorage.getItem("token");
-      try {
-        const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
-          token,
-        });
-        setPlayer(tokenIsValid.data.user);
-        setLogin(true);
-        recharge();
-      } catch (err) {
-        setLogin(false);
-        localStorage.removeItem("token");
-      } finally {
-        setLoad(false);
-      }
-    };
-    verifToken();
+    recharge();
   }, []);
-  if (!login) {
-    return (
-      <div>
-        <p>Vous n'etes pas connecté</p>
-        <NavLink to={"/Login"}>Se connecter</NavLink>
-      </div>
-    );
-  }
+  if (!player) return <NotConnect />;
   return (
     // Comme on est un organisateur on définit une variable "orga" a true qui fera des diiferences entre un participant ou un organisateur qui affiche un tournoi
     <OrgaContext.Provider value={{ orga: true }}>
