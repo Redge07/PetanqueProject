@@ -6,7 +6,7 @@ import { linkBackend } from "../constants/LinkBackend";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setPlayer, setLoad } = useContext(UsersContext);
+  const { setPlayer, setLoad, setError } = useContext(UsersContext);
   const [res, setRes] = useState("en attente");
   const getLocation = () =>
     new Promise((resolve, reject) => {
@@ -32,6 +32,7 @@ const Login = () => {
       const res = await axios.post(linkBackend + "log/inscription", user);
       setRes(res.data.message);
     } catch (err) {
+      setError(true);
       console.log(err);
     } finally {
       setTimeout(() => {
@@ -62,15 +63,16 @@ const Login = () => {
         }
         await axios.post(linkBackend + "log/register", {
           token: null,
-          id: res.data.player.id,
+          id: res.data.user.id,
           longitude: longitude,
           latitude: latitude,
         });
         setTimeout(() => {
-          chargeHome(res.data);
+          chargeHome(res.data.user);
         }, 1000);
       }
     } catch (err) {
+      setError(true);
       console.log(err);
     } finally {
       setTimeout(() => {

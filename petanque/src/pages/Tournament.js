@@ -16,7 +16,7 @@ const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
   const { idTournament } = useParams();
   // State qui récupère une variable global pour savoir si on est connecté
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
   const [login, setLogin] = useState(false);
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
@@ -61,6 +61,10 @@ const Tournament = () => {
     const verifToken = async () => {
       setLoad(true);
       const token = localStorage.getItem("token");
+      // try {
+      // } catch (err) {
+      // } finally {
+      // }
       const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
         token,
       });

@@ -9,14 +9,17 @@ const Organisation = ({ player }) => {
   const [tournaments, setTournaments] = useState({ res: 0 });
   // State qui gère l'apparition du formulaire pour crée un tournoi pour le joueur connecté
   const [addTournament, setAddTournament] = useState(false);
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
   // Fonction qui récupère les tournoi que gère le joueur
-  const recharge = () => {
-    console.log(player);
-    axios
-      .get(linkBackend + "organisateurs/" + player.id)
-      .then((res) => setTournaments(res.data))
-      .finally(() => setLoad(false));
+  const recharge = async () => {
+    try {
+      const res = await axios.get(linkBackend + "organisateurs/" + player.id);
+      setTournaments(res.data);
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoad(false);
+    }
   };
   useEffect(() => {
     setLoad(true);
@@ -28,18 +31,30 @@ const Organisation = ({ player }) => {
     e.preventDefault();
     setLoad(true);
     setAddTournament(false);
-    await axios.post(linkBackend + "organisateurs/" + player.id, {
-      name: e.target.elements.name.value,
-      style: e.target.elements.style_tournament.value,
-    });
-    recharge();
+    try {
+      await axios.post(linkBackend + "organisateurs/" + player.id, {
+        name: e.target.elements.name.value,
+        style: e.target.elements.style_tournament.value,
+      });
+    } catch (err) {
+      setError(true);
+      console.log(err);
+    } finally {
+      recharge();
+    }
   };
 
   // Fonction qui supprime un tournoi
   const deleteTournament = async (value) => {
     setLoad(true);
-    await axios.delete(linkBackend + "organisateurs/" + value);
-    recharge();
+    try {
+      await axios.delete(linkBackend + "organisateurs/" + value);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+    } finally {
+      recharge();
+    }
   };
   return (
     <div>

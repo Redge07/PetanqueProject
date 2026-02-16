@@ -50,7 +50,6 @@ exports.charge = async (req, res) => {
     if (player.valider == 0) {
       return res.status(200).json({
         res: status.player.Waiting,
-        pseudo: player.pseudo,
         tournamentName: tournament.name,
         style: tournament.style,
       });
@@ -59,7 +58,6 @@ exports.charge = async (req, res) => {
     if (tournament.start == 0) {
       return res.status(200).json({
         res: status.player.WaitingStart,
-        pseudo: player.pseudo,
         numero: player.numero,
         tournamentName: tournament.name,
         style: tournament.style,
@@ -127,6 +125,7 @@ exports.add_player = async (req, res) => {
       res: "Vous avez été ajouté au tournoi numéro " + idTournament,
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({
       res: -1,
     });

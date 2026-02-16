@@ -24,19 +24,19 @@ const Home = () => {
     setLoad(true);
     const verifToken = async () => {
       const token = localStorage.getItem("token");
-      const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
-        token,
-      });
-      if (tokenIsValid.data.res) {
-        setPlayer(tokenIsValid.data);
-        console.log(tokenIsValid.data);
-
+      try {
+        const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
+          token,
+        });
+        if (tokenIsValid.data.res) setPlayer(tokenIsValid.data.user);
         setLogin(true);
-      } else {
+      } catch (err) {
         setLogin(false);
+        console.log(err);
         localStorage.removeItem("token");
+      } finally {
+        setLoad(false);
       }
-      setLoad(false);
     };
     verifToken();
   }, []);
@@ -51,7 +51,7 @@ const Home = () => {
   return (
     <div>
       <h1>Home</h1>
-      <p>Bonjour {player.player.pseudo}</p>
+      <p>Bonjour {player.pseudo}</p>
       {/* Si je fait apparaitre les 2 boutons pour choisir le mode organisateur ou participant */}
       {!choice && (
         <div>
@@ -76,9 +76,9 @@ const Home = () => {
       {/* Quand j'ai fait le choix de organisateur ou participant, j'affiche le composant que j'ai choisi, donc organisateur ou participant */}
       {choice ? (
         admin ? (
-          <Organisation player={player.player} />
+          <Organisation player={player} />
         ) : (
-          <Participant player={player.player} />
+          <Participant player={player} />
         )
       ) : null}
       {/* Si j'ai deja fait mon choix c'est que je suis en mode participant ou organisateur, alors je fais apparaitre un bouton pour revenir en arriere donc au moment ou je fais le choix de organisateur ou participant */}

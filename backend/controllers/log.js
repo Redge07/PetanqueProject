@@ -10,7 +10,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const generateToken = (user) => {
-  return jwt.sign({ player: user }, JWT_SECRET, {
+  return jwt.sign({ user }, JWT_SECRET, {
     expiresIn: "1d",
   });
 };
@@ -36,7 +36,7 @@ exports.inscription = async (req, res) => {
       .status(200)
       .json({ res: 1, message: "Compte crée et mail envoyé" });
   } catch (err) {
-    log("Erreur lors de l'inscription:", err);
+    console.log("Erreur lors de l'inscription:", err);
     return res.status(500).send(err);
   }
 };
@@ -63,10 +63,9 @@ exports.connection = async (req, res) => {
     if (!isPasswordValid) {
       return res.json({ res: 0, message: "Email ou mot de passe incorrect" });
     }
-
     // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
     const token = generateToken(user);
-    res.json({ res: 1, player: user, token });
+    res.json({ res: 1, user, token });
   } catch (err) {
     log("Erreur lors de la connexion:", err);
     return res.status(500).send(err);
@@ -102,9 +101,10 @@ exports.verifToken = async (req, res) => {
   const token = req.body.token;
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    res.json({ res: true, player: decoded.player });
+    console.log("Token vérifié pour l'utilisateur:", decoded.user);
+    res.json({ res: true, user: decoded.user });
   } catch (err) {
-    res.json({ res: false });
+    res.status(401).json({ res: false });
   }
 };
 

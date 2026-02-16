@@ -11,9 +11,16 @@ export const UsersContext = createContext();
 const App = () => {
   const [player, setPlayer] = useState({ res: 0 });
   const [load, setLoad] = useState(false);
+  const [error, setError] = useState(false);
   return (
-    <UsersContext.Provider value={{ player, setPlayer, setLoad }}>
+    <UsersContext.Provider value={{ player, setPlayer, setLoad, setError }}>
       {load && <Loading />}
+      {error && (
+        <div className="error">
+          <p>Une erreur est survenue</p>
+          <button onClick={() => setError(false)}>Réessayer</button>
+        </div>
+      )}
       <BrowserRouter>
         <Routes>
           <Route path="/Login" element={<Login />}></Route>

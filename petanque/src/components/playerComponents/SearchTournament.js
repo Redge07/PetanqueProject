@@ -8,39 +8,40 @@ const SearchTournament = ({ player, recharge }) => {
   const [dataTournament, setDataTournament] = useState({ res: -1 });
   // Récupérer un petit message pour dire que l'utilisateur a bien été inscrit au tournoi
   const [responseInscription, setResponseInscription] = useState("");
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
   // Fonction pour récupérer le tournoi trouver grace a la recherche (quand on veut trouver un tournoi pour s'inscrire)
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     setLoad(true);
     const idSearch = e.target.elements.id.value;
-    console.log(idSearch);
-    axios
-      .get(linkBackend + "players/search/" + idSearch)
-      .then((res) => {
-        console.log(res.data);
-        setDataTournament(res.data);
-      })
-      .finally(() => setLoad(false));
+    try {
+      const res = await axios.get(linkBackend + "players/search/" + idSearch);
+      setDataTournament(res.data);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+    } finally {
+      recharge();
+    }
   };
   // Fonction pour s'inscrire a un tournoi
-  const handleInscrire = (e) => {
+  const handleInscrire = async (e) => {
     setLoad(true);
     e.preventDefault();
     const pseudo = e.target.elements.pseudo.value;
-    axios
-      .post(linkBackend + "players/", {
+    try {
+      const res = await axios.post(linkBackend + "players/", {
         idUser: player.id,
         idTournament: dataTournament.id,
         pseudo: pseudo,
-      })
-      .then((res) => {
-        setResponseInscription(res.data.res);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      })
-      .finally(() => setLoad(false));
+      });
+      setResponseInscription(res.data.res);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+    } finally {
+      recharge();
+    }
   };
   return (
     <div className="composant" style={{ border: "solid 2px red" }}>

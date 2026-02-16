@@ -38,6 +38,20 @@ body {
   }
 }
 
+.error {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgb(239, 239, 239);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow:
+    0 0 15px #ff0000,
+    0 0 30px #ff0000,
+    0 0 45px #ff0000;
+}
+
 .order {
   background: rgb(239, 239, 239);
   @include centerChild;

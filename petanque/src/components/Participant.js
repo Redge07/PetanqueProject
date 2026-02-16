@@ -8,36 +8,38 @@ import { UsersContext } from "../App";
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
   const [dataPlayer, setDataPlayer] = useState({ res: 0 });
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
 
   // Récupérer un petit message pour dire que l'utilisateur a bien été désinscrit du tournoi
   const [responseDeinscription, setResponseDeinscription] = useState("");
 
   // Quand on s'est inscrit a un tournoi mais on n'est en attente et on veut se désinscrire
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setLoad(true);
-    axios
-      .delete(linkBackend + "players/" + player.id)
-      .then((res) => {
-        setResponseDeinscription(res.data.res);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      })
-      .finally(() => setLoad(false));
+    try {
+      const res = await axios.delete(linkBackend + "players/" + player.id);
+      setResponseDeinscription(res.data.res);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+    } finally {
+      recharge();
+    }
   };
 
   // Fonction qui recharge la page, on récupère la situation du joueur bien mise a jour
-  const recharge = () => {
+  const recharge = async () => {
     setLoad(true);
     setResponseDeinscription("");
-    axios
-      .get(linkBackend + "players/" + player.id)
-      .then((res) => {
-        console.log(res.data);
-        setDataPlayer(res.data);
-      })
-      .finally(() => setLoad(false));
+    try {
+      const res = await axios.get(linkBackend + "players/" + player.id);
+      setDataPlayer(res.data);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+    } finally {
+      setLoad(false);
+    }
   };
 
   useEffect(() => {
