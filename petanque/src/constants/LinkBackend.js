@@ -14,3 +14,5 @@ export const linkBackend = "https://petanqueproject.onrender.com/";
 // $env:HOST="0.0.0.0"; npm start
 
 // ExponentPushToken[djCUPqARc4alXSp_oNeMY2]
+
+// QND6P5DVNVBACMDXDCRGWUEUNBSFT3
