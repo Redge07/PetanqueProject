@@ -4,10 +4,6 @@ import ButtonWinner from "./ButtonsWinner";
 const Arbre = ({ pairesInfos, matches, handleWinner }) => {
   // On trie les tours qu'on a reçu
   const sortedTours = [...pairesInfos.tours].sort((a, b) => a - b);
-  console.log("arbre");
-
-  console.log(matches);
-
   return (
     <div className="composant" style={{ border: "solid 2px blue" }}>
       <h4 style={{ color: "blue" }}>Composant qui est un arbre en entier</h4>

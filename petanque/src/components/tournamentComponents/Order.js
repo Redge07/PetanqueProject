@@ -2,19 +2,32 @@ import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import { UsersContext } from "../../App";
+import { useNavigate } from "react-router-dom";
 
 const Order = ({ idTournament }) => {
   // State pour avoir les données du classement
   const [dataOrder, setDataOrder] = useState([]);
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
+  const navigate = useNavigate();
 
   // On récupérer toutes les données du classement pret a etre bien afficher
   useEffect(() => {
-    setLoad(true);
-    axios
-      .get(linkBackend + "tournaments/classement/" + idTournament)
-      .then((res) => setDataOrder(res.data))
-      .finally(() => setLoad(false));
+    const chargeOrder = async () => {
+      setLoad(true);
+      try {
+        const res = await axios.get(
+          linkBackend + "tournaments/classement/" + idTournament,
+        );
+        setDataOrder(res.data);
+      } catch (err) {
+        setError(true);
+        navigate("/");
+        console.log(err);
+      } finally {
+        setLoad(false);
+      }
+    };
+    chargeOrder();
   }, []);
 
   return (

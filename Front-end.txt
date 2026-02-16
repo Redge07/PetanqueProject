@@ -1,5 +1,4 @@
 Etre bien a jour sur le projet : 
-	Try/catch cohérent entre le backend et le frontend, utiliser toujours la meme structure
 	Fusionné table users et push_tokens
 	Commenter toutes les nouveautés
 	Bien documenter (google doc, canvas)
@@ -46,6 +45,8 @@ Back-end :
 	- Pour les tournois, peut etre laissé plus de flexibilité a l'utilisateur, par exemple si il souhaite le groupe A et B pour le tournoi en cascade 
 		au lieu des groupes A, B et C,il faut peut etre que le backend s'adapte
 	- Imaginer des scénarios ou des utilisateur appuie en meme temps sur des boutons
+	- Avoir le bouton "create x players" comme il faut
+	- Quand on fait le dernier match du round 3 en mode classement faire apparaitre le createarbre correctement
 
 Divers :
 	- Avoir un bon système de notification pour l'application mobile, ça doit etre intégré au backend, par exemple si un match s'est fini alors annoncé le nouvel adversaire d'un joueur 

@@ -2,13 +2,15 @@ import axios from "axios";
 import React, { useContext, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import { UsersContext } from "../../App";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
   const [nbPlayers, setNbPlayers] = useState("");
 
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
+  const navigate = useNavigate();
 
   // State qui affiche le message quand le tournoi est bien lancé
   const [responseGoTournament, setResponseGoTournament] = useState("");
@@ -26,69 +28,101 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   };
 
   // Fonction pour supprimer un joueur du tournoi en attente
-  const handleDeleteAttente = (value) => {
+  const handleDeleteAttente = async (value) => {
     setLoad(true);
-    axios
-      .delete(linkBackend + "tournaments/players_attente/" + value)
-      .then((res) => handleApiResponse(res))
-      .finally(() => setLoad(false));
+    try {
+      const res = await axios.delete(
+        linkBackend + "tournaments/players_attente/" + value,
+      );
+      handleApiResponse(res);
+    } catch (err) {
+      console.log(err);
+      setError(true);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
 
   // Fonction pour supprimer un joueur du tournoi en valid
-  const handleDeleteValid = (value) => {
+  const handleDeleteValid = async (value) => {
     setLoad(true);
-    axios
-      .delete(linkBackend + "tournaments/" + idTournament, {
-        data: { numero: value },
-      })
-      .then((res) => handleApiResponse(res))
-      .finally(() => setLoad(false));
+    try {
+      const res = await axios.delete(
+        linkBackend + "tournaments/" + idTournament,
+        {
+          data: { numero: value },
+        },
+      );
+      handleApiResponse(res);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
 
   // Fonction pour accepté un joueur
-  const handleValid = (value) => {
+  const handleValid = async (value) => {
     setLoad(true);
-    axios
-      .put(linkBackend + "tournaments/" + idTournament, {
+    try {
+      const res = await axios.put(linkBackend + "tournaments/" + idTournament, {
         id_user: value,
-      })
-      .then((res) => handleApiResponse(res))
-      .finally(() => setLoad(false));
+      });
+      handleApiResponse(res);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
 
   // Fonction pour ajouter un joueur manuellement
-  const handleAddPlayer = (e) => {
+  const handleAddPlayer = async (e) => {
     e.preventDefault();
     setLoad(true);
-    axios
-      .post(linkBackend + "tournaments/" + idTournament, {
-        pseudo: e.target.elements.pseudo.value,
-      })
-      .then((res) => handleApiResponse(res))
-      .finally(() => setLoad(false));
+    try {
+      const res = await axios.post(
+        linkBackend + "tournaments/" + idTournament,
+        {
+          pseudo: e.target.elements.pseudo.value,
+        },
+      );
+      handleApiResponse(res);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
 
   // Fonction quand je décide de démarrer le tournoi
-  const handleGoTournament = () => {
+  const handleGoTournament = async () => {
     setLoad(true);
-    axios
-      .put(linkBackend + `gotournaments/${style}/` + idTournament)
-      .then((res) => {
-        setResponseGoTournament(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      })
-      .catch((err) => {
-        setResponseGoTournament(
-          "Une erreur est survenue, impossible de lancer le tournoi",
-        );
-      })
-      .finally(() => setLoad(false));
+    try {
+      const res = await axios.put(
+        linkBackend + `gotournaments/${style}/` + idTournament,
+      );
+      setResponseGoTournament(res.data);
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
   const handleCreatePlayers = () => {
     if (!nbPlayers || nbPlayers <= 0) return;
-
     setLoad(true);
     axios
       .post(

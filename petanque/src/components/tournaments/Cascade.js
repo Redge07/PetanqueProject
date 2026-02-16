@@ -5,6 +5,7 @@ import Arbre from "../tournamentComponents/Arbre";
 import ButtonWinner from "../tournamentComponents/ButtonsWinner";
 import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import { UsersContext } from "../../App";
+import { useNavigate } from "react-router-dom";
 
 const Cascade = ({
   listPlayers,
@@ -13,32 +14,40 @@ const Cascade = ({
   setResponseWin,
   idTournament,
 }) => {
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
+  const navigate = useNavigate();
   // Fonction quand je déclare le vainqueur
-  const handleWinnerCascade = (win, lose, versus) => {
+  const handleWinnerCascade = async (win, lose, versus) => {
     setLoad(true);
-    const pseudoWin =
-      versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
-    const pseudoLose =
-      versus.id_playerA == lose ? versus.pseudo_A : versus.pseudo_B;
-    axios
-      .put(linkBackend + "winner/cascade/" + idTournament, {
-        win,
-        lose,
-        round: versus.round,
-        groupe: versus.groupe,
-        barrage: versus.barrage,
-        tour: versus.class,
-        pseudoWin,
-        pseudoLose,
-      })
-      .then((res) => {
-        setResponseWin(res.data);
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      })
-      .finally(() => setLoad(false));
+    try {
+      const pseudoWin =
+        versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
+      const pseudoLose =
+        versus.id_playerA == lose ? versus.pseudo_A : versus.pseudo_B;
+      const res = await axios.put(
+        linkBackend + "winner/cascade/" + idTournament,
+        {
+          win,
+          lose,
+          round: versus.round,
+          groupe: versus.groupe,
+          barrage: versus.barrage,
+          tour: versus.class,
+          pseudoWin,
+          pseudoLose,
+        },
+      );
+      setResponseWin(res.data);
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+    } catch (err) {
+      setError(true);
+      console.log(err);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
   return (
     <div>

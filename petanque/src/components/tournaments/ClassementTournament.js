@@ -7,6 +7,7 @@ import Arbre from "../tournamentComponents/Arbre";
 import { OrgaContext } from "../../pages/Tournament";
 import Order from "../tournamentComponents/Order";
 import { UsersContext } from "../../App";
+import { useNavigate } from "react-router-dom";
 
 const ClassementTournament = ({
   listPlayers,
@@ -15,8 +16,9 @@ const ClassementTournament = ({
   setResponseWin,
   idTournament,
 }) => {
-  const { setLoad } = useContext(UsersContext);
+  const { setLoad, setError } = useContext(UsersContext);
   const context = useContext(OrgaContext);
+  const navigate = useNavigate();
   const orga = context?.orga;
 
   // State qui permet de gérer l'affichage du classement des poules
@@ -29,126 +31,155 @@ const ClassementTournament = ({
   const [errorLengthArbre, setErrorLengthArbre] = useState("");
 
   useEffect(() => {
-    setLoad(true);
-    axios
-      .get(linkBackend + "tournaments/classement/" + idTournament)
-      .then((res) => {
+    const chargeOrder = async () => {
+      setLoad(true);
+      try {
+        const res = await axios.get(
+          linkBackend + "tournaments/classement/" + idTournament,
+        );
         setDataOrder(res.data);
-      })
-      .finally(() => setLoad(false));
+      } catch (err) {
+        setError(true);
+        navigate("/");
+        console.log(err);
+      } finally {
+        setLoad(false);
+      }
+    };
+    chargeOrder();
   }, []);
 
   // Fonction quand je déclare un vainqueur de phase de poule en mode classement
-  const handleWinnerClassement = (e, numeroA, numeroB, round) => {
+  const handleWinnerClassement = async (e, numeroA, numeroB, round) => {
     e.preventDefault();
-    if (e.target.elements.scoreA.value == e.target.elements.scoreB.value) {
-      setResponseWin("Il ne peut pas y avoir d'égalité ou de cases vides");
-    } else {
-      setLoad(true);
-      // On récupère l'id du gagnant et du perdant et le score du gagnant et du perdant
-      const [win, lose, scoreWin, scoreLose] =
-        Number(e.target.elements.scoreA.value) >
-        Number(e.target.elements.scoreB.value)
-          ? [
-              numeroA,
-              numeroB,
-              e.target.elements.scoreA.value,
-              e.target.elements.scoreB.value,
-            ]
-          : [
-              numeroB,
-              numeroA,
-              e.target.elements.scoreB.value,
-              e.target.elements.scoreA.value,
-            ];
-      axios
-        .put(linkBackend + "winner/classement/" + idTournament, {
-          win,
-          lose,
-          scoreWin,
-          scoreLose,
-          round,
-        })
-        .then((res) => {
-          setResponseWin(res.data);
-          setTimeout(() => {
-            recharge();
-          }, 1000);
-        })
-        .finally(() => setLoad(false));
-    }
-  };
-
-  // Fonction quand je déclare un vainqueur de l'arbre du mode classement
-  const handleWinnerClassementArbre = (win, lose, versus) => {
-    setLoad(true);
-    const pseudoWin =
-      versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
-    axios
-      .put(linkBackend + "winner/arbre/" + idTournament, {
-        win,
-        lose,
-        tour: versus.class,
-        groupe: versus.groupe,
-        pseudoWin,
-      })
-      .then((res) => {
+    try {
+      if (e.target.elements.scoreA.value == e.target.elements.scoreB.value) {
+        setResponseWin("Il ne peut pas y avoir d'égalité ou de cases vides");
+      } else {
+        setLoad(true);
+        // On récupère l'id du gagnant et du perdant et le score du gagnant et du perdant
+        const [win, lose, scoreWin, scoreLose] =
+          Number(e.target.elements.scoreA.value) >
+          Number(e.target.elements.scoreB.value)
+            ? [
+                numeroA,
+                numeroB,
+                e.target.elements.scoreA.value,
+                e.target.elements.scoreB.value,
+              ]
+            : [
+                numeroB,
+                numeroA,
+                e.target.elements.scoreB.value,
+                e.target.elements.scoreA.value,
+              ];
+        const res = await axios.put(
+          linkBackend + "winner/classement/" + idTournament,
+          {
+            win,
+            lose,
+            scoreWin,
+            scoreLose,
+            round,
+          },
+        );
         setResponseWin(res.data);
         setTimeout(() => {
           recharge();
         }, 1000);
-      })
-      .finally(() => setLoad(false));
+      }
+    } catch (err) {
+      setError(true);
+      navigate("/");
+      console.log(err);
+    } finally {
+      setLoad(false);
+    }
+  };
+
+  // Fonction quand je déclare un vainqueur de l'arbre du mode classement
+  const handleWinnerClassementArbre = async (win, lose, versus) => {
+    setLoad(true);
+    try {
+      const pseudoWin =
+        versus.id_playerA == win ? versus.pseudo_A : versus.pseudo_B;
+      const res = await axios.put(
+        linkBackend + "winner/arbre/" + idTournament,
+        {
+          win,
+          lose,
+          tour: versus.class,
+          groupe: versus.groupe,
+          pseudoWin,
+        },
+      );
+      setResponseWin(res.data);
+      setTimeout(() => {
+        recharge();
+      }, 1000);
+    } catch (err) {
+      setError(true);
+      navigate("/");
+      console.log(err);
+    } finally {
+      setLoad(false);
+    }
   };
 
   // Fonction pour lancer les arbres du mode classement quand tous les matches de phase de poules sont fini
   const handleGoArbreClassement = async (e) => {
     e.preventDefault();
     setLoad(true);
-    const A = Number(e.target.elements.A.value);
-    const B = Number(e.target.elements.B.value);
-    const C = Number(e.target.elements.C.value);
+    try {
+      const A = Number(e.target.elements.A.value);
+      const B = Number(e.target.elements.B.value);
+      const C = Number(e.target.elements.C.value);
 
-    if (A + B + C > dataOrder.length) {
-      setErrorLengthArbre(
-        "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser",
-      );
-    } else if ((B == 0) & (C > 0)) {
-      setErrorLengthArbre(
-        "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B",
-      );
-    } else {
-      const listPlayersA = dataOrder
-        .sort((a, b) => b.points - a.points)
-        .slice(0, A);
-      const listPlayersB =
-        B == 0
-          ? []
-          : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
-      const listPlayersC =
-        e.target.elements.C.value == 0
-          ? []
-          : dataOrder
-              .sort((a, b) => b.points - a.points)
-              .slice(A + B, A + B + C);
-      console.log(listPlayersA);
-      console.log(listPlayersB);
-      console.log(listPlayersC);
-      await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
-        listPlayersA,
-      });
-      await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
-        listPlayersB,
-      });
-      await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
-        listPlayersC,
-      });
+      if (A + B + C > dataOrder.length) {
+        setErrorLengthArbre(
+          "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser",
+        );
+      } else if ((B == 0) & (C > 0)) {
+        setErrorLengthArbre(
+          "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B",
+        );
+      } else {
+        const listPlayersA = dataOrder
+          .sort((a, b) => b.points - a.points)
+          .slice(0, A);
+        const listPlayersB =
+          B == 0
+            ? []
+            : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
+        const listPlayersC =
+          e.target.elements.C.value == 0
+            ? []
+            : dataOrder
+                .sort((a, b) => b.points - a.points)
+                .slice(A + B, A + B + C);
+        console.log(listPlayersA);
+        console.log(listPlayersB);
+        console.log(listPlayersC);
+        await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
+          listPlayersA,
+        });
+        await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
+          listPlayersB,
+        });
+        await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
+          listPlayersC,
+        });
+        setResponseWin("Tous les tournois crées");
+        setTimeout(() => {
+          recharge();
+        }, 1000);
+      }
+    } catch (err) {
+      setError(true);
+      navigate("/");
+      console.log(err);
+    } finally {
       setLoad(false);
-
-      setResponseWin("Tous les tournois crées");
-      setTimeout(() => {
-        recharge();
-      }, 1000);
     }
   };
   // Variable pour savoir si on respecte les conditions pour afficher le formulaire pour lancer la suite quand les 3 matches de poules sont fini

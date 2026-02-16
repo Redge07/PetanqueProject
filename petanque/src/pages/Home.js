@@ -28,7 +28,7 @@ const Home = () => {
         const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
           token,
         });
-        if (tokenIsValid.data.res) setPlayer(tokenIsValid.data.user);
+        setPlayer(tokenIsValid.data.user);
         setLogin(true);
       } catch (err) {
         setLogin(false);

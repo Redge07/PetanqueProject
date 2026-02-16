@@ -16,7 +16,7 @@ const Tournament = () => {
   // State qui récupère l'id de l'url pour savoir quel tournoi on doit afficher
   const { idTournament } = useParams();
   // State qui récupère une variable global pour savoir si on est connecté
-  const { setLoad, setError } = useContext(UsersContext);
+  const { setLoad, setError, setPlayer } = useContext(UsersContext);
   const [login, setLogin] = useState(false);
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
@@ -33,49 +33,53 @@ const Tournament = () => {
   const TournamentComponent = formatTournament[listPlayers.style];
 
   // Fonction qui recharge la page, on sait si le tournoi a commencé et quels sont les joueurs qui y participe
-  const recharge = () => {
-    setLoad(true);
-    // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
-    axios
-      .get(linkBackend + "tournaments/" + idTournament)
-      .then((res) => {
-        setResponseWin("");
-        const filteredMatches = res.data.matches
-          ? res.data.matches.filter(
-              (match) => match.id_playerA && (!match.end || match.end == -1),
-            )
-          : [];
+  const recharge = async () => {
+    console.log("bonsoir");
 
-        setListPlayers({
-          ...res.data,
-          matches: filteredMatches,
-        });
-        const { rounds, groupes, tours } = createPaires(filteredMatches);
-        setPaireInfos({ rounds, groupes, tours });
-      })
-      .catch((err) => navigate("/"))
-      .finally(() => setLoad(false));
+    setLoad(true);
+    try {
+      const res = await axios.get(linkBackend + "tournaments/" + idTournament);
+      console.log(linkBackend + "tournaments/" + idTournament);
+      setResponseWin("");
+      const filteredMatches = res.data.matches
+        ? res.data.matches.filter(
+            (match) => match.id_playerA && (!match.end || match.end == -1),
+          )
+        : [];
+
+      setListPlayers({
+        ...res.data,
+        matches: filteredMatches,
+      });
+      // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
+      const { rounds, groupes, tours } = createPaires(filteredMatches);
+      setPaireInfos({ rounds, groupes, tours });
+    } catch (err) {
+      setError(true);
+      console.log(err);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
 
   useEffect(() => {
     const verifToken = async () => {
       setLoad(true);
       const token = localStorage.getItem("token");
-      // try {
-      // } catch (err) {
-      // } finally {
-      // }
-      const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
-        token,
-      });
-      if (tokenIsValid.data.res) {
+      try {
+        const tokenIsValid = await axios.post(linkBackend + "log/verifToken", {
+          token,
+        });
+        setPlayer(tokenIsValid.data.user);
         setLogin(true);
         recharge();
-      } else {
+      } catch (err) {
         setLogin(false);
         localStorage.removeItem("token");
+      } finally {
+        setLoad(false);
       }
-      setLoad(false);
     };
     verifToken();
   }, []);

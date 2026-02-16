@@ -10,9 +10,6 @@ const Verify = () => {
   const { setLoad } = useContext(UsersContext);
   useEffect(() => {
     const verifyEmail = async () => {
-      console.log("bonsoir");
-      console.log(token);
-
       if (!token) return;
       setLoad(true);
       try {

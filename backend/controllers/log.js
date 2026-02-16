@@ -101,7 +101,6 @@ exports.verifToken = async (req, res) => {
   const token = req.body.token;
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    console.log("Token vérifié pour l'utilisateur:", decoded.user);
     res.json({ res: true, user: decoded.user });
   } catch (err) {
     res.status(401).json({ res: false });
