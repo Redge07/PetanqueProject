@@ -8,6 +8,13 @@ const port = process.env.PORT || 5000;
 const cors = require("cors");
 
 app.use(cors());
+
+app.post(
+  "/log/webhooks",
+  express.raw({ type: "application/json" }),
+  require("./controllers/log").webhooks,
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

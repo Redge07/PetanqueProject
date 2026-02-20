@@ -4,11 +4,13 @@ const { Resend } = require("resend");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { sendMail } = require("../constants/sendMail");
+const { Stripe } = require("stripe");
 const { log } = require("console");
 
 // Clé API de Resend pour envoyer des mails
 const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Fonction pour générer un token JWT pour un utilisateur
 const generateToken = (user) => {
@@ -175,4 +177,67 @@ exports.verifyEmail = async (req, res) => {
     console.error(err);
     res.status(500).send(err);
   }
+};
+
+exports.checkoutSession = async (req, res) => {
+  try {
+    const { idTournament } = req.body;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: "Tournoi +50 joueurs",
+            },
+            unit_amount: 9900, // 99€
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.FRONTEND_URL}success`,
+      cancel_url: `${process.env.FRONTEND_URL}cancel`,
+      metadata: {
+        idTournament,
+      },
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.webhooks = async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET,
+    );
+  } catch (err) {
+    console.log("❌ Signature invalide :", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // 🎯 Paiement réussi
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+
+    const tournamentId = session.metadata.idTournament;
+
+    console.log("✅ Paiement validé pour tournoi :", tournamentId);
+
+    // 👉 Ici tu mets ton UPDATE BDD
+    // await query("UPDATE tournaments SET paid = 1 WHERE id = ?", [tournamentId]);
+  }
+
+  res.json({ received: true });
 };
