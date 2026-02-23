@@ -99,26 +99,31 @@ exports.goTournamentClassement = async (req, res) => {
         });
       }
       // Maintenant on a tous les matches et il faut les insérer dans la tables
+      let matchInsert = [];
       let number = 1;
       for (let i = 0; i < matches.length; i++) {
         const m = matches[i];
-        await query(
-          "insert into matches2 (id_tournament, number, round, id_playerA, id_playerB, pseudo_A, pseudo_B, score_A, score_B, id_winner, end) values(?,?,?,?,?,?,?,0,0,0,?)",
-          [
-            req.params.id,
-            number,
-            m.round,
-            m.idA,
-            m.idB,
-            m.pseudoA,
-            m.pseudoB,
-            // Si c'est un match du round 1 on met 0 pour dire qu'il est en cours, sinon -2 pour dire que c'est un match qui n'a 0 joueur dispo en lui pour le moment
-            m.round == 1 ? 0 : -2,
-          ],
-          conn,
-        );
+        matchInsert.push([
+          req.params.id,
+          number,
+          m.round,
+          m.idA,
+          m.idB,
+          m.pseudoA,
+          m.pseudoB,
+          0,
+          0,
+          0,
+          // Si c'est un match du round 1 on met 0 pour dire qu'il est en cours, sinon -2 pour dire que c'est un match qui n'a 0 joueur dispo en lui pour le moment
+          m.round == 1 ? 0 : -2,
+        ]);
         number++;
       }
+      await query(
+        "insert into matches2 (id_tournament, number, round, id_playerA, id_playerB, pseudo_A, pseudo_B, score_A, score_B, id_winner, end) values ?",
+        [matchInsert],
+        conn,
+      );
       // On a crée tous les matchs, maintenant il faut mettre a jour les infos des joueurs
       notifs = await updatePlayers(
         listPlayers.map((player) => player.numero),

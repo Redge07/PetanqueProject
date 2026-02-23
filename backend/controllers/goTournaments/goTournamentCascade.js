@@ -83,28 +83,30 @@ exports.goTournamentCascade = async (req, res) => {
           // Si le tableau indique que le round de ce groupe a des matches on insère les matches a la BD
           // Par exemple on sait que le groupe C n'a pas de round 2 donc on ne fait rien
           if (barrages[groupe][i][1]) {
+            let matchInsert = [];
             for (let j = 0; j < nb_matches; j++) {
-              const test = await query(
-                "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, round, class, groupe, barrage) values(?,?,?,?,?,?,0,?,0,?,?)",
-                [
-                  idTournament,
-                  number,
-                  // On peut placer les joueurs si on est au groupe A et au round 1 car c'est le début du tournoi et qu'il faut placer les joueurs
-                  groupe == "A" && i == 0 ? listPlayersM[j * 2].numero : 0,
-                  groupe == "A" && i == 0 ? listPlayersM[j * 2].pseudo : "",
-                  groupe == "A" && i == 0 ? listPlayersM[j * 2 + 1].numero : 0,
-                  groupe == "A" && i == 0 ? listPlayersM[j * 2 + 1].pseudo : "",
-                  i + 1,
-                  groupe,
-                  // On indique que le match est un barrage si on a vu qu'on a besoin d'un barrage dans ce round et on le précise que pour le premier match du round
-                  barrage && j == 0 ? 1 : 0,
-                ],
-                conn,
-              );
-              console.log(test);
-
+              matchInsert.push([
+                idTournament,
+                number,
+                // On peut placer les joueurs si on est au groupe A et au round 1 car c'est le début du tournoi et qu'il faut placer les joueurs
+                groupe == "A" && i == 0 ? listPlayersM[j * 2].numero : 0,
+                groupe == "A" && i == 0 ? listPlayersM[j * 2].pseudo : "",
+                groupe == "A" && i == 0 ? listPlayersM[j * 2 + 1].numero : 0,
+                groupe == "A" && i == 0 ? listPlayersM[j * 2 + 1].pseudo : "",
+                0,
+                i + 1,
+                0,
+                groupe,
+                // On indique que le match est un barrage si on a vu qu'on a besoin d'un barrage dans ce round et on le précise que pour le premier match du round
+                barrage && j == 0 ? 1 : 0,
+              ]);
               number++;
             }
+            await query(
+              "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, round, class, groupe, barrage) values ?",
+              [matchInsert],
+              conn,
+            );
           }
           // Si on vient de placer les matches d'un round et que c'était un barrage alors on enlève un match car on a commencé la boucle avec 7.5 et puis on est passé a 8 pour ajouter le barrage mais au final y'a que 7 match qui parle d'une qualification normale
           if (barrage) nb_matches = nb_matches - 1;

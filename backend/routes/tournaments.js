@@ -8,5 +8,6 @@ router.delete("/players_attente/:id", tournaments.delete_players_attente);
 router.delete("/:id", tournaments.delete_players_valid);
 router.put("/:id", tournaments.valid);
 router.post("/:id", tournaments.add_player);
+router.post("/create_players/:id", tournaments.create_players);
 
 module.exports = router;

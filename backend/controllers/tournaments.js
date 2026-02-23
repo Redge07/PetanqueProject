@@ -204,11 +204,43 @@ exports.add_player = async (req, res) => {
     );
     await query(
       "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider, numero) values(?, 0, 0, ?, -1, 1, ?)",
-      [pseudo, idTournament, listPlayers.length + 1],
+      [
+        pseudo,
+        idTournament,
+        listPlayers.length
+          ? Math.max(...listPlayers.map((p) => p.numero)) + 1
+          : 1,
+      ],
     );
     return res.status(200).send("Le joueur a été ajouté");
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);
   }
+};
+
+exports.create_players = async (req, res) => {
+  const idTournament = req.params.id;
+  let { nbPlayers } = req.body;
+  nbPlayers = Number(nbPlayers);
+  if (!nbPlayers || nbPlayers < 2)
+    return res.status(200).json({ message: "Nombre de joueurs invalide" });
+  const listPlayers = await query(
+    "select numero from players where id_tournament = ?",
+    [idTournament],
+  );
+  let players = [];
+  const maxNumero = listPlayers.length
+    ? Math.max(...listPlayers.map((p) => p.numero))
+    : 0;
+  for (let i = maxNumero + 1; i <= maxNumero + nbPlayers; i++) {
+    players.push([`Test${i}`, 0, 0, idTournament, 0, 1, i, 0]);
+  }
+  await query(
+    "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider, numero, round) values ?",
+    [players],
+  );
+  res.json({
+    message: `${nbPlayers} joueurs créés pour le tournoi ${idTournament}`,
+  });
 };

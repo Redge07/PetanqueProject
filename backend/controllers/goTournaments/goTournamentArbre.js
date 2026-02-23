@@ -164,8 +164,6 @@ exports.goTournamentArbre = async (req, res) => {
 
 // API pour créer automatiquement X joueurs dans un tournoi donné
 exports.create_players = async (req, res) => {
-  console.log("yo");
-
   const idTournament = req.params.id;
   const { nbPlayers, groupe = "A" } = req.body; // ex : { nbPlayers: 30 }
 

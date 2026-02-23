@@ -40,35 +40,41 @@ exports.createArbre = async (
   number = number + prelim / 2;
 
   // Je crée les matches excluant les matches de préliminaire
+  let matchInsert = [];
   for (let i = 1; i <= p2 / 2; i = i * 2) {
     for (let j = 1; j <= i; j++) {
-      await query(
-        "insert into matches2 (id_tournament, number, end, class, round, groupe) values (?, ?, 0, ?, ?, ?)",
-        [idTournament, number, i, round, groupe],
-        conn,
-      );
+      matchInsert.push([idTournament, number, 0, i, round, groupe]);
       number--;
     }
   }
+  await query(
+    "insert into matches2 (id_tournament, number, end, class, round, groupe) values ?",
+    [matchInsert],
+    conn,
+  );
+
   // Je crée les matches préliminaire et j'en profite pour ajouter tous les jouers car ces matches seront forcément rempli des joueurs (sauf si ca concerne le tournoi en mode cascade, avec la really on gère ça facilement)
+  let matchInsert2 = [];
   for (let i = 1; i <= prelim / 2; i++) {
-    await query(
-      "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class, groupe, round) values (?, ?, ?, ?, ?, ?, 0, ?, ?, ?)",
-      [
-        idTournament,
-        number,
-        really ? tirage[(i - 1) * 2].numero : 0,
-        really ? tirage[(i - 1) * 2].pseudo : "",
-        really ? tirage[(i - 1) * 2 + 1].numero : 0,
-        really ? tirage[(i - 1) * 2 + 1].pseudo : "",
-        p2,
-        groupe,
-        round,
-      ],
-      conn,
-    );
+    matchInsert2.push([
+      idTournament,
+      number,
+      really ? tirage[(i - 1) * 2].numero : 0,
+      really ? tirage[(i - 1) * 2].pseudo : "",
+      really ? tirage[(i - 1) * 2 + 1].numero : 0,
+      really ? tirage[(i - 1) * 2 + 1].pseudo : "",
+      0,
+      p2,
+      groupe,
+      round,
+    ]);
     number--;
   }
+  await query(
+    "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class, groupe, round) values ?",
+    [matchInsert2],
+    conn,
+  );
   // Si c'est un vrai tournoi on aura besoin de ces infos pour le retour
   if (really) return { prelim, p2, tirage, number };
 };

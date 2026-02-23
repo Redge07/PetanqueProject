@@ -121,23 +121,24 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       setLoad(false);
     }
   };
-  const handleCreatePlayers = () => {
+  const handleCreatePlayers = async () => {
     if (!nbPlayers || nbPlayers <= 0) return;
     setLoad(true);
-    axios
-      .post(
-        linkBackend + "gotournaments/create_players/" + idTournament,
-        new URLSearchParams({
-          nbPlayers: nbPlayers,
-        }),
+    try {
+      await axios.post(
+        linkBackend + "tournaments/create_players/" + idTournament,
         {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+          nbPlayers: nbPlayers,
         },
-      )
-      .then((res) => handleApiResponse(res))
-      .finally(() => setLoad(false));
+      );
+      recharge();
+    } catch (err) {
+      console.log(err);
+      setError(true);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
   };
 
   return (

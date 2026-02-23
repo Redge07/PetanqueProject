@@ -1,5 +1,3 @@
-Du point de vu d'un participant, pouvoir rechercher un tournoi facilement
-Avoir une actualisation de la page automatiquement (useEffect + setInterval)
 Pour les insert, ne pas faire plein d'aller-retour d'un coup
 Séparé les joueurs d'un classement qui ont le meme nombre de points
 Créer le système de récompense
