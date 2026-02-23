@@ -73,7 +73,7 @@ exports.connection = async (req, res) => {
     // results = [ { id: 6, pseudo: 'Regis', password: 'aaaaaa' } ]
     // Si tout est bon pour la connexion on peut créer un token qui permettra de revenir sur le site sans avoir besoin de se reconnecter a nouveau
     const token = generateToken(user);
-    res.json({ res: 1, user, token });
+    res.json({ res: 1, user, token, message: "Connexion réussi" });
   } catch (err) {
     log("Erreur lors de la connexion:", err);
     return res.status(500).send(err);

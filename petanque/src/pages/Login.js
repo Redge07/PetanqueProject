@@ -78,6 +78,7 @@ const Login = () => {
           longitude: longitude,
           latitude: latitude,
         });
+        setRes(res.data.message);
         setTimeout(() => {
           chargeHome(res.data.user);
         }, 1000);

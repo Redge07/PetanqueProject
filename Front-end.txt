@@ -39,7 +39,7 @@ Back-end :
 	- Faire des callback si le backend plante (si on a validé le vainqueur mais pas le perdant a cause d'un bug la BD est mal mis a jour)
 		- Faire un backend très propres dans l'écriture du code avec des try/catch car ça gère les erreurs et c'est plus compréhensible pour vérifier les erreurs
 		- Utiliser les res.status pour avoir une réponse API très clair et propre pour les utilisateurs
-	- Pour les insert, éviter de faire 200 allers-retours et plutot faire un gros insert en une fois
+		- Pour les insert, éviter de faire 200 allers-retours et plutot faire un gros insert en une fois
 	- Quand on fait des requetes SQL avec des select, il faudrait préciser les colonnes qu'on veut pour avoir que des données qui nous intéressent.
 		- Quand je fais des requetes SQL, il vaut mieux faire une requetes SQL qui récupère toutes les données d'un coup pour les manipuler en JS au lieu de faire plusieurs appels a des requetes SQL
 		- Changé toutes la logique, faire la génération du tournoi au lancement et pas un calcul a chaque victoire

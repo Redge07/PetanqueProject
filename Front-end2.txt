@@ -1,7 +1,4 @@
-Pour les insert, ne pas faire plein d'aller-retour d'un coup
 Séparé les joueurs d'un classement qui ont le meme nombre de points
 Créer le système de récompense
-Créer le bouton pour créer des joueurs aléatoire
-Le dernier match de poule en mode arbre doit déclencher le formulaire pour lançer les tournois en arbre
 Insérer le "Continuer avec Google"
 Gérer la création d'un tournoi Premium

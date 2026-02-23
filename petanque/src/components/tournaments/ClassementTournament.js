@@ -8,6 +8,7 @@ import { OrgaContext } from "../../pages/Tournament";
 import Order from "../tournamentComponents/Order";
 import { UsersContext } from "../../App";
 import { useNavigate } from "react-router-dom";
+import handleGoArbreClassementUtil from "../../utils/handleGoArbreClassement";
 
 const ClassementTournament = ({
   listPlayers,
@@ -30,22 +31,22 @@ const ClassementTournament = ({
   // State pour préciser si le choix des valeurs des arbres de classement est cohérent
   const [errorLengthArbre, setErrorLengthArbre] = useState("");
 
+  const chargeOrder = async () => {
+    setLoad(true);
+    try {
+      const res = await axios.get(
+        linkBackend + "tournaments/classement/" + idTournament,
+      );
+      setDataOrder(res.data);
+    } catch (err) {
+      setError(true);
+      navigate("/");
+      console.log(err);
+    } finally {
+      setLoad(false);
+    }
+  };
   useEffect(() => {
-    const chargeOrder = async () => {
-      setLoad(true);
-      try {
-        const res = await axios.get(
-          linkBackend + "tournaments/classement/" + idTournament,
-        );
-        setDataOrder(res.data);
-      } catch (err) {
-        setError(true);
-        navigate("/");
-        console.log(err);
-      } finally {
-        setLoad(false);
-      }
-    };
     chargeOrder();
   }, []);
 
@@ -86,6 +87,7 @@ const ClassementTournament = ({
         setResponseWin(res.data);
         setTimeout(() => {
           recharge();
+          chargeOrder();
         }, 1000);
       }
     } catch (err) {
@@ -116,6 +118,7 @@ const ClassementTournament = ({
       setResponseWin(res.data);
       setTimeout(() => {
         recharge();
+        chargeOrder();
       }, 1000);
     } catch (err) {
       setError(true);
@@ -131,49 +134,16 @@ const ClassementTournament = ({
     e.preventDefault();
     setLoad(true);
     try {
-      const A = Number(e.target.elements.A.value);
-      const B = Number(e.target.elements.B.value);
-      const C = Number(e.target.elements.C.value);
-
-      if (A + B + C > dataOrder.length) {
-        setErrorLengthArbre(
-          "Il n'y a pas assez de joueurs pour crée les tournois que vous avez préciser",
-        );
-      } else if ((B == 0) & (C > 0)) {
-        setErrorLengthArbre(
-          "Vous ne pouvez pas créer de tournoi pour le groupe C et ne pas en faire pour le groupe B",
-        );
-      } else {
-        const listPlayersA = dataOrder
-          .sort((a, b) => b.points - a.points)
-          .slice(0, A);
-        const listPlayersB =
-          B == 0
-            ? []
-            : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
-        const listPlayersC =
-          e.target.elements.C.value == 0
-            ? []
-            : dataOrder
-                .sort((a, b) => b.points - a.points)
-                .slice(A + B, A + B + C);
-        console.log(listPlayersA);
-        console.log(listPlayersB);
-        console.log(listPlayersC);
-        await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
-          listPlayersA,
-        });
-        await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
-          listPlayersB,
-        });
-        await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
-          listPlayersC,
-        });
-        setResponseWin("Tous les tournois crées");
-        setTimeout(() => {
-          recharge();
-        }, 1000);
-      }
+      await handleGoArbreClassementUtil(
+        e,
+        setErrorLengthArbre,
+        dataOrder.players,
+        idTournament,
+      );
+      setTimeout(() => {
+        recharge();
+        chargeOrder();
+      }, 1000);
     } catch (err) {
       setError(true);
       navigate("/");
@@ -182,20 +152,10 @@ const ClassementTournament = ({
       setLoad(false);
     }
   };
-  // Variable pour savoir si on respecte les conditions pour afficher le formulaire pour lancer la suite quand les 3 matches de poules sont fini
-  const formArbre =
-    dataOrder.length != 0 &&
-    !listPlayers.vainqueurs.vainqueurA &&
-    !listPlayers.vainqueurs.vainqueurB &&
-    !listPlayers.vainqueurs.vainqueurC &&
-    dataOrder.filter((j) => j.nb_matchs_jouer == 3).length ==
-      dataOrder.length &&
-    listPlayers.matches.filter((m) => m.id_playerB).length == 0 &&
-    listPlayers.matches.filter((m) => m.class == 0.5).length == 0;
   return (
     <div>
       {/* Pour un joueur quand tous les 3 matches sont fini */}
-      {formArbre && !orga && (
+      {dataOrder.goArbre && !orga && (
         <p>
           La phase de poule est fini, il faut attendre le tirage au sort pour la
           suite en arbre
@@ -209,7 +169,7 @@ const ClassementTournament = ({
         </div>
       )}
       {/* Quand les 3 matches sont fini, l'orga voit le formulaire pour créer les tournois en arbre apparaitre */}
-      {formArbre && orga && (
+      {dataOrder.goArbre && orga && (
         <CreateTournamentArbreClassement
           handleGoArbreClassement={handleGoArbreClassement}
           errorLengthArbre={errorLengthArbre}

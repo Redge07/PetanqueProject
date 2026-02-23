@@ -18,7 +18,7 @@ const Order = ({ idTournament }) => {
         const res = await axios.get(
           linkBackend + "tournaments/classement/" + idTournament,
         );
-        setDataOrder(res.data);
+        setDataOrder(res.data.players);
       } catch (err) {
         setError(true);
         navigate("/");

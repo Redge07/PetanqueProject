@@ -58,81 +58,6 @@ exports.charge = async (req, res) => {
   }
 };
 
-// API pour récupérer le classement d'un tournoi en mode classement, ça nous renvoie tous les joueurs avec leurs points actuel
-exports.charge_classement = async (req, res) => {
-  try {
-    const idTournament = req.params.id;
-    // On récupère tous les matches qui sont en phase de poule, tous les matches sont déjà rempli de joueurs car des le début du tournoi tous les joueurs savent leurs 3 adversaires de poule
-    const matches = await query(
-      "select * from matches2 where id_tournament = ? and round < 4",
-      [idTournament],
-    );
-    // A l'aide des matches du tournoi qui ont été généré on peut calculer le nombre de points des joueurs, on déclare un tableau vide qui se remplira des joueurs qui participent au tournoi
-    let players = [];
-    // On va itérer chaque match
-    matches.forEach((match) => {
-      // On va d'abord ce concentrer sur le joueur A de ce match en question (peut etre qu'il faudra l'enregistré dans le tableau players ou alors mettre a jour ses données si il est deja dans le tableau players)
-      let playerA = players.find((p) => p.numero == match.id_playerA);
-      // Si on a pas trouvé le joueur A du match en question dans le tableau players alors il faut l'enregistré dans le tableau et on peut enregistré toutes ces caractéristique car c'est le joueur qui représente le joueur A dans ce match en question
-      if (!playerA) {
-        players.push({
-          numero: match.id_playerA,
-          pseudo: match.pseudo_A,
-          points:
-            match.id_winner == match.id_playerA
-              ? match.score_A + 5
-              : match.score_A,
-          // Si le match a déjà un gagnant on peut noter que ce joueur a déjà fait un match, on note seulement 1 match pour l'instant car c'est la première fois qu'on le chope dans l'itération des matches. Peut etre qu'il a fait 2 match mais ça on le notera plus tard si on le revoie dans un match en continuant l'itération
-          nb_matchs_jouer: match.id_winner > 0 ? 1 : 0,
-        });
-        // Sinon ça veut dire qu'on avait déjà enregistré le joueur A dans la tableau players et que la on la retrouvé dans un autre match
-        // Si le match auquel on la retrouvé une deuxième fois a un gagnant ça veut dire qu'il faut donc mettre a jour ses infos car on sait qu'il a fait un match supplémentaires.
-        // Si ce match n'a pas de gagnant on peut s'arreter la pour le joueur A du match car on n'a rien a mettre a jour
-      } else if (match.id_winner > 0) {
-        // Donc on avait récupéré le joueur dans le tableau players et on a toutes infos qui manque d'etre mis a jour
-        // On récupére donc ces points actuel et ces matches joué qui vont etre actualisé grace au match auquel on est dans l'itération
-        const points = playerA.points;
-        const nb_matchs_jouer = playerA.nb_matchs_jouer;
-        playerA.points =
-          points +
-          (match.id_winner == playerA.numero
-            ? match.score_A + 5
-            : match.score_A);
-        playerA.nb_matchs_jouer = nb_matchs_jouer + 1;
-      }
-      // Donc la on a tout fait pour la joueur A du match en question (on l'a enregistré dans le tableau ou on a mis ces infos a jour)
-      // Maintenant on passe au joueur B du match en question
-      let playerB = players.find((p) => p.numero == match.id_playerB);
-      // Si le joueur B ne fait pas parti du tableau players alors faut l'enregistré
-      if (!playerB) {
-        players.push({
-          numero: match.id_playerB,
-          pseudo: match.pseudo_B,
-          points:
-            match.id_winner == match.id_playerB
-              ? match.score_B + 5
-              : match.score_B,
-          nb_matchs_jouer: match.id_winner > 0 ? 1 : 0,
-        });
-        // Sinon on met a jour ces infos si le match en question est deja fini
-      } else if (match.id_winner > 0) {
-        const points = playerB.points;
-        const nb_matchs_jouer = playerB.nb_matchs_jouer;
-        playerB.points =
-          points +
-          (match.id_winner == playerB.numero
-            ? match.score_B + 5
-            : match.score_B);
-        playerB.nb_matchs_jouer = nb_matchs_jouer + 1;
-      }
-    });
-    return res.status(200).json(players);
-  } catch (err) {
-    console.log(err);
-    return res.status(500).send(err);
-  }
-};
-
 // API pour supprimer la demande d'un utilisateur qui souhaite participer au tournoi
 exports.delete_players_attente = async (req, res) => {
   try {
@@ -180,7 +105,13 @@ exports.valid = async (req, res) => {
     );
     await query(
       "update players set valider = 1, numero = ? where id_user = ?",
-      [listPlayers.length + 1, idUser],
+      [
+        listPlayers.length
+          ? Math.max(...listPlayers.map((p) => p.numero)) + 1
+          : 1,
+        ,
+        idUser,
+      ],
     );
     return res.status(200).json({
       res: 1,
@@ -243,4 +174,82 @@ exports.create_players = async (req, res) => {
   res.json({
     message: `${nbPlayers} joueurs créés pour le tournoi ${idTournament}`,
   });
+};
+
+// API pour récupérer le classement d'un tournoi en mode classement, ça nous renvoie tous les joueurs avec leurs points actuel
+exports.charge_classement = async (req, res) => {
+  try {
+    const idTournament = req.params.id;
+    // On récupère tous les matches qui sont en phase de poule, tous les matches sont déjà rempli de joueurs car des le début du tournoi tous les joueurs savent leurs 3 adversaires de poule
+    const Allmatches = await query(
+      "select * from matches2 where id_tournament = ?",
+      [idTournament],
+    );
+    let goArbre = true;
+    if (Allmatches.find((m) => m.round > 3 || m.end != 1)) goArbre = false;
+    const matches = Allmatches.filter((m) => m.round < 4);
+    // A l'aide des matches du tournoi qui ont été généré on peut calculer le nombre de points des joueurs, on déclare un tableau vide qui se remplira des joueurs qui participent au tournoi
+    let players = [];
+    // On va itérer chaque match
+    matches.forEach((match) => {
+      // On va d'abord ce concentrer sur le joueur A de ce match en question (peut etre qu'il faudra l'enregistré dans le tableau players ou alors mettre a jour ses données si il est deja dans le tableau players)
+      let playerA = players.find((p) => p.numero == match.id_playerA);
+      // Si on a pas trouvé le joueur A du match en question dans le tableau players alors il faut l'enregistré dans le tableau et on peut enregistré toutes ces caractéristique car c'est le joueur qui représente le joueur A dans ce match en question
+      if (!playerA) {
+        players.push({
+          numero: match.id_playerA,
+          pseudo: match.pseudo_A,
+          points:
+            match.id_winner == match.id_playerA
+              ? match.score_A + 5
+              : match.score_A,
+          // Si le match a déjà un gagnant on peut noter que ce joueur a déjà fait un match, on note seulement 1 match pour l'instant car c'est la première fois qu'on le chope dans l'itération des matches. Peut etre qu'il a fait 2 match mais ça on le notera plus tard si on le revoie dans un match en continuant l'itération
+          nb_matchs_jouer: match.id_winner > 0 ? 1 : 0,
+        });
+        // Sinon ça veut dire qu'on avait déjà enregistré le joueur A dans la tableau players et que la on la retrouvé dans un autre match
+        // Si le match auquel on la retrouvé une deuxième fois a un gagnant ça veut dire qu'il faut donc mettre a jour ses infos car on sait qu'il a fait un match supplémentaires.
+        // Si ce match n'a pas de gagnant on peut s'arreter la pour le joueur A du match car on n'a rien a mettre a jour
+      } else if (match.id_winner > 0) {
+        // Donc on avait récupéré le joueur dans le tableau players et on a toutes infos qui manque d'etre mis a jour
+        // On récupére donc ces points actuel et ces matches joué qui vont etre actualisé grace au match auquel on est dans l'itération
+        const points = playerA.points;
+        const nb_matchs_jouer = playerA.nb_matchs_jouer;
+        playerA.points =
+          points +
+          (match.id_winner == playerA.numero
+            ? match.score_A + 5
+            : match.score_A);
+        playerA.nb_matchs_jouer = nb_matchs_jouer + 1;
+      }
+      // Donc la on a tout fait pour la joueur A du match en question (on l'a enregistré dans le tableau ou on a mis ces infos a jour)
+      // Maintenant on passe au joueur B du match en question
+      let playerB = players.find((p) => p.numero == match.id_playerB);
+      // Si le joueur B ne fait pas parti du tableau players alors faut l'enregistré
+      if (!playerB) {
+        players.push({
+          numero: match.id_playerB,
+          pseudo: match.pseudo_B,
+          points:
+            match.id_winner == match.id_playerB
+              ? match.score_B + 5
+              : match.score_B,
+          nb_matchs_jouer: match.id_winner > 0 ? 1 : 0,
+        });
+        // Sinon on met a jour ces infos si le match en question est deja fini
+      } else if (match.id_winner > 0) {
+        const points = playerB.points;
+        const nb_matchs_jouer = playerB.nb_matchs_jouer;
+        playerB.points =
+          points +
+          (match.id_winner == playerB.numero
+            ? match.score_B + 5
+            : match.score_B);
+        playerB.nb_matchs_jouer = nb_matchs_jouer + 1;
+      }
+    });
+    return res.status(200).json({ players, goArbre });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
 };

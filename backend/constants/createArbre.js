@@ -70,11 +70,13 @@ exports.createArbre = async (
     ]);
     number--;
   }
-  await query(
-    "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class, groupe, round) values ?",
-    [matchInsert2],
-    conn,
-  );
+  if (matchInsert2.length > 0) {
+    await query(
+      "insert into matches2 (id_tournament, number, end, class, round, groupe) values ?",
+      [matchInsert2],
+      conn,
+    );
+  }
   // Si c'est un vrai tournoi on aura besoin de ces infos pour le retour
   if (really) return { prelim, p2, tirage, number };
 };
