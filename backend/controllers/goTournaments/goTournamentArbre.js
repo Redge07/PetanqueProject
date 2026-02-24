@@ -2,6 +2,12 @@ const { createArbre } = require("../../constants/createArbre");
 const { query, withTransaction } = require("../../constants/query");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+const status = {
+  noEnough: 0,
+  premium: 1,
+  valid: 2,
+};
+
 const { Expo } = require("expo-server-sdk");
 
 const expo = new Expo();
@@ -25,8 +31,24 @@ exports.goTournamentArbre = async (req, res) => {
           [idTournament],
           conn,
         );
+        const tournament = (
+          await query(
+            "select premium from tournaments where id = ?",
+            [idTournament],
+            conn,
+          )
+        )[0];
         // On accepte pas de lançer le tournoi si on voit qu'il y a moins de 2 joueurs inscrit
-        if (listPlayers.length < 2) return "Il faut au moins 2 joueurs";
+        if (listPlayers.length < 2)
+          return {
+            res: status.noEnough,
+            message: "Il faut au moins 2 joueurs",
+          };
+        if (listPlayers.length > 11 && tournament.premium == 0)
+          return {
+            res: status.premium,
+            message: "Vous etes dans le cas d'un tournoi payant",
+          };
         await query(
           "update tournaments set start = ? where id = ?",
           [1, idTournament],
@@ -148,7 +170,10 @@ exports.goTournamentArbre = async (req, res) => {
           [idTournament],
           conn,
         );
-      return "Oui";
+      return {
+        res: status.valid,
+        message: "Le tournoi a été crée",
+      };
     });
     notifs.forEach((n) => {
       if (Expo.isExpoPushToken(n.to)) {

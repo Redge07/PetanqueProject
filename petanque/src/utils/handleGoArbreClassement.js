@@ -24,15 +24,10 @@ const handleGoArbreClassementUtil = async (
     return;
   }
 
-  const listPlayersA = dataOrder
-    .sort((a, b) => b.points - a.points)
-    .slice(0, A);
-  const listPlayersB =
-    B == 0 ? [] : dataOrder.sort((a, b) => b.points - a.points).slice(A, A + B);
+  const listPlayersA = dataOrder.slice(0, A);
+  const listPlayersB = B == 0 ? [] : dataOrder.slice(A, A + B);
   const listPlayersC =
-    e.target.elements.C.value == 0
-      ? []
-      : dataOrder.sort((a, b) => b.points - a.points).slice(A + B, A + B + C);
+    e.target.elements.C.value == 0 ? [] : dataOrder.slice(A + B, A + B + C);
   await axios.put(linkBackend + "gotournaments/arbre/" + idTournament, {
     listPlayersA,
   });

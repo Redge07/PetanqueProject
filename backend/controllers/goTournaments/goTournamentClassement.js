@@ -1,6 +1,12 @@
 const { query, withTransaction } = require("../../constants/query");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+const status = {
+  noEnough: 0,
+  premium: 1,
+  valid: 2,
+};
+
 const { Expo } = require("expo-server-sdk");
 const expo = new Expo();
 
@@ -59,12 +65,28 @@ exports.goTournamentClassement = async (req, res) => {
         [idTournament],
         conn,
       );
+      const tournament = (
+        await query(
+          "select premium from tournaments where id = ?",
+          [idTournament],
+          conn,
+        )
+      )[0];
       // Pour pouvoir lançer le tournoi il faut soit 4 joueurs, soit + de 7 joueurs et un nombre paire
       if (
         (listPlayers.length <= 7 && listPlayers.length != 4) ||
         listPlayers.length % 2 != 0
       )
-        return "Il faut au moins 8 joueurs ou alors 4 joueurs et que se soit un nombre de joueurs pair";
+        return {
+          res: status.noEnough,
+          message:
+            "Il faut au moins 8 joueurs ou alors 4 joueurs et que se soit un nombre de joueurs pair",
+        };
+      if (listPlayers.length > 11 && tournament.premium == 0)
+        return {
+          res: status.premium,
+          message: "Vous etes dans le cas d'un tournoi payant",
+        };
       await query(
         "update tournaments set start = ? where id = ?",
         [1, idTournament],
@@ -131,7 +153,10 @@ exports.goTournamentClassement = async (req, res) => {
         conn,
         true,
       );
-      return "Go tournoi !";
+      return {
+        res: status.valid,
+        message: "Go tournoi !",
+      };
     });
     notifs.forEach((n) => {
       if (Expo.isExpoPushToken(n.to)) {

@@ -199,6 +199,8 @@ exports.charge_classement = async (req, res) => {
         players.push({
           numero: match.id_playerA,
           pseudo: match.pseudo_A,
+          diff: match.score_A - match.score_B,
+          nb_win: match.id_winner == match.id_playerA ? 1 : 0,
           points:
             match.id_winner == match.id_playerA
               ? match.score_A + 5
@@ -212,8 +214,12 @@ exports.charge_classement = async (req, res) => {
       } else if (match.id_winner > 0) {
         // Donc on avait récupéré le joueur dans le tableau players et on a toutes infos qui manque d'etre mis a jour
         // On récupére donc ces points actuel et ces matches joué qui vont etre actualisé grace au match auquel on est dans l'itération
+        const diff = playerA.diff;
         const points = playerA.points;
         const nb_matchs_jouer = playerA.nb_matchs_jouer;
+        const nb_win = playerA.nb_win;
+        playerA.diff = diff + (match.score_A - match.score_B);
+        playerA.nb_win = nb_win + (match.id_winner == playerA.numero ? 1 : 0);
         playerA.points =
           points +
           (match.id_winner == playerA.numero
@@ -229,6 +235,8 @@ exports.charge_classement = async (req, res) => {
         players.push({
           numero: match.id_playerB,
           pseudo: match.pseudo_B,
+          diff: match.score_B - match.score_A,
+          nb_win: match.id_winner == match.id_playerB ? 1 : 0,
           points:
             match.id_winner == match.id_playerB
               ? match.score_B + 5
@@ -237,8 +245,12 @@ exports.charge_classement = async (req, res) => {
         });
         // Sinon on met a jour ces infos si le match en question est deja fini
       } else if (match.id_winner > 0) {
+        const diff = playerB.diff;
         const points = playerB.points;
         const nb_matchs_jouer = playerB.nb_matchs_jouer;
+        const nb_win = playerB.nb_win;
+        playerB.diff = diff + (match.score_B - match.score_A);
+        playerB.nb_win = nb_win + (match.id_winner == playerB.numero ? 1 : 0);
         playerB.points =
           points +
           (match.id_winner == playerB.numero
@@ -246,6 +258,12 @@ exports.charge_classement = async (req, res) => {
             : match.score_B);
         playerB.nb_matchs_jouer = nb_matchs_jouer + 1;
       }
+    });
+    players.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.nb_win !== a.nb_win) return b.nb_win - a.nb_win;
+      if (b.diff !== a.diff) return b.diff - a.diff;
+      return a.numero - b.numero;
     });
     return res.status(200).json({ players, goArbre });
   } catch (err) {

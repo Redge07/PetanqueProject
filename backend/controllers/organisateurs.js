@@ -23,7 +23,7 @@ exports.create = async (req, res) => {
     const admin = req.params.admin;
     const { name, style } = req.body;
     await query(
-      "insert into tournaments (name, admin, style) values(?, ?, ?)",
+      "insert into tournaments (name, admin, style, premium) values(?, ?, ?, 0)",
       [name, admin, style],
     );
     return res.send(`Votre tournoi ${name} a bien été crée`);

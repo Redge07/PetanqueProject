@@ -2,6 +2,12 @@ const { createArbre } = require("../../constants/createArbre");
 const { query, withTransaction } = require("../../constants/query");
 const { updatePlayers } = require("../../constants/updatePlayers");
 
+const status = {
+  noEnough: 0,
+  premium: 1,
+  valid: 2,
+};
+
 const { Expo } = require("expo-server-sdk");
 const expo = new Expo();
 
@@ -26,8 +32,24 @@ exports.goTournamentCascade = async (req, res) => {
         [idTournament],
         conn,
       );
+      const tournament = (
+        await query(
+          "select premium from tournaments where id = ?",
+          [idTournament],
+          conn,
+        )
+      )[0];
       // Pour lançer le tournoi il faut au moins 8 joueurs
-      if (listPlayers.length < 8) return "Il faut au moins 8 joueurs";
+      if (listPlayers.length < 8)
+        return {
+          res: status.noEnough,
+          message: "Il faut au moins 8 joueurs",
+        };
+      if (listPlayers.length > 11 && tournament.premium == 0)
+        return {
+          res: status.premium,
+          message: "Vous etes dans le cas d'un tournoi payant",
+        };
       await query(
         "update tournaments set start = ? where id = ?",
         [1, idTournament],
@@ -137,7 +159,10 @@ exports.goTournamentCascade = async (req, res) => {
         conn,
         true,
       );
-      return "Go tournoi !";
+      return {
+        res: status.valid,
+        message: "Go tournoi !",
+      };
     });
     notifs.forEach((n) => {
       if (Expo.isExpoPushToken(n.to)) {

@@ -109,7 +109,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       const res = await axios.put(
         linkBackend + `gotournaments/${style}/` + idTournament,
       );
-      setResponseGoTournament(res.data);
+      setResponseGoTournament(res.data.message);
       setTimeout(() => {
         recharge();
       }, 1000);
