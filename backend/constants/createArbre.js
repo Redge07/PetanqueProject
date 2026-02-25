@@ -72,7 +72,7 @@ exports.createArbre = async (
   }
   if (matchInsert2.length > 0) {
     await query(
-      "insert into matches2 (id_tournament, number, end, class, round, groupe) values ?",
+      "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class, groupe, round) values ?",
       [matchInsert2],
       conn,
     );

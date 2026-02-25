@@ -233,6 +233,10 @@ exports.webhooks = async (req, res) => {
 
     const tournamentId = session.metadata.idTournament;
 
+    await query("update tournaments set premium = 1 where id = ?", [
+      tournamentId,
+    ]);
+
     console.log("✅ Paiement validé pour tournoi :", tournamentId);
 
     // 👉 Ici tu mets ton UPDATE BDD
