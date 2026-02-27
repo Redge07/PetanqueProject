@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useContext, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import { UsersContext } from "../../App";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
@@ -109,7 +109,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       const res = await axios.put(
         linkBackend + `gotournaments/${style}/` + idTournament,
       );
-      setResponseGoTournament(res.data.message);
+      setResponseGoTournament(res.data);
       setTimeout(() => {
         recharge();
       }, 1000);
@@ -132,6 +132,22 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         },
       );
       recharge();
+    } catch (err) {
+      console.log(err);
+      setError(true);
+      navigate("/");
+    } finally {
+      setLoad(false);
+    }
+  };
+
+  const handlePayement = async () => {
+    try {
+      setLoad(true);
+      const res = await axios.post(
+        linkBackend + "log/create-checkout-session/" + idTournament,
+      );
+      window.open(res.data.url, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.log(err);
       setError(true);
@@ -217,7 +233,10 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       <button onClick={handleCreatePlayers}>Créer les joueurs</button>
 
       <button onClick={handleGoTournament}>Lancer le tournoi</button>
-      <p>{responseGoTournament}</p>
+      <p>{responseGoTournament.message}</p>
+      {responseGoTournament.res == 1 && (
+        <button onClick={handlePayement}>Aller payer</button>
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-const { query } = require("../constants/query");
+const { query, withTransaction } = require("../constants/query");
 
 // API pour charger les tournois du users
 exports.charge = async (req, res) => {
@@ -37,10 +37,24 @@ exports.create = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const idTournament = req.params.id;
-    await query("delete from players where id_tournament = ?", [idTournament]);
-    await query("delete from matches where id_tournament = ?", [idTournament]);
-    await query("delete from matches2 where id_tournament = ?", [idTournament]);
-    await query("delete from tournaments where id = ?", [idTournament]);
+    await withTransaction(async (conn) => {
+      await query(
+        "delete from players where id_tournament = ?",
+        [idTournament],
+        conn,
+      );
+      await query(
+        "delete from matches where id_tournament = ?",
+        [idTournament],
+        conn,
+      );
+      await query(
+        "delete from matches2 where id_tournament = ?",
+        [idTournament],
+        conn,
+      );
+      await query("delete from tournaments where id = ?", [idTournament], conn);
+    });
     return res
       .status(200)
       .send(`Le tournoi numéro ${idTournament} à bien été supprimé`);

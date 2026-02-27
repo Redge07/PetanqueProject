@@ -1,6 +1,6 @@
 import React from "react";
 
-const SuccessPayement = () => {
+const CancelPayement = () => {
   return (
     <div
       style={{
@@ -10,10 +10,9 @@ const SuccessPayement = () => {
         alignItems: "center",
       }}
     >
-      Votre payement a bien été effectué, vous pouvez lancer votre tournoi
-      maintenant !
+      Une erreur s'est produite, vous n'avez pas été débité
     </div>
   );
 };
 
-export default SuccessPayement;
+export default CancelPayement;

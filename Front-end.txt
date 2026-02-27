@@ -36,7 +36,7 @@ Back-end :
 		- Les fichiers controllers sont beaucoup trop volumineux, il faudrait par exemple séparé les algorithmes des tournois en plusieurs fichiers javascript pour y voir plus clair (en profiter pour faire un code clair et structuré en faisant plein de fonctions differente (POO))
 		- Il faut que les fonctions soit asynchrones parce que a des moments j'enchaine des requetes sql, et une requete sql peut se terminer plus rapide qu'une autre 
 			et donc créer un décalage. Il faut ajouter les async et les promise pour avoir un code clair.
-	- Faire des callback si le backend plante (si on a validé le vainqueur mais pas le perdant a cause d'un bug la BD est mal mis a jour)
+		- Faire des callback si le backend plante (si on a validé le vainqueur mais pas le perdant a cause d'un bug la BD est mal mis a jour)
 		- Faire un backend très propres dans l'écriture du code avec des try/catch car ça gère les erreurs et c'est plus compréhensible pour vérifier les erreurs
 		- Utiliser les res.status pour avoir une réponse API très clair et propre pour les utilisateurs
 		- Pour les insert, éviter de faire 200 allers-retours et plutot faire un gros insert en une fois

@@ -8,6 +8,7 @@ import Verify from "./pages/Verify";
 import axios from "axios";
 import { linkBackend } from "./constants/LinkBackend";
 import SuccessPayement from "./pages/SuccessPayement";
+import CancelPayement from "./pages/CancelPayement";
 
 export const UsersContext = createContext();
 
@@ -55,6 +56,7 @@ const App = () => {
           <Route path="/verify/:token" element={<Verify />}></Route>
           <Route path="/verify/:token" element={<Verify />}></Route>
           <Route path="/success" element={<SuccessPayement />}></Route>
+          <Route path="/cancel" element={<CancelPayement />}></Route>
         </Routes>
       </BrowserRouter>
     </UsersContext.Provider>

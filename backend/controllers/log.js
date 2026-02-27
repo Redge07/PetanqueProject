@@ -1,4 +1,4 @@
-const { query } = require("../constants/query");
+const { query, withTransaction } = require("../constants/query");
 const jwt = require("jsonwebtoken");
 const { Resend } = require("resend");
 const bcrypt = require("bcrypt");
@@ -21,26 +21,28 @@ const generateToken = (user) => {
 
 // API pour l'inscription d'un utilisateur
 exports.inscription = async (req, res) => {
-  log("Tentative d'inscription pour l'email:", req.body.email);
   try {
     // On récupère l'email, le pseudo et le password rentré par l'utilisateur
     const { pseudo, email, password } = req.body;
-    let user = (await query("select * from users where email = ?", [email]))[0];
-    // Si il y a déjà un utilisateur avec l'email renseigné alors on peut pas s'inscrire
-    if (user)
-      return res.status(200).json({ res: 0, message: "Email déjà utilisé" });
-    // Sinon on peut lancer l'inscription dans la base de données
-    const hashedPassword = await bcrypt.hash(password, 10);
-    // On génère un token de vérification aléatoire qui nous permettra d'avoir un lien unique pour valider le fait que l'utilisateur a reçu le mail d'inscription et qu'il clique sur le lien pour valider son inscription
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    await query(
-      "insert into users (pseudo, email, password, verification_token) values (?, ?, ?, ?)",
-      [pseudo, email, hashedPassword, verificationToken],
-    );
-    await sendMail(email, "Vérification de votre compte", verificationToken);
-    return res
-      .status(200)
-      .json({ res: 1, message: "Compte crée et mail envoyé" });
+    const reponse = await withTransaction(async (conn) => {
+      let user = (
+        await query("select * from users where email = ?", [email], conn)
+      )[0];
+      // Si il y a déjà un utilisateur avec l'email renseigné alors on peut pas s'inscrire
+      if (user) return { res: 0, message: "Email déjà utilisé" };
+      // Sinon on peut lancer l'inscription dans la base de données
+      const hashedPassword = await bcrypt.hash(password, 10);
+      // On génère un token de vérification aléatoire qui nous permettra d'avoir un lien unique pour valider le fait que l'utilisateur a reçu le mail d'inscription et qu'il clique sur le lien pour valider son inscription
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+      await query(
+        "insert into users (pseudo, email, password, verification_token) values (?, ?, ?, ?)",
+        [pseudo, email, hashedPassword, verificationToken],
+        conn,
+      );
+      await sendMail(email, "Vérification de votre compte", verificationToken);
+      return { res: 1, message: "Compte crée et mail envoyé" };
+    });
+    return res.status(200).json(reponse);
   } catch (err) {
     console.log("Erreur lors de l'inscription:", err);
     return res.status(500).send(err);
@@ -159,20 +161,32 @@ exports.sendNotification = async (req, res) => {
 exports.verifyEmail = async (req, res) => {
   const { token } = req.params;
   try {
-    const user = (
-      await query("select * from users where verification_token = ?", [token])
-    )[0];
-    if (!user) {
-      return res.status(200).send("Token invalide");
-    }
-    // On dit que le user est officiellement vérifié
-    await query(
-      "update users set is_verified = 1, verification_token = NULL where id = ?",
-      [user.id],
-    );
-    // On en profite pour lui créer une ligne qui permettra de stocker son token de notifications et sa position quand il se connectera pour la première fois
-    await query("insert into push_tokens (user_id) values (?)", [user.id]);
-    res.send("Email vérifié avec succès");
+    const message = await withTransaction(async (conn) => {
+      const user = (
+        await query(
+          "select * from users where verification_token = ?",
+          [token],
+          conn,
+        )
+      )[0];
+      if (!user) {
+        return "Token invalide";
+      }
+      // On dit que le user est officiellement vérifié
+      await query(
+        "update users set is_verified = 1, verification_token = NULL where id = ?",
+        [user.id],
+        conn,
+      );
+      // On en profite pour lui créer une ligne qui permettra de stocker son token de notifications et sa position quand il se connectera pour la première fois
+      await query(
+        "insert into push_tokens (user_id) values (?)",
+        [user.id],
+        conn,
+      );
+      return "Email vérifié avec succès";
+    });
+    res.status(200).send(message);
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
@@ -181,7 +195,7 @@ exports.verifyEmail = async (req, res) => {
 
 exports.checkoutSession = async (req, res) => {
   try {
-    const { idTournament } = req.body;
+    const idTournament = req.params.id;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -191,9 +205,9 @@ exports.checkoutSession = async (req, res) => {
           price_data: {
             currency: "eur",
             product_data: {
-              name: "Tournoi +50 joueurs",
+              name: "Tournoi numéro " + idTournament,
             },
-            unit_amount: 9900, // 99€
+            unit_amount: 3000, // 30€
           },
           quantity: 1,
         },
@@ -238,9 +252,6 @@ exports.webhooks = async (req, res) => {
     ]);
 
     console.log("✅ Paiement validé pour tournoi :", tournamentId);
-
-    // 👉 Ici tu mets ton UPDATE BDD
-    // await query("UPDATE tournaments SET paid = 1 WHERE id = ?", [tournamentId]);
   }
 
   res.json({ received: true });

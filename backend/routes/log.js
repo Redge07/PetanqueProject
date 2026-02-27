@@ -9,7 +9,7 @@ router.get("/positions/:id", log.positions);
 router.post("/verifToken", log.verifToken);
 router.get("/sendNotification/:infos", log.sendNotification);
 router.get("/verify/:token", log.verifyEmail);
-router.post("/create-checkout-session", log.checkoutSession);
+router.post("/create-checkout-session/:id", log.checkoutSession);
 router.post("/webhooks", log.webhooks);
 
 module.exports = router;
