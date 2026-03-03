@@ -11,5 +11,6 @@ router.get("/sendNotification/:infos", log.sendNotification);
 router.get("/verify/:token", log.verifyEmail);
 router.post("/create-checkout-session/:id", log.checkoutSession);
 router.post("/webhooks", log.webhooks);
+router.post("/google", log.googleAuth);
 
 module.exports = router;
