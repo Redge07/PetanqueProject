@@ -6,11 +6,13 @@ const crypto = require("crypto");
 const { sendMail } = require("../constants/sendMail");
 const { Stripe } = require("stripe");
 const { log } = require("console");
+const { OAuth2Client } = require("google-auth-library");
 
 // Clé API de Resend pour envoyer des mails
 const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Fonction pour générer un token JWT pour un utilisateur
 const generateToken = (user) => {
@@ -77,7 +79,34 @@ exports.connection = async (req, res) => {
     const token = generateToken(user);
     res.json({ res: 1, user, token, message: "Connexion réussi" });
   } catch (err) {
-    log("Erreur lors de la connexion:", err);
+    console.log("Erreur lors de la connexion:", err);
+    return res.status(500).send(err);
+  }
+};
+
+exports.googleAuth = async (req, res) => {
+  const { tokenGoogle } = req.body;
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: tokenGoogle,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const pseudo = payload.name;
+    let user = (await query("select * from users where email = ?", [email]))[0];
+    if (!user) {
+      await query(
+        "insert into users (pseudo, email, is_verified) values (?, ?, 1)",
+        [pseudo, email],
+      );
+      user = (await query("select * from users where email = ?", [email]))[0];
+      await query("insert into push_tokens (user_id) values (?)", [user.id]);
+    }
+    const token = generateToken(user);
+    res.json({ res: 1, user, token, message: "Connexion réussi" });
+  } catch (err) {
+    console.log("Erreur lors de la connexion:", err);
     return res.status(500).send(err);
   }
 };

@@ -1,3 +1,7 @@
 Créer le système de récompense
 Insérer le "Continuer avec Google"
 id google pour le front et le back : 420341218128-0tlbi05tqb2p6g8s6ar1s5rjgisvu5ud.apps.googleusercontent.com
+
+Commenter nouveauté
+Comment j'ai utilisé google cloud
+Explication dans le drive
