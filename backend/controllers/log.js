@@ -70,7 +70,7 @@ exports.connection = async (req, res) => {
         message: "Veuillez vérifier votre email avant de vous connecter",
       });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password ? user.password : "");
     if (!isPasswordValid) {
       return res.json({ res: 0, message: "Email ou mot de passe incorrect" });
     }
