@@ -78,6 +78,7 @@ exports.charge = async (req, res) => {
       pseudoVersus: adversaire ? adversaire.pseudo : null,
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({ res: -1 });
   }
 };
@@ -109,6 +110,7 @@ exports.search = async (req, res) => {
         .json({ res: status.tournament.End, name: tournament.name });
     }
   } catch (err) {
+    console.log(err);
     return res.status(500).json({ res: -1 });
   }
 };
