@@ -1,6 +1,7 @@
-Etre bien a jour sur le projet : 
-	Fusionné table users et push_tokens
-	Bien documenter (google doc, canvas)
+Fusionné table users et push_tokens
+Bien documenter (google doc, canvas)
+
+Google cloud console, pour pouvoir se connecter avec google
 
 J'ai passé Stripe en mode test
 j'ai ajouté une route qui est checkoutSession pour envoyé vers le lien de paiement et récupérer des infos dans une session pour récupérer plus tard
@@ -23,6 +24,7 @@ Front-end :
 			Et aussi quand on fait des map il faut faire attention que le tableau à mappé n'est pas vide
 	- Pour la recherche d'un tournoi coté participant pour pouvoir s'inscire, il faut que la recherche soit très intuitif, avec la possiblité de rechercher avec le nom ou l'id du tournoi, 
 		ajouter aussi le système de QR Code
+	- Voir carte correctement sur téléphone
 	- Avoir un système d'actualisation de la page automatique, par exemple si je suis censé avoir un nouvel adversaire alors la page du participant se met automatiquement à jour 
 		sans rien toucher
 	- Sur mobile en mode page web, il ne faut pas que ça zoom automatiquement quand on veut écrire dans un champ de texte
