@@ -24,7 +24,7 @@ exports.charge = async (req, res) => {
       // On récupère tous les joueurs qui sont en lien avec ce tournoi
       const listPlayers = await query(
         "select * from players where id_tournament = ?",
-        [idTournament],
+        [idTournament]
       );
       return res.status(200).json({
         res: status.noStart,
@@ -35,7 +35,7 @@ exports.charge = async (req, res) => {
     // Sinon ça veut dire que le tournoi a bien commencé et que les matches ont déjà eté généré, donc on récupère ces matches
     const matches = await query(
       "select * from matches2 where id_tournament = ?",
-      [idTournament],
+      [idTournament]
     );
     // Si le tournoi est en cours
     if (tournament.start == 1) {
@@ -99,19 +99,22 @@ exports.valid = async (req, res) => {
   try {
     const idTournament = req.params.id;
     const idUser = req.body.id_user;
+    console.log(idTournament, idUser);
+
     const listPlayers = await query(
       "select * from players where id_tournament = ? and valider = 1",
-      [idTournament],
+      [idTournament]
     );
+    console.log(listPlayers);
+
     await query(
       "update players set valider = 1, numero = ? where id_user = ?",
       [
         listPlayers.length
           ? Math.max(...listPlayers.map((p) => p.numero)) + 1
           : 1,
-        ,
         idUser,
-      ],
+      ]
     );
     return res.status(200).json({
       res: 1,
@@ -131,7 +134,7 @@ exports.add_player = async (req, res) => {
     const idTournament = req.params.id;
     const listPlayers = await query(
       "select * from players where id_tournament = ? and valider = 1",
-      [idTournament],
+      [idTournament]
     );
     await query(
       "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider, numero) values(?, 0, 0, ?, -1, 1, ?)",
@@ -141,7 +144,7 @@ exports.add_player = async (req, res) => {
         listPlayers.length
           ? Math.max(...listPlayers.map((p) => p.numero)) + 1
           : 1,
-      ],
+      ]
     );
     return res.status(200).send("Le joueur a été ajouté");
   } catch (err) {
@@ -158,7 +161,7 @@ exports.create_players = async (req, res) => {
     return res.status(200).json({ message: "Nombre de joueurs invalide" });
   const listPlayers = await query(
     "select numero from players where id_tournament = ?",
-    [idTournament],
+    [idTournament]
   );
   let players = [];
   const maxNumero = listPlayers.length
@@ -169,7 +172,7 @@ exports.create_players = async (req, res) => {
   }
   await query(
     "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider, numero, round) values ?",
-    [players],
+    [players]
   );
   res.json({
     message: `${nbPlayers} joueurs créés pour le tournoi ${idTournament}`,
@@ -183,7 +186,7 @@ exports.charge_classement = async (req, res) => {
     // On récupère tous les matches qui sont en phase de poule, tous les matches sont déjà rempli de joueurs car des le début du tournoi tous les joueurs savent leurs 3 adversaires de poule
     const Allmatches = await query(
       "select * from matches2 where id_tournament = ?",
-      [idTournament],
+      [idTournament]
     );
     let goArbre = true;
     if (Allmatches.find((m) => m.round > 3 || m.end != 1)) goArbre = false;

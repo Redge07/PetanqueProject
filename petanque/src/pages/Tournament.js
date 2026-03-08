@@ -40,7 +40,7 @@ const Tournament = () => {
       setResponseWin("");
       const filteredMatches = res.data.matches
         ? res.data.matches.filter(
-            (match) => match.id_playerA && (!match.end || match.end == -1),
+            (match) => match.id_playerA && (!match.end || match.end == -1)
           )
         : [];
 

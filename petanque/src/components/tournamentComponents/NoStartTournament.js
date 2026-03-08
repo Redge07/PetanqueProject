@@ -32,7 +32,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     setLoad(true);
     try {
       const res = await axios.delete(
-        linkBackend + "tournaments/players_attente/" + value,
+        linkBackend + "tournaments/players_attente/" + value
       );
       handleApiResponse(res);
     } catch (err) {
@@ -52,7 +52,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         linkBackend + "tournaments/" + idTournament,
         {
           data: { numero: value },
-        },
+        }
       );
       handleApiResponse(res);
     } catch (err) {
@@ -67,6 +67,9 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // Fonction pour accepté un joueur
   const handleValid = async (value) => {
     setLoad(true);
+    console.log(value);
+    console.log(idTournament);
+
     try {
       const res = await axios.put(linkBackend + "tournaments/" + idTournament, {
         id_user: value,
@@ -90,7 +93,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         linkBackend + "tournaments/" + idTournament,
         {
           pseudo: e.target.elements.pseudo.value,
-        },
+        }
       );
       handleApiResponse(res);
     } catch (err) {
@@ -107,7 +110,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     setLoad(true);
     try {
       const res = await axios.put(
-        linkBackend + `gotournaments/${style}/` + idTournament,
+        linkBackend + `gotournaments/${style}/` + idTournament
       );
       setResponseGoTournament(res.data);
       setTimeout(() => {
@@ -129,7 +132,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         linkBackend + "tournaments/create_players/" + idTournament,
         {
           nbPlayers: nbPlayers,
-        },
+        }
       );
       recharge();
     } catch (err) {
@@ -145,7 +148,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     try {
       setLoad(true);
       const res = await axios.post(
-        linkBackend + "log/create-checkout-session/" + idTournament,
+        linkBackend + "log/create-checkout-session/" + idTournament
       );
       window.open(res.data.url, "_blank", "noopener,noreferrer");
     } catch (err) {
