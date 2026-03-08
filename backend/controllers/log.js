@@ -5,7 +5,6 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { sendMail } = require("../constants/sendMail");
 const { Stripe } = require("stripe");
-const { log } = require("console");
 const { OAuth2Client } = require("google-auth-library");
 
 // Clé API de Resend pour envoyer des mails
@@ -70,7 +69,10 @@ exports.connection = async (req, res) => {
         message: "Veuillez vérifier votre email avant de vous connecter",
       });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password ? user.password : "");
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.password ? user.password : "",
+    );
     if (!isPasswordValid) {
       return res.json({ res: 0, message: "Email ou mot de passe incorrect" });
     }
