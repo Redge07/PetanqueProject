@@ -17,3 +17,5 @@ export const linkBackend = "https://petanqueproject.onrender.com/";
 // ExponentPushToken[djCUPqARc4alXSp_oNeMY2]
 
 // QND6P5DVNVBACMDXDCRGWUEUNBSFT3
+
+// stripe listen --forward-to localhost:5000/log/webhooks

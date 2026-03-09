@@ -1,15 +1,3 @@
-Fusionné table users et push_tokens
-Bien documenter (google doc, canvas)
-
-Google cloud console, pour pouvoir se connecter avec google
-
-J'ai passé Stripe en mode test
-j'ai ajouté une route qui est checkoutSession pour envoyé vers le lien de paiement et récupérer des infos dans une session pour récupérer plus tard
-J'ai ajouté webhooks pour avoir un retour a mon backend qui montre que le payement s'est bien passé
-stripe listen --forward-to localhost:5000/log/webhooks
-créer un lien pour stripe (pour qu'il a comme objectif le log/webhooks pour envoyé de la donnée)
-Je peux créer un tunnel webhook dans stripe avec "developers" --> webhook et je vois tous les tunnels en cours
-
 Front-end : 
 		- Quand on a fini la phase de poules d'un tournoi en classement, permettre à l'utilisateur de choisir comment organiser les arbres pour la suite du tournoi. 
 			Par exemple il choisit que on fera un arbre pour le A avec les 8 premiers et un tournoi en arbre pour le B avec les joueurs entre la 9ème et 24ème place. 
@@ -22,8 +10,7 @@ Front-end :
 		- Quand on veut récupérer des données d'une API, le serveur backend où l'API peut mettre du temps à renvoyer les données ou meme crash donc faut gérer avec le try/catch. 
 			Faut mettre des logos de chargement partout car on n'est jamais sur que les données vont venir directement. 
 			Et aussi quand on fait des map il faut faire attention que le tableau à mappé n'est pas vide
-	- Pour la recherche d'un tournoi coté participant pour pouvoir s'inscire, il faut que la recherche soit très intuitif, avec la possiblité de rechercher avec le nom ou l'id du tournoi, 
-		ajouter aussi le système de QR Code
+	- Pour la recherche d'un tournoi coté participant pour pouvoir s'inscire, il faut que la recherche soit très intuitif, avec la possiblité de rechercher avec le nom ou l'id du tournoi, ajouter aussi le système de QR Code
 	- Voir carte correctement sur téléphone
 	- Avoir un système d'actualisation de la page automatique, par exemple si je suis censé avoir un nouvel adversaire alors la page du participant se met automatiquement à jour 
 		sans rien toucher
@@ -55,6 +42,8 @@ Back-end :
 	- Imaginer des scénarios ou des utilisateur appuie en meme temps sur des boutons
 		- Avoir le bouton "create x players" comme il faut
 		- Quand on fait le dernier match du round 3 en mode classement faire apparaitre le createarbre correctement
+	- Gérer les cas de mot de passe oublié
+	- Gérer le cas ou un utilsateur n'a jamais ouvert le mail pour vérifier son inscription
 
 Divers :
 	- Avoir un bon système de notification pour l'application mobile, ça doit etre intégré au backend, par exemple si un match s'est fini alors annoncé le nouvel adversaire d'un joueur 
