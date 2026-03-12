@@ -4,6 +4,6 @@
 - Remettre en ordre l'API log
 - Vérifier que les API et appels d'API ont tous les meme raisonnement en cas d'erreur
 - Répartition récompense
-- Commenter
+- Commenter 
 
 - Après cette liste faite, début design CSS ? ou nouvelle liste ?
