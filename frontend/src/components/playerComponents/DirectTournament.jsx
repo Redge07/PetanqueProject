@@ -4,6 +4,7 @@ import CascadePlayer from "./CascadePlayer";
 import ArbrePlayer from "./ArbrePlayer";
 import ViewTournament from "./ViewTournament";
 import Order from "../tournamentComponents/Order";
+import { Swords, BarChart2, List } from "lucide-react";
 
 const DirectTournament = ({ dataPlayer }) => {
   // State pour afficher ou non le classement
@@ -20,73 +21,96 @@ const DirectTournament = ({ dataPlayer }) => {
 
   const TournamentComponent = formatTournament[dataPlayer.style];
   return (
-    <div className="composant" style={{ border: "solid 2px blue" }}>
-      <h4 style={{ color: "blue" }}>
-        Balise pour montrer toutes les infos lorsqu'un joueur participe a un
-        tournoi
-      </h4>
-      <h2>Numero : {dataPlayer.numero}</h2>
-      <h3>{dataPlayer.tournamentName} Tournament !</h3>
-      <p>
-        Vous participez au tournoi {dataPlayer.tournamentName} qui est un
-        tournoi en {dataPlayer.style}
-      </p>
+    <div className="mt-6 space-y-4">
+      {/* Carte principale du tournoi */}
+      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-2xl p-6 shadow-xl text-white">
+        <p className="text-[var(--color-gold)] text-sm font-medium mb-1">
+          Tournoi en cours
+        </p>
+        <h2 className="text-2xl font-semibold mb-1">
+          {dataPlayer.tournamentName}
+        </h2>
+        <p className="text-white/70 text-sm">
+          Mode {dataPlayer.style} • Numéro {dataPlayer.numero}
+        </p>
+      </div>
+
       {/* Composant qui montre la situation d'un joueur dans un tournoi précis */}
       {TournamentComponent && <TournamentComponent dataPlayer={dataPlayer} />}
-      <p>
-        {" "}
-        {dataPlayer.idVersus
-          ? `Vous affronter ${dataPlayer.pseudoVersus} qui est le numéro
-                ${dataPlayer.idVersus}`
-          : "Vous n'avez pas d'adversaire"}
-      </p>
+
+      {/* Adversaire */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center">
+            <Swords className="w-5 h-5 text-[var(--color-primary)]" />
+          </div>
+          <h3 className="font-semibold text-[var(--color-primary)]">
+            Adversaire
+          </h3>
+        </div>
+        <p className="text-[var(--color-gray)]">
+          {dataPlayer.idVersus ? (
+            <>
+              Vous affrontez{" "}
+              <span className="font-semibold text-[var(--color-primary)]">
+                {dataPlayer.pseudoVersus}
+              </span>{" "}
+              qui est le numéro{" "}
+              <span className="font-semibold text-[var(--color-primary)]">
+                {dataPlayer.idVersus}
+              </span>
+            </>
+          ) : (
+            "Vous n'avez pas d'adversaire pour le moment"
+          )}
+        </p>
+      </div>
+
       {/* Si on est dans un tournoi "classement" */}
       {dataPlayer.style == "classement" && (
-        <div
-          className="composant"
-          style={{
-            border: "2px solid green",
-          }}
-        >
-          <h4 style={{ color: "green" }}>
-            Balise pour montrer le classement du tournoi
-          </h4>
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-[var(--color-gold)]/10 rounded-xl flex items-center justify-center">
+              <BarChart2 className="w-5 h-5 text-[var(--color-gold)]" />
+            </div>
+            <h3 className="font-semibold text-[var(--color-primary)]">
+              Classement
+            </h3>
+          </div>
 
           {/* On peut afficher le classement */}
-          <div>
-            {showOrder ? (
-              <button onClick={() => setShowOrder(false)}>
-                Ne plus voir le classement
-              </button>
-            ) : (
-              <button onClick={() => setShowOrder(true)}>
-                Voir Classement
-              </button>
-            )}
-          </div>
+          <button
+            onClick={() => setShowOrder(!showOrder)}
+            className="px-4 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-primary)] hover:bg-[var(--color-bg-mid)] transition-all duration-300 text-sm font-medium"
+          >
+            {showOrder ? "Masquer le classement" : "Voir le classement"}
+          </button>
 
           {showOrder && <Order idTournament={dataPlayer.id_tournament} />}
         </div>
       )}
-      <div
-        className="composant"
-        style={{
-          border: "2px solid green",
-        }}
-      >
-        <h4 style={{ color: "green" }}>
-          Balise pour montrer les infos du tournoi auquel il participe
-        </h4>
+
+      {/* Détails des matches */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center">
+            <List className="w-5 h-5 text-[var(--color-primary)]" />
+          </div>
+          <h3 className="font-semibold text-[var(--color-primary)]">
+            Détails du tournoi
+          </h3>
+        </div>
+
         {/* On peut montrer les autres matches du tournoi pour voir on en est ou */}
-        {showDetailsTournament ? (
-          <button onClick={() => setShowDetailsTournament(false)}>
-            Ne plus voir le détails des matches
-          </button>
-        ) : (
-          <button onClick={() => setShowDetailsTournament(true)}>
-            Voir le détails des matches
-          </button>
-        )}
+        <button
+          onClick={() => setShowDetailsTournament(!showDetailsTournament)}
+          className="px-4 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-primary)] hover:bg-[var(--color-bg-mid)] transition-all duration-300 text-sm font-medium"
+        >
+          {showDetailsTournament
+            ? "Masquer les matches"
+            : "Voir le détail des matches"}
+        </button>
+
         {showDetailsTournament && (
           <ViewTournament
             idTournament={dataPlayer.id_tournament}

@@ -3,6 +3,14 @@ import React, { useContext, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import { UsersContext } from "../../App";
 import { useNavigate } from "react-router-dom";
+import {
+  UserCheck,
+  UserX,
+  UserPlus,
+  Play,
+  CreditCard,
+  Users,
+} from "lucide-react";
 
 const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
@@ -32,7 +40,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     setLoad(true);
     try {
       const res = await axios.delete(
-        linkBackend + "tournaments/players_attente/" + value
+        linkBackend + "tournaments/players_attente/" + value,
       );
       handleApiResponse(res);
     } catch (err) {
@@ -52,7 +60,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         linkBackend + "tournaments/" + idTournament,
         {
           data: { numero: value },
-        }
+        },
       );
       handleApiResponse(res);
     } catch (err) {
@@ -69,7 +77,6 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     setLoad(true);
     console.log(value);
     console.log(idTournament);
-
     try {
       const res = await axios.put(linkBackend + "tournaments/" + idTournament, {
         id_user: value,
@@ -93,7 +100,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         linkBackend + "tournaments/" + idTournament,
         {
           pseudo: e.target.elements.pseudo.value,
-        }
+        },
       );
       handleApiResponse(res);
     } catch (err) {
@@ -110,7 +117,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     setLoad(true);
     try {
       const res = await axios.put(
-        linkBackend + `gotournaments/${style}/` + idTournament
+        linkBackend + `gotournaments/${style}/` + idTournament,
       );
       setResponseGoTournament(res.data);
       setTimeout(() => {
@@ -124,6 +131,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       setLoad(false);
     }
   };
+
   const handleCreatePlayers = async () => {
     if (!nbPlayers || nbPlayers <= 0) return;
     setLoad(true);
@@ -132,7 +140,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         linkBackend + "tournaments/create_players/" + idTournament,
         {
           nbPlayers: nbPlayers,
-        }
+        },
       );
       recharge();
     } catch (err) {
@@ -148,7 +156,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     try {
       setLoad(true);
       const res = await axios.post(
-        linkBackend + "log/create-checkout-session/" + idTournament
+        linkBackend + "log/create-checkout-session/" + idTournament,
       );
       window.open(res.data.url, "_blank", "noopener,noreferrer");
     } catch (err) {
@@ -161,84 +169,192 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   };
 
   return (
-    <div className="composant" style={{ border: "solid 2px red" }}>
-      <h4 style={{ color: "red" }}>
-        Composant qui représente un tournoi lorsqu'il n'a pas encore commencé
-      </h4>
-      <div>
-        <h3>Joueurs en attente</h3>
-        <p>
-          Il y a {listPlayersAttente.length}{" "}
-          {listPlayersAttente.length > 1 ? "joueurs" : "joueur"} en attente
-        </p>
-        <ul>
+    <div className="space-y-6">
+      {/* Joueurs en attente */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-[var(--color-gold)]/10 rounded-xl flex items-center justify-center">
+            <Users className="w-5 h-5 text-[var(--color-gold)]" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-[var(--color-primary)]">
+              Joueurs en attente
+            </h3>
+            <p className="text-sm text-[var(--color-gray)]">
+              {listPlayersAttente.length}{" "}
+              {listPlayersAttente.length > 1 ? "joueurs" : "joueur"} en attente
+            </p>
+          </div>
+        </div>
+        <ul className="space-y-2">
           {/* On liste les joueurs qui sont en attente en filtrant avec le colonne "valider" */}
           {listPlayers.results
             .filter((j) => j.valider == 0)
             .map((j) => (
-              <li key={j.id_user}>
+              <li
+                key={j.id_user}
+                className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
+              >
                 {/* Pseudo du joueur */}
-                <span>{j.pseudo}</span>
-                {/* Bouton pour supprimer ce joueur */}
-                <button onClick={() => handleDeleteAttente(j.id_user)}>
-                  Supprimer
-                </button>
-                {/* Bouton pour accepté ce joueur */}
-                <button onClick={() => handleValid(j.id_user)}>Accepté</button>
+                <span className="font-medium text-[var(--color-primary)]">
+                  {j.pseudo}
+                </span>
+                <div className="flex items-center gap-2">
+                  {/* Bouton pour supprimer ce joueur */}
+                  <button
+                    onClick={() => handleDeleteAttente(j.id_user)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
+                  >
+                    <UserX className="w-4 h-4" />
+                    Refuser
+                  </button>
+                  {/* Bouton pour accepté ce joueur */}
+                  <button
+                    onClick={() => handleValid(j.id_user)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-all duration-300 text-sm"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    Accepter
+                  </button>
+                </div>
                 {/* Message qui va apparaitre quand on va supprimer ou accepté un joueur, vérifie si on parle d'une suppression ou d'une validation et vérifie l'id pour bien affiché ce message au joueur concerné */}
                 {responseAPI.res == 1 && responseAPI.id == j.id_user && (
-                  <p>{responseAPI.msg}</p>
+                  <p className="text-sm text-[var(--color-primary)] mt-1">
+                    {responseAPI.msg}
+                  </p>
                 )}
               </li>
             ))}
         </ul>
       </div>
-      <div>
-        {/* On va lister tous les joueurs qui n'ont pas encore été accepté pour ce tournoi en question dans la base de données */}
-        <h3>Joueurs accepté</h3>
-        <p>
-          Il y a {listPlayersValider.length}{" "}
-          {listPlayersValider.length > 1 ? "joueurs" : "joueur"} accepté
-        </p>
-        <ul>
+
+      {/* Joueurs acceptés */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+            <UserCheck className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            {/* On va lister tous les joueurs qui n'ont pas encore été accepté pour ce tournoi en question dans la base de données */}
+            <h3 className="font-semibold text-[var(--color-primary)]">
+              Joueurs acceptés
+            </h3>
+            <p className="text-sm text-[var(--color-gray)]">
+              {listPlayersValider.length}{" "}
+              {listPlayersValider.length > 1 ? "joueurs" : "joueur"} accepté
+            </p>
+          </div>
+        </div>
+        <ul className="space-y-2">
           {listPlayers.results
             .filter((j) => j.valider == 1)
             .map((j) => (
-              <li key={j.numero}>
-                <span>{j.pseudo}</span>
-                <span> numéro : {j.numero}</span>
-                <button onClick={() => handleDeleteValid(j.numero)}>
+              <li
+                key={j.numero}
+                className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
+              >
+                <div>
+                  <span className="font-medium text-[var(--color-primary)]">
+                    {j.pseudo}
+                  </span>
+                  <span className="text-sm text-[var(--color-gray)] ml-2">
+                    #{j.numero}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleDeleteValid(j.numero)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
+                >
+                  <UserX className="w-4 h-4" />
                   Supprimer
                 </button>
                 {responseAPI.res == 1 && responseAPI.numero == j.numero && (
-                  <p>{responseAPI.msg}</p>
+                  <p className="text-sm text-[var(--color-primary)] mt-1">
+                    {responseAPI.msg}
+                  </p>
                 )}
               </li>
             ))}
         </ul>
       </div>
-      <h3>Ajouté un joueur manuellement</h3>
-      {/* Form pour ajouter un joueur manuellement */}
-      <form onSubmit={handleAddPlayer}>
-        <input type="text" name="pseudo" placeholder="Entrez un pseudo..." />
-        <input type="submit" value="Inscrire le joueur" />
-      </form>
-      <h3>Créer des joueurs automatiquement</h3>
 
-      <input
-        type="number"
-        min="1"
-        placeholder="Nombre de joueurs"
-        value={nbPlayers}
-        onChange={(e) => setNbPlayers(e.target.value)}
-      />
+      {/* Ajouter un joueur manuellement */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center">
+            <UserPlus className="w-5 h-5 text-[var(--color-primary)]" />
+          </div>
+          <h3 className="font-semibold text-[var(--color-primary)]">
+            Ajouter un joueur manuellement
+          </h3>
+        </div>
+        {/* Form pour ajouter un joueur manuellement */}
+        <form onSubmit={handleAddPlayer} className="flex gap-2">
+          <input
+            type="text"
+            name="pseudo"
+            placeholder="Entrez un pseudo..."
+            className="flex-1 h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+          />
+          <input
+            type="submit"
+            value="Inscrire"
+            className="h-12 px-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium cursor-pointer hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+          />
+        </form>
+      </div>
 
-      <button onClick={handleCreatePlayers}>Créer les joueurs</button>
+      {/* Créer des joueurs automatiquement */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center">
+            <Users className="w-5 h-5 text-[var(--color-primary)]" />
+          </div>
+          <h3 className="font-semibold text-[var(--color-primary)]">
+            Créer des joueurs automatiquement
+          </h3>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min="1"
+            placeholder="Nombre de joueurs"
+            value={nbPlayers}
+            onChange={(e) => setNbPlayers(e.target.value)}
+            className="flex-1 h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+          />
+          <button
+            onClick={handleCreatePlayers}
+            className="h-12 px-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+          >
+            Créer
+          </button>
+        </div>
+      </div>
 
-      <button onClick={handleGoTournament}>Lancer le tournoi</button>
-      <p>{responseGoTournament.message}</p>
+      {/* Lancer le tournoi */}
+      <button
+        onClick={handleGoTournament}
+        className="w-full flex items-center justify-center gap-2 h-14 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-2xl font-semibold text-lg shadow-xl hover:opacity-90 transition-all duration-300"
+      >
+        <Play className="w-6 h-6" />
+        Lancer le tournoi
+      </button>
+
+      {responseGoTournament.message && (
+        <p className="text-center text-sm text-[var(--color-primary)] bg-[var(--color-bg-mid)] rounded-xl p-3">
+          {responseGoTournament.message}
+        </p>
+      )}
+
       {responseGoTournament.res == 1 && (
-        <button onClick={handlePayement}>Aller payer</button>
+        <button
+          onClick={handlePayement}
+          className="w-full flex items-center justify-center gap-2 h-12 border border-[var(--color-gold)] text-[var(--color-gold)] rounded-2xl font-medium hover:bg-[var(--color-gold)]/10 transition-all duration-300"
+        >
+          <CreditCard className="w-5 h-5" />
+          Aller payer
+        </button>
       )}
     </div>
   );

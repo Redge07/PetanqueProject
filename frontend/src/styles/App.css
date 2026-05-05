@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+:root {
+  /* Bleus */
+  --color-primary: #1e3a5f;
+  --color-primary-light: #2d5a8a;
+  --color-primary-dark: #152a45;
+
+  /* Or */
+  --color-gold: #d4af37;
+  --color-gold-dark: #c9a227;
+
+  /* Fonds crème */
+  --color-bg: #faf8f5;
+  --color-bg-mid: #f5f0e8;
+  --color-bg-dark: #ebe4d8;
+
+  /* Gris */
+  --color-gray: #6b7280;
+  --color-gray-light: #9ca3af;
+  --color-border: #e5e7eb;
+}
