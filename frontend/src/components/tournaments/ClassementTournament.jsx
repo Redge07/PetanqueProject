@@ -152,22 +152,35 @@ const ClassementTournament = ({
       setLoad(false);
     }
   };
+
   return (
-    <div>
+    <div className="space-y-6">
       {/* Pour un joueur quand tous les 3 matches sont fini */}
       {dataOrder.goArbre && !orga && (
-        <p>
+        <p className="text-sm text-[var(--color-primary)] bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-gold)]/20">
           La phase de poule est fini, il faut attendre le tirage au sort pour la
           suite en arbre
         </p>
       )}
+
       {/* Pour un orga, il peut choisir d'afficher les matches ou le classsement */}
       {orga && (
-        <div>
-          <button onClick={() => setOrder(false)}>Matchs</button>
-          <button onClick={() => setOrder(true)}>Classement</button>
+        <div className="flex rounded-xl bg-[var(--color-bg-mid)] p-1">
+          <button
+            onClick={() => setOrder(false)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${!order ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-[var(--color-gray)]"}`}
+          >
+            Matchs
+          </button>
+          <button
+            onClick={() => setOrder(true)}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${order ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-[var(--color-gray)]"}`}
+          >
+            Classement
+          </button>
         </div>
       )}
+
       {/* Quand les 3 matches sont fini, l'orga voit le formulaire pour créer les tournois en arbre apparaitre */}
       {dataOrder.goArbre && orga && (
         <CreateTournamentArbreClassement
@@ -175,11 +188,13 @@ const ClassementTournament = ({
           errorLengthArbre={errorLengthArbre}
         />
       )}
+
       {/* Si on veut afficher les matches */}
       {!order && (
-        <div>
+        <div className="space-y-6">
           {/* On affiche les vainqueurs si il y en a */}
           <VainqueurGroupe listPlayers={listPlayers} />
+
           {/* On va commencer avec les rounds tout en haut (car énorme diff entre r = 4 et r inferieur 3 */}
           {pairesInfos.rounds
             .sort((a, b) => b - a)
@@ -187,7 +202,7 @@ const ClassementTournament = ({
               // Si on est dans la phase arbre et que y'a des groupes qui ont été récupéré
               if (r == 4 && pairesInfos.groupes[0] != null) {
                 return (
-                  <div>
+                  <div key={r} className="space-y-4">
                     {/* Apres le round on fait les groupes */}
                     {pairesInfos.groupes
                       .sort(
@@ -206,8 +221,13 @@ const ClassementTournament = ({
                             (m) => m.groupe == g,
                           );
                           return (
-                            <div>
-                              <h2>Groupe {g}</h2>
+                            <div
+                              key={g}
+                              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
+                            >
+                              <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
+                                Groupe {g}
+                              </h2>
                               <Arbre
                                 pairesInfos={pairesInfos}
                                 matches={matches}
@@ -219,67 +239,87 @@ const ClassementTournament = ({
                       })}
                   </div>
                 );
-                // return <h3>On verra plus tard round 4 (arbre)</h3>;
               }
               // Sinon on est dans les matches de poules
               if (r < 4) {
                 return (
-                  <div key={r}>
+                  <div
+                    key={r}
+                    className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
+                  >
                     {/* J'affiche les rounds et y'a pas besoin de groupe */}
-                    <h3>Round {r}</h3>
-                    {listPlayers.matches
-                      .filter((m) => m.round == r)
-                      .map((m) => {
-                        return (
-                          <div key={m.key}>
-                            <p>
-                              {m.pseudo_A} vs{" "}
-                              {m.id_playerB ? m.pseudo_B : "personne"}
-                            </p>
-                            {/* Si on est un orga on a les boutons qui apparaisse pour déclarer le vainqueur */}
-                            {orga && (
-                              <form
-                                onSubmit={(e) =>
-                                  handleWinnerClassement(
-                                    e,
-                                    m.id_playerA,
-                                    m.id_playerB,
-                                    m.round,
-                                  )
-                                }
-                              >
-                                <input
-                                  type="number"
-                                  defaultValue={0}
-                                  placeholder={`Entrer le score de ${m.pseudo_A}`}
-                                  disabled={m.end == -1}
-                                  name="scoreA"
-                                />
-                                <input
-                                  type="number"
-                                  defaultValue={1}
-                                  placeholder={`Entrer le score de ${
-                                    m.id_playerB ? m.pseudo_B : "personne"
-                                  }`}
-                                  disabled={m.end == -1}
-                                  name="scoreB"
-                                />
-                                <input
-                                  type="submit"
-                                  value="Valider"
-                                  disabled={m.end == -1}
-                                />
-                              </form>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
+                      Round {r}
+                    </h3>
+                    <div className="space-y-4">
+                      {listPlayers.matches
+                        .filter((m) => m.round == r)
+                        .map((m) => {
+                          return (
+                            <div
+                              key={m.key}
+                              className="bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-border)]"
+                            >
+                              <p className="text-[var(--color-gray)] text-sm mb-3">
+                                <span className="font-semibold text-[var(--color-primary)]">
+                                  {m.pseudo_A}
+                                </span>{" "}
+                                vs{" "}
+                                <span className="font-semibold text-[var(--color-primary)]">
+                                  {m.id_playerB ? m.pseudo_B : "personne"}
+                                </span>
+                              </p>
+                              {/* Si on est un orga on a les boutons qui apparaisse pour déclarer le vainqueur */}
+                              {orga && (
+                                <form
+                                  onSubmit={(e) =>
+                                    handleWinnerClassement(
+                                      e,
+                                      m.id_playerA,
+                                      m.id_playerB,
+                                      m.round,
+                                    )
+                                  }
+                                  className="flex items-center gap-2"
+                                >
+                                  <input
+                                    type="number"
+                                    defaultValue={0}
+                                    placeholder={`Score ${m.pseudo_A}`}
+                                    disabled={m.end == -1}
+                                    name="scoreA"
+                                    className="w-24 h-10 px-3 rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-primary)] text-center focus:outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
+                                  />
+                                  <span className="text-[var(--color-gray)] text-sm">
+                                    vs
+                                  </span>
+                                  <input
+                                    type="number"
+                                    defaultValue={1}
+                                    placeholder={`Score ${m.id_playerB ? m.pseudo_B : "personne"}`}
+                                    disabled={m.end == -1}
+                                    name="scoreB"
+                                    className="w-24 h-10 px-3 rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-primary)] text-center focus:outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
+                                  />
+                                  <input
+                                    type="submit"
+                                    value="Valider"
+                                    disabled={m.end == -1}
+                                    className="h-10 px-4 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl text-sm font-medium cursor-pointer hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  />
+                                </form>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
                 );
               }
             })}
         </div>
       )}
+
       {/* Si le state order est a true on fait apparaitre le classement */}
       {order && (
         <div>

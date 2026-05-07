@@ -5,13 +5,19 @@ const CreateTournamentArbreClassement = ({
   errorLengthArbre,
 }) => {
   return (
-    <div>
-      <form onSubmit={handleGoArbreClassement}>
+    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+      <form onSubmit={handleGoArbreClassement} className="space-y-4">
         {["A", "B", "C"].map((g) => {
           return (
-            <div>
-              <span>Taille de l'arbre du groupe {g}</span>
-              <select name={g} defaultValue={g === "A" ? "8" : "0"}>
+            <div key={g} className="flex items-center justify-between gap-4">
+              <span className="text-sm font-medium text-[var(--color-primary)]">
+                Taille de l'arbre du groupe {g}
+              </span>
+              <select
+                name={g}
+                defaultValue={g === "A" ? "8" : "0"}
+                className="h-10 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+              >
                 {g == "A" ? null : <option value="0">Pas de tournoi</option>}
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -20,13 +26,20 @@ const CreateTournamentArbreClassement = ({
                 <option value="16">16</option>
                 <option value="32">32</option>
               </select>
-              <br />
             </div>
           );
         })}
-        <input type="submit" value="Go Tournoi en arbres" />
+        <input
+          type="submit"
+          value="Go Tournoi en arbres"
+          className="w-full h-12 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-xl font-medium cursor-pointer hover:opacity-90 transition-all duration-300"
+        />
       </form>
-      <p>{errorLengthArbre}</p>
+      {errorLengthArbre && (
+        <p className="mt-3 text-sm text-red-500 bg-red-50 rounded-xl p-3">
+          {errorLengthArbre}
+        </p>
+      )}
     </div>
   );
 };
