@@ -1,19 +1,14 @@
 import React, { useEffect } from "react";
 
 const RecompenseTableau = ({ matches }) => {
-  useEffect(() => {
-    console.log(matches);
-    console.log([...new Set(matches.map((m) => m.class))]);
-    console.log([...new Set(matches.map((m) => m.groupe))]);
-  }, [matches]);
   return (
     <div>
-      <div className="flex gap-2">
-        <span>X</span>
-        {[...new Set(matches.map((m) => m.class))].map((c) => (
-          <span key={c}>{c}</span>
-        ))}
-      </div>
+      <ul>
+        <li className="flex gap-2"><div>X</div>{[...new Set(matches.map((m) => m.class))].sort((a,b) => b - a).filter((classe) => classe > 0).map((c) => (
+          <span key={c}>1/{c}</span>
+        ))}</li>
+        {[...new Set(matches.map((m) => m.groupe))].map((groupe) => <li className="flex gap-2"><div>{groupe}</div>{[...new Set(matches.map((m) => m.class))].sort((a,b) => b - a).filter((classe) => classe > 0).map((classes) => <div>ds</div>)}</li>)}
+      </ul>
     </div>
   );
 };
