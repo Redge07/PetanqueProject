@@ -34,7 +34,7 @@ exports.goTournamentCascade = async (req, res) => {
       );
       const tournament = (
         await query(
-          "select premium from tournaments where id = ?",
+          "select premium, prix_entree from tournaments where id = ?",
           [idTournament],
           conn,
         )
@@ -45,7 +45,7 @@ exports.goTournamentCascade = async (req, res) => {
           res: status.noEnough,
           message: "Il faut au moins 8 joueurs",
         };
-      if (listPlayers.length > 11 && tournament.premium == 0)
+      if (listPlayers.length > 11 && tournament.premium == 1)
         return {
           res: status.premium,
           message: "Vous etes dans le cas d'un tournoi payant",
@@ -143,13 +143,14 @@ exports.goTournamentCascade = async (req, res) => {
             false,
             4,
             groupe,
+            nb_joueurs * tournament.prix_entree,
             conn,
           );
       }
       // Une fois qu'on a crée tous les matches de chaque groupes jusqu'a l'arbre on ajoute la grande finale entre le vainqueur du groupe B et B2
       await query(
-        "insert into matches2 (id_tournament, number, round, class, groupe) values (?, 1, 4, ?, ?)",
-        [idTournament, 0.5, "B"],
+        "insert into matches2 (id_tournament, number, round, class, groupe, recompense) values (?, 1, 4, ?, ?, ?)",
+        [idTournament, 0.5, "B", nb_joueurs * tournament.prix_entree * 0.045],
         conn,
       );
       // Comme la table matches 2 est complète et représente la vérite on peut copier les infos dans la table players
@@ -171,6 +172,7 @@ exports.goTournamentCascade = async (req, res) => {
     });
     res.status(200).send(message);
   } catch (err) {
+    console.log(err);
     res.status(500).send(err);
   }
 };

@@ -44,7 +44,7 @@ exports.goTournamentArbre = async (req, res) => {
             res: status.noEnough,
             message: "Il faut au moins 2 joueurs",
           };
-        if (listPlayers.length > 11 && tournament.premium == 0)
+        if (listPlayers.length > 11 && tournament.premium == 1)
           return {
             res: status.premium,
             message: "Vous etes dans le cas d'un tournoi payant",
@@ -122,6 +122,7 @@ exports.goTournamentArbre = async (req, res) => {
         true,
         round,
         groupe,
+        0,
         conn,
       );
 

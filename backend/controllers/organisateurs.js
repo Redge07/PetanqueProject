@@ -6,7 +6,7 @@ exports.charge = async (req, res) => {
     const admin = req.params.admin;
     const tournaments = await query(
       "select * from tournaments where admin = ?",
-      [admin]
+      [admin],
     );
     if (tournaments.length > 0)
       return res.status(200).json({ res: 1, results: tournaments });
@@ -21,10 +21,10 @@ exports.charge = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const admin = req.params.admin;
-    const { name, style } = req.body;
+    const { name, style, prix_entree = 0 } = req.body;
     await query(
-      "insert into tournaments (name, admin, style, premium) values(?, ?, ?, 0)",
-      [name, admin, style]
+      "insert into tournaments (name, admin, style, premium, prix_entree) values(?, ?, ?, 0, ?)",
+      [name, admin, style, prix_entree],
     );
     return res.send(`Votre tournoi ${name} a bien été crée`);
   } catch (err) {
@@ -41,17 +41,17 @@ exports.delete = async (req, res) => {
       await query(
         "delete from players where id_tournament = ?",
         [idTournament],
-        conn
+        conn,
       );
       await query(
         "delete from matches where id_tournament = ?",
         [idTournament],
-        conn
+        conn,
       );
       await query(
         "delete from matches2 where id_tournament = ?",
         [idTournament],
-        conn
+        conn,
       );
       await query("delete from tournaments where id = ?", [idTournament], conn);
     });

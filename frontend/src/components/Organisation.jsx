@@ -36,6 +36,7 @@ const Organisation = ({ player }) => {
       await axios.post(linkBackend + "organisateurs/" + player.id, {
         name: e.target.elements.name.value,
         style: e.target.elements.style_tournament.value,
+        prix_entree: e.target.elements.prix_entree.value,
       });
     } catch (err) {
       setError(true);
@@ -142,6 +143,19 @@ const Organisation = ({ player }) => {
             <option value="cascade">Cascade</option>
             <option value="classement">Classement</option>
           </select>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-[var(--color-primary)]">
+              Prix d'entrée par équipe (€) (falcultatif, modifiable après la
+              création du tournoi)
+            </label>
+            <input
+              type="number"
+              defaultValue="10"
+              name="prix_entree"
+              min="0"
+              className="w-full h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+            />
+          </div>
           <div className="flex gap-3">
             <input
               type="submit"

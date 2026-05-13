@@ -19,6 +19,7 @@ exports.createArbre = async (
   really,
   round,
   groupe,
+  cagnotte,
   conn,
 ) => {
   // La variable really est un booléan, un vrai tournoi c'est quand on lance un tournoi et tous les joueurs attendent le lancement du tournoi et de connaitre leur futurs adversaire. Un faux c'est pour le tournoi en mode cascade, y'aura un tournoi en mode arbre mais on ne peut pas attribuer les joueurs n'est le début de l'arbre car avant ils ont leur phase de round et il n'y a pas de pause entre la phase de round et la phase finale
@@ -38,17 +39,29 @@ exports.createArbre = async (
     number = number + i;
   }
   number = number + prelim / 2;
+  let recompense =
+    cagnotte *
+    (groupe == "A"
+      ? 0.05
+      : groupe == "B"
+        ? 0.04
+        : groupe == "B2"
+          ? 0.04
+          : groupe == "C"
+            ? 0.03
+            : 0);
 
   // Je crée les matches excluant les matches de préliminaire
   let matchInsert = [];
   for (let i = 1; i <= p2 / 2; i = i * 2) {
     for (let j = 1; j <= i; j++) {
-      matchInsert.push([idTournament, number, 0, i, round, groupe]);
+      matchInsert.push([idTournament, number, 0, i, round, groupe, recompense]);
       number--;
     }
+    recompense = recompense * 0.75;
   }
   await query(
-    "insert into matches2 (id_tournament, number, end, class, round, groupe) values ?",
+    "insert into matches2 (id_tournament, number, end, class, round, groupe, recompense) values ?",
     [matchInsert],
     conn,
   );

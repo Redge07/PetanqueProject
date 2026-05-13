@@ -44,9 +44,24 @@ const App = () => {
     <UsersContext.Provider value={{ player, setPlayer, setLoad, setError }}>
       {load && <Loading />}
       {error && (
-        <div className="error">
-          <p>Une erreur est survenue</p>
-          <button onClick={() => setError(false)}>Réessayer</button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl text-center max-w-sm w-full mx-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-2">
+              Une erreur est survenue
+            </h2>
+            <p className="text-[var(--color-gray)] text-sm mb-6">
+              Veuillez réessayer ou recharger la page
+            </p>
+            <button
+              onClick={() => setError(false)}
+              className="w-full h-12 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+            >
+              Réessayer
+            </button>
+          </div>
         </div>
       )}
       <BrowserRouter>

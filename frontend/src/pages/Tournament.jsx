@@ -22,6 +22,7 @@ const Tournament = () => {
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
   const [listPlayers, setListPlayers] = useState({});
+  const [fullListPlayers, setFullListPlayers] = useState({});
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
@@ -38,6 +39,7 @@ const Tournament = () => {
     setLoad(true);
     try {
       const res = await axios.get(linkBackend + "tournaments/" + idTournament);
+      setFullListPlayers(res.data.matches);
       setResponseWin("");
       const filteredMatches = res.data.matches
         ? res.data.matches.filter(
@@ -117,6 +119,7 @@ const Tournament = () => {
               </div>
               {TournamentComponent && (
                 <TournamentComponent
+                  fullListPlayers={fullListPlayers}
                   listPlayers={listPlayers}
                   pairesInfos={pairesInfos}
                   setResponseWin={setResponseWin}

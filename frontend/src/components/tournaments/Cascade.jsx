@@ -6,8 +6,10 @@ import ButtonWinner from "../tournamentComponents/ButtonsWinner";
 import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import { UsersContext } from "../../App";
 import { useNavigate } from "react-router-dom";
+import RecompenseTableau from "../tournamentComponents/RecompenseTableau";
 
 const Cascade = ({
+  fullListPlayers,
   listPlayers,
   pairesInfos,
   recharge,
@@ -49,9 +51,11 @@ const Cascade = ({
       setLoad(false);
     }
   };
+
   return (
-    <div>
-      {/* On  affichera directement les vainqueurs si il y en a  */}
+    <div className="space-y-6">
+      <RecompenseTableau matches={fullListPlayers} />
+      {/* On affichera directement les vainqueurs si il y en a  */}
       <VainqueurGroupe listPlayers={listPlayers} />
       {/* On tri par les groupes */}
       {pairesInfos.groupes
@@ -68,55 +72,60 @@ const Cascade = ({
             // Sinon on affiche bien les matches de ce groupe
             return (
               <div
-                className="composant"
-                style={{ border: "solid 2px red" }}
+                className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
                 key={g}
               >
-                <h2>Groupe {g}</h2>
-                {/* Ensuite on tri par les rounds */}
-                {pairesInfos.rounds
-                  .sort((a, b) => b - a)
-                  .map((r) => {
-                    const matches = listPlayers.matches.filter(
-                      (v) => v.groupe == g && v.round == r,
-                    );
-                    // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
-                    if (matches.length == 0) {
-                      return null;
-                      // Sinon si y'a bien des matches et qu'on est dans les matches en phase finale on va les afficher differemment qui si on était en phase de groupe au début
-                    } else if (r == 4) {
-                      return (
-                        <Arbre
-                          pairesInfos={pairesInfos}
-                          matches={matches}
-                          handleWinner={handleWinnerCascade}
-                        />
+                <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
+                  Groupe {g}
+                </h2>
+                <div className="space-y-4">
+                  {/* Ensuite on tri par les rounds */}
+                  {pairesInfos.rounds
+                    .sort((a, b) => b - a)
+                    .map((r) => {
+                      const matches = listPlayers.matches.filter(
+                        (v) => v.groupe == g && v.round == r,
                       );
-                      // Sinon on est bien en phase du début
-                    } else {
-                      return (
-                        <div
-                          className="composant"
-                          style={{ border: "solid 2px blue" }}
-                          key={r}
-                        >
-                          <h3>Round {r}</h3>
-                          <div key={r}>
-                            {/* J'affiche les confrontations qui respectent les filtres */}
-                            {matches.map((versus) => {
-                              return (
-                                <ButtonWinner
-                                  versus={versus}
-                                  handleWinner={handleWinnerCascade}
-                                  key={versus.key}
-                                />
-                              );
-                            })}
+                      // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
+                      if (matches.length == 0) {
+                        return null;
+                        // Sinon si y'a bien des matches et qu'on est dans les matches en phase finale on va les afficher differemment qui si on était en phase de groupe au début
+                      } else if (r == 4) {
+                        return (
+                          <Arbre
+                            key={r}
+                            pairesInfos={pairesInfos}
+                            matches={matches}
+                            handleWinner={handleWinnerCascade}
+                          />
+                        );
+                        // Sinon on est bien en phase du début
+                      } else {
+                        return (
+                          <div
+                            key={r}
+                            className="bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-border)]"
+                          >
+                            <h3 className="text-sm font-semibold text-[var(--color-primary)] mb-3">
+                              Round {r}
+                            </h3>
+                            <div className="space-y-3">
+                              {/* J'affiche les confrontations qui respectent les filtres */}
+                              {matches.map((versus) => {
+                                return (
+                                  <ButtonWinner
+                                    versus={versus}
+                                    handleWinner={handleWinnerCascade}
+                                    key={versus.key}
+                                  />
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    }
-                  })}
+                        );
+                      }
+                    })}
+                </div>
               </div>
             );
           }
