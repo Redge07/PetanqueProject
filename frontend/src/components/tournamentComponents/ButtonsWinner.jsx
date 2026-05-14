@@ -28,7 +28,7 @@ const ButtonWinner = ({ versus, handleWinner }) => {
             "n'a pas encore d'adversaire attitré"
           )}
           {/* Précise si s'agit d'un match de barrage */}
-          {versus.barrage && (
+          {versus.barrage == 1 && (
             <span className="ml-2 text-xs font-medium text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
               Barrage
             </span>
@@ -37,7 +37,7 @@ const ButtonWinner = ({ versus, handleWinner }) => {
       </div>
 
       {/* Si y'a bien joueur B pour le match alors on peut déclarer un vainqueur et donc afficher les boutons */}
-      {versus.id_playerB && orga && (
+      {versus.id_playerB > 0 && orga && (
         <div className="flex gap-2">
           <button
             onClick={() =>

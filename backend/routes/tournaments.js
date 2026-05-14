@@ -10,5 +10,6 @@ router.put("/:id", tournaments.valid);
 router.post("/:id", tournaments.add_player);
 router.post("/create_players/:id", tournaments.create_players);
 router.put("/recompense/:id", tournaments.modify_recompense);
+router.put("/recompense_victoire/:id", tournaments.modify_recompense_victoire);
 
 module.exports = router;

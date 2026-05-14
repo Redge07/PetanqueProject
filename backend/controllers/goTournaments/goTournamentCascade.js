@@ -51,8 +51,8 @@ exports.goTournamentCascade = async (req, res) => {
           message: "Vous etes dans le cas d'un tournoi payant",
         };
       await query(
-        "update tournaments set start = ? where id = ?",
-        [1, idTournament],
+        "update tournaments set start = ?, nb_joueurs = ? where id = ?",
+        [1, listPlayers.length, idTournament],
         conn,
       );
       await query(

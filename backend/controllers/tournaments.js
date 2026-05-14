@@ -44,6 +44,8 @@ exports.charge = async (req, res) => {
         matches,
         style: tournament.style,
         vainqueurs,
+        prix_entree: tournament.prix_entree,
+        nb_joueurs: tournament.nb_joueurs,
       });
     }
     // Si le tournoi est fini (c'est les cas que pour le tournoi en arbre)
@@ -283,6 +285,34 @@ exports.modify_recompense = async (req, res) => {
       "update matches2 set recompense = ? where id_tournament = ? and groupe = ? and class = ?",
       [recompense, idTournament, groupe, tour],
     );
+    return res.status(200).json({ message: "Récompense modifié" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send(err);
+  }
+};
+exports.modify_recompense_victoire = async (req, res) => {
+  const idTournament = req.params.id;
+  const { recompense, nb_victoires } = req.body;
+  try {
+    if (nb_victoires == 3) {
+      await query(
+        "update matches2 set recompense = ? where id_tournament = ? and round = 3 and groupe = 'A'",
+        [recompense, idTournament],
+      );
+    }
+    if (nb_victoires == 2) {
+      await query(
+        "update matches2 set recompense = ? where id_tournament = ? and ((round = 2 and groupe = 'A') or (round = 3 and groupe = 'B') or (round = 3 and groupe = 'B2'))",
+        [recompense, idTournament],
+      );
+    }
+    if (nb_victoires == 1) {
+      await query(
+        "update matches2 set recompense = ? where id_tournament = ? and ((round = 1 and groupe = 'A') or (round = 2 and groupe = 'B') or (round = 3 and groupe = 'C'))",
+        [recompense, idTournament],
+      );
+    }
     return res.status(200).json({ message: "Récompense modifié" });
   } catch (err) {
     console.log(err);

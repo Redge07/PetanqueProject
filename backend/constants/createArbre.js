@@ -39,10 +39,13 @@ exports.createArbre = async (
     number = number + i;
   }
   number = number + prelim / 2;
+
+  const arrondiPalier5 = (val) => Math.floor(val / 5) * 5;
+
   let recompense =
     cagnotte *
     (groupe == "A"
-      ? 0.05
+      ? 0.1
       : groupe == "B"
         ? 0.04
         : groupe == "B2"
@@ -50,7 +53,7 @@ exports.createArbre = async (
           : groupe == "C"
             ? 0.03
             : 0);
-
+  recompense = arrondiPalier5(recompense);
   // Je crée les matches excluant les matches de préliminaire
   let matchInsert = [];
   for (let i = 1; i <= p2 / 2; i = i * 2) {
@@ -58,13 +61,15 @@ exports.createArbre = async (
       matchInsert.push([idTournament, number, 0, i, round, groupe, recompense]);
       number--;
     }
-    recompense = recompense * 0.75;
+    recompense = arrondiPalier5(recompense * 0.75);
   }
   await query(
     "insert into matches2 (id_tournament, number, end, class, round, groupe, recompense) values ?",
     [matchInsert],
     conn,
   );
+
+  const recompensePreliminaire = arrondiPalier5(recompense * 0.75);
 
   // Je crée les matches préliminaire et j'en profite pour ajouter tous les jouers car ces matches seront forcément rempli des joueurs (sauf si ca concerne le tournoi en mode cascade, avec la really on gère ça facilement)
   let matchInsert2 = [];
@@ -80,13 +85,38 @@ exports.createArbre = async (
       p2,
       groupe,
       round,
+      recompensePreliminaire,
     ]);
     number--;
   }
   if (matchInsert2.length > 0) {
     await query(
-      "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class, groupe, round) values ?",
+      "insert into matches2 (id_tournament, number, id_playerA, pseudo_A, id_playerB, pseudo_B, end, class, groupe, round, recompense) values ?",
       [matchInsert2],
+      conn,
+    );
+  }
+  if (groupe == "C") {
+    const recompensePreliminaireA = await query(
+      "select * from matches2 where groupe = 'A'",
+    );
+    console.log("voici récompense preliminaire : " + recompensePreliminaire);
+
+    const recompense3v = arrondiPalier5(recompensePreliminaire * 0.75);
+    console.log("voici récompense 3 : " + recompense3v);
+    const recompense2v = arrondiPalier5(recompense3v / 2);
+    console.log("voici récompense 2 : " + recompense2v);
+
+    // Round 3 du groupe A = 3ème victoire
+    await query(
+      "update matches2 set recompense = ? where id_tournament = ? and round = 3 and groupe = 'A'",
+      [recompense3v, idTournament],
+      conn,
+    );
+    // Round 2 du groupe A, Round 3 du groupe B et B2 = 2ème victoire
+    await query(
+      "update matches2 set recompense = ? where id_tournament = ? and ((round = 2 and groupe = 'A') or (round = 3 and groupe = 'B') or (round = 3 and groupe = 'B2'))",
+      [recompense2v, idTournament],
       conn,
     );
   }

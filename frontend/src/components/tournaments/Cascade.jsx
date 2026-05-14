@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import Arbre from "../tournamentComponents/Arbre";
 import ButtonWinner from "../tournamentComponents/ButtonsWinner";
@@ -7,6 +7,7 @@ import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import { UsersContext } from "../../App";
 import { useNavigate } from "react-router-dom";
 import RecompenseTableau from "../tournamentComponents/RecompenseTableau";
+import RecompenseWinner from "../tournamentComponents/RecompenseWinner";
 
 const Cascade = ({
   fullListPlayers,
@@ -18,6 +19,8 @@ const Cascade = ({
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
   const navigate = useNavigate();
+  // State pour afficher la fenêtre de récompense et avoir les infos de récompense après une victoire
+  const [recompenseModal, setRecompenseModal] = useState(null);
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = async (win, lose, versus) => {
     setLoad(true);
@@ -40,6 +43,16 @@ const Cascade = ({
         },
       );
       setResponseWin(res.data);
+      // On affiche la fenêtre de récompense si le match a une récompense
+      if (versus.recompense > 0) {
+        setRecompenseModal({
+          pseudo: pseudoWin,
+          recompense: versus.recompense,
+          tour: versus.class,
+          groupe: versus.groupe,
+          round: versus.round,
+        });
+      }
       setTimeout(() => {
         recharge();
       }, 1000);
@@ -54,9 +67,18 @@ const Cascade = ({
 
   return (
     <div className="space-y-6">
+      {recompenseModal && (
+        <RecompenseWinner
+          recompenseModal={recompenseModal}
+          setRecompenseModal={setRecompenseModal}
+        />
+      )}
       <RecompenseTableau
         matches={fullListPlayers}
         idTournament={idTournament}
+        recharge={recharge}
+        prix_entree={listPlayers.prix_entree}
+        nb_joueurs={listPlayers.nb_joueurs}
       />
       {/* On affichera directement les vainqueurs si il y en a  */}
       <VainqueurGroupe listPlayers={listPlayers} />
