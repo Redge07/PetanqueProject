@@ -54,7 +54,10 @@ const Cascade = ({
 
   return (
     <div className="space-y-6">
-      <RecompenseTableau matches={fullListPlayers} />
+      <RecompenseTableau
+        matches={fullListPlayers}
+        idTournament={idTournament}
+      />
       {/* On affichera directement les vainqueurs si il y en a  */}
       <VainqueurGroupe listPlayers={listPlayers} />
       {/* On tri par les groupes */}
