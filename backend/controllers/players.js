@@ -142,6 +142,7 @@ exports.delete_player = async (req, res) => {
       .status(200)
       .json({ res: "Vous vous etes désinscrit du tournoi" });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({ res: -1 });
   }
 };

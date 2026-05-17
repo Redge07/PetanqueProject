@@ -10,6 +10,8 @@ import axios from "axios";
 import { linkBackend } from "./constants/LinkBackend";
 import SuccessPayement from "./pages/SuccessPayement";
 import CancelPayement from "./pages/CancelPayement";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export const UsersContext = createContext();
 
@@ -73,6 +75,8 @@ const App = () => {
           <Route path="/verify/:token" element={<Verify />}></Route>
           <Route path="/success" element={<SuccessPayement />}></Route>
           <Route path="/cancel" element={<CancelPayement />}></Route>
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Routes>
       </BrowserRouter>
     </UsersContext.Provider>

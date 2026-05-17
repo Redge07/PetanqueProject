@@ -1,0 +1,6 @@
+- Ajouter un middleware, c'est a dire empecher n'importe qui d'utiliser mon api depuis postman par exemple
+- Avoir le JWT_SECRET dans .env + illisible
+- Changer le cors et préciser par exemple que c'est uniquement https://petanqueapp.netlify.app qui peut faire des requetes a mon backend
+- Quand j'ai une réponse API avec un status 500 ne pas envoyé l'erreur en dur, juste dire une erreur est survenu
+- Avoir un rate limiting, donc si une personne fait un script pour faire des milliers de requetes par seconde, dire STOP
+- Ajouter un système de auto-refresh, donc simplement avec un setInterval sur le front qui recharge la page toutes les X secondes

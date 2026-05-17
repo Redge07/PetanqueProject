@@ -1,8 +1,9 @@
 - Système de QR Code (lien inscription tournoi)
 - Validation des données rempli dans les champs
+- MDP oublié
+- Vérifier que les API et appels d'API ont tous les meme raisonnement en cas d'erreur
 - Faire les callbacks au API restantes 
 - Remettre en ordre l'API log
-- Vérifier que les API et appels d'API ont tous les meme raisonnement en cas d'erreur
 - Répartition récompense
 - Commenter 
 

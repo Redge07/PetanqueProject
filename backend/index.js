@@ -6,13 +6,15 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 const cors = require("cors");
-
 app.use(cors());
+
+const helmet = require("helmet");
+app.use(helmet());
 
 app.post(
   "/log/webhooks",
   express.raw({ type: "application/json" }),
-  require("./controllers/log").webhooks,
+  require("./controllers/stripe").webhooks,
 );
 
 app.use(express.json());
@@ -31,13 +33,6 @@ app.use("/organisateurs", require("./routes/organisateurs"));
 
 app.get("/", (req, res) => {
   res.send("Bienvenue dans le backend");
-});
-
-let x = 0;
-
-app.get("/test", (req, res) => {
-  x = x + 1;
-  res.send(x);
 });
 
 app.listen(port, "0.0.0.0", () => {

@@ -1,16 +1,11 @@
 const { query, withTransaction } = require("../constants/query");
 const jwt = require("jsonwebtoken");
-const { Resend } = require("resend");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const { sendMail } = require("../constants/sendMail");
-const { Stripe } = require("stripe");
 const { OAuth2Client } = require("google-auth-library");
+const { sendMail, sendResetPasswordMail } = require("../constants/sendMail");
 
-// Clé API de Resend pour envoyer des mails
-const resend = new Resend(process.env.RESEND_API_KEY);
 const JWT_SECRET = process.env.JWT_SECRET;
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Fonction pour générer un token JWT pour un utilisateur
@@ -113,34 +108,6 @@ exports.googleAuth = async (req, res) => {
   }
 };
 
-// API pour mettre a jour des données d'un utilisateur quand il se connecte
-exports.register = async (req, res) => {
-  const pushToken = req.body.token;
-  const id = req.body.id;
-  const longitude = req.body.longitude;
-  const latitude = req.body.latitude;
-  // Il met a jour la position et le token qui permet d'envoyer des notifications a l'utilisateur
-  await query(
-    `update push_tokens ${pushToken ? "set token = ?, longitude = ?, latitude = ?, last_position_at = NOW()" : "set longitude = ?, latitude = ?, last_position_at = NOW()"} where user_id = ?`,
-    pushToken
-      ? [pushToken, longitude, latitude, id]
-      : [longitude, latitude, id],
-  );
-  res.json({ ok: true });
-};
-
-// API pour récupérer les positions de tous les joueurs d'un tournoi
-exports.positions = async (req, res) => {
-  const idTournament = req.params.id;
-  const positions = await query(
-    "SELECT p.latitude, p.longitude, p.last_position_at, pl.id_tournament, pl.numero, pl.pseudo FROM users u LEFT JOIN push_tokens p ON u.id = p.user_id LEFT JOIN players pl ON u.id = pl.id_user WHERE id_tournament = ?",
-    [idTournament],
-  );
-  console.log(positions);
-
-  res.status(200).json(positions);
-};
-
 // API qui permet de vérifier si le token stocké dans le localStorage est bon et donc permettre a la personne de se connecter snas passer par le formulaire de connexion classique
 exports.verifToken = async (req, res) => {
   const token = req.body.token;
@@ -148,43 +115,8 @@ exports.verifToken = async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     res.json({ res: true, user: decoded.user });
   } catch (err) {
+    console.log(err);
     res.status(401).json({ res: false });
-  }
-};
-
-exports.sendNotification = async (req, res) => {
-  try {
-    const { infos } = req.params;
-
-    await resend.emails.send({
-      // from: `"Pétanque Management" <onboarding@resend.dev>`,
-      from: `"Pétanque Management" <contact@stat-football.fr>`,
-      to: "mathonregis28@gmail.com",
-      // to: "baptistemarhon@icloud.com",
-      subject: "Notification",
-      html: `
-        <div style="font-family: Arial; padding:20px;">
-      <h1 style="color:#ff7b00;">🏆 Pétanque Project</h1>
-      <p>Petit test pour l'envoi de mail, c'est toujours sympa</p>
-      <div style="
-        background:#f4f4f4;
-        padding:15px;
-        border-radius:8px;
-        margin:10px 0;
-      ">
-        ${infos}
-      </div>
-      <p style="font-size:12px;color:gray;">
-        Cet email a été envoyé automatiquement.
-      </p>
-    </div>
-      `,
-    });
-
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("EMAIL ERROR:", err);
-    res.status(500).json({ error: err.message });
   }
 };
 
@@ -224,66 +156,68 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-exports.checkoutSession = async (req, res) => {
+// API pour demander la réinitialisation du mot de passe
+exports.forgotPassword = async (req, res) => {
   try {
-    const idTournament = req.params.id;
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: "Tournoi numéro " + idTournament,
-            },
-            unit_amount: 3000, // 30€
-          },
-          quantity: 1,
-        },
-      ],
-      success_url: `${process.env.FRONTEND_URL}success`,
-      cancel_url: `${process.env.FRONTEND_URL}cancel`,
-      metadata: {
-        idTournament,
-      },
-    });
-
-    res.json({ url: session.url });
+    const { email } = req.body;
+    const user = (
+      await query("select * from users where email = ?", [email])
+    )[0];
+    // Si aucun utilisateur ne correspond à cet email on renvoie quand même un succès
+    // pour ne pas révéler si l'email existe ou non en base (sécurité)
+    if (!user) {
+      return res
+        .status(200)
+        .json({ message: "Si cet email existe, un mail a été envoyé" });
+    }
+    // On génère un token aléatoire et une date d'expiration d'1 heure
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 60 * 60 * 1000);
+    await query(
+      "update users set reset_token = ?, reset_token_expires = ? where email = ?",
+      [resetToken, expires, email],
+    );
+    // On envoie le mail avec le lien de réinitialisation
+    await sendResetPasswordMail(email, resetToken);
+    return res
+      .status(200)
+      .json({ message: "Si cet email existe, un mail a été envoyé" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.log(err);
+    return res.status(500).json({ message: "Une erreur est survenue" });
   }
 };
 
-exports.webhooks = async (req, res) => {
-  const sig = req.headers["stripe-signature"];
-
-  let event;
-
+// API pour réinitialiser le mot de passe avec le token reçu par mail
+exports.resetPassword = async (req, res) => {
   try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET,
-    );
+    const { token } = req.params;
+    const { password } = req.body;
+    const message = await withTransaction(async (conn) => {
+      // On vérifie que le token existe et n'est pas expiré
+      const user = (
+        await query(
+          "select * from users where reset_token = ? and reset_token_expires > NOW()",
+          [token],
+          conn,
+        )
+      )[0];
+      if (!user) {
+        return { res: 0, message: "Token invalide ou expiré" };
+      }
+      // On hash le nouveau mot de passe
+      const hashedPassword = await bcrypt.hash(password, 10);
+      // On met à jour le mot de passe et on supprime le token
+      await query(
+        "update users set password = ?, reset_token = NULL, reset_token_expires = NULL where id = ?",
+        [hashedPassword, user.id],
+        conn,
+      );
+      return { res: 1, message: "Mot de passe réinitialisé avec succès" };
+    });
+    return res.status(200).json(message);
   } catch (err) {
-    console.log("❌ Signature invalide :", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.log(err);
+    return res.status(500).json({ message: "Une erreur est survenue" });
   }
-
-  // 🎯 Paiement réussi
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-
-    const tournamentId = session.metadata.idTournament;
-
-    await query("update tournaments set premium = 1 where id = ?", [
-      tournamentId,
-    ]);
-
-    console.log("✅ Paiement validé pour tournoi :", tournamentId);
-  }
-
-  res.json({ received: true });
 };
