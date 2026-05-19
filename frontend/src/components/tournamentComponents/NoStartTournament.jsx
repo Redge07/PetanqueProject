@@ -16,6 +16,8 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
   const [nbPlayers, setNbPlayers] = useState("");
+  const [searchAttente, setSearchAttente] = useState("");
+  const [searchValider, setSearchValider] = useState("");
 
   const { setLoad, setError } = useContext(UsersContext);
   const navigate = useNavigate();
@@ -24,8 +26,21 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   const [responseGoTournament, setResponseGoTournament] = useState("");
 
   // Variable pour calculer le nombre de joueurs en attente et validé
-  const listPlayersAttente = listPlayers.results.filter((p) => p.valider == 0);
-  const listPlayersValider = listPlayers.results.filter((p) => p.valider == 1);
+  const listPlayersAttente = listPlayers.results
+    .filter((p) => p.valider == 0)
+    .filter(
+      (p) =>
+        p.pseudo.toLowerCase().includes(searchAttente.toLowerCase()) ||
+        p.numero?.toString().includes(searchAttente),
+    );
+
+  const listPlayersValider = listPlayers.results
+    .filter((p) => p.valider == 1)
+    .filter(
+      (p) =>
+        p.pseudo.toLowerCase().includes(searchValider.toLowerCase()) ||
+        p.numero?.toString().includes(searchValider),
+    );
 
   const handleApiResponse = (res) => {
     setResponseAPI(res.data);
@@ -170,6 +185,14 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
 
   return (
     <div className="space-y-6">
+      {/* Recherche joueurs en attente */}
+      <input
+        type="text"
+        placeholder="Rechercher par nom ou numéro..."
+        value={searchAttente}
+        onChange={(e) => setSearchAttente(e.target.value)}
+        className="w-full h-10 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-3"
+      />
       {/* Joueurs en attente */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
@@ -188,46 +211,51 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         </div>
         <ul className="space-y-2">
           {/* On liste les joueurs qui sont en attente en filtrant avec le colonne "valider" */}
-          {listPlayers.results
-            .filter((j) => j.valider == 0)
-            .map((j) => (
-              <li
-                key={j.id_user}
-                className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
-              >
-                {/* Pseudo du joueur */}
-                <span className="font-medium text-[var(--color-primary)]">
-                  {j.pseudo}
-                </span>
-                <div className="flex items-center gap-2">
-                  {/* Bouton pour supprimer ce joueur */}
-                  <button
-                    onClick={() => handleDeleteAttente(j.id_user)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
-                  >
-                    <UserX className="w-4 h-4" />
-                    Refuser
-                  </button>
-                  {/* Bouton pour accepté ce joueur */}
-                  <button
-                    onClick={() => handleValid(j.id_user)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-all duration-300 text-sm"
-                  >
-                    <UserCheck className="w-4 h-4" />
-                    Accepter
-                  </button>
-                </div>
-                {/* Message qui va apparaitre quand on va supprimer ou accepté un joueur, vérifie si on parle d'une suppression ou d'une validation et vérifie l'id pour bien affiché ce message au joueur concerné */}
-                {responseAPI.res == 1 && responseAPI.id == j.id_user && (
-                  <p className="text-sm text-[var(--color-primary)] mt-1">
-                    {responseAPI.msg}
-                  </p>
-                )}
-              </li>
-            ))}
+          {listPlayersAttente.map((j) => (
+            <li
+              key={j.id_user}
+              className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
+            >
+              {/* Pseudo du joueur */}
+              <span className="font-medium text-[var(--color-primary)]">
+                {j.pseudo}
+              </span>
+              <div className="flex items-center gap-2">
+                {/* Bouton pour supprimer ce joueur */}
+                <button
+                  onClick={() => handleDeleteAttente(j.id_user)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
+                >
+                  <UserX className="w-4 h-4" />
+                  Refuser
+                </button>
+                {/* Bouton pour accepté ce joueur */}
+                <button
+                  onClick={() => handleValid(j.id_user)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-green-200 text-green-600 hover:bg-green-50 transition-all duration-300 text-sm"
+                >
+                  <UserCheck className="w-4 h-4" />
+                  Accepter
+                </button>
+              </div>
+              {/* Message qui va apparaitre quand on va supprimer ou accepté un joueur, vérifie si on parle d'une suppression ou d'une validation et vérifie l'id pour bien affiché ce message au joueur concerné */}
+              {responseAPI.res == 1 && responseAPI.id == j.id_user && (
+                <p className="text-sm text-[var(--color-primary)] mt-1">
+                  {responseAPI.msg}
+                </p>
+              )}
+            </li>
+          ))}
         </ul>
       </div>
-
+      {/* Recherche joueurs validés */}
+      <input
+        type="text"
+        placeholder="Rechercher par nom ou numéro..."
+        value={searchValider}
+        onChange={(e) => setSearchValider(e.target.value)}
+        className="w-full h-10 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-3"
+      />
       {/* Joueurs acceptés */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
@@ -246,35 +274,33 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           </div>
         </div>
         <ul className="space-y-2">
-          {listPlayers.results
-            .filter((j) => j.valider == 1)
-            .map((j) => (
-              <li
-                key={j.numero}
-                className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
+          {listPlayersValider.map((j) => (
+            <li
+              key={j.numero}
+              className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
+            >
+              <div>
+                <span className="font-medium text-[var(--color-primary)]">
+                  {j.pseudo}
+                </span>
+                <span className="text-sm text-[var(--color-gray)] ml-2">
+                  #{j.numero}
+                </span>
+              </div>
+              <button
+                onClick={() => handleDeleteValid(j.numero)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
               >
-                <div>
-                  <span className="font-medium text-[var(--color-primary)]">
-                    {j.pseudo}
-                  </span>
-                  <span className="text-sm text-[var(--color-gray)] ml-2">
-                    #{j.numero}
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleDeleteValid(j.numero)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
-                >
-                  <UserX className="w-4 h-4" />
-                  Supprimer
-                </button>
-                {responseAPI.res == 1 && responseAPI.numero == j.numero && (
-                  <p className="text-sm text-[var(--color-primary)] mt-1">
-                    {responseAPI.msg}
-                  </p>
-                )}
-              </li>
-            ))}
+                <UserX className="w-4 h-4" />
+                Supprimer
+              </button>
+              {responseAPI.res == 1 && responseAPI.numero == j.numero && (
+                <p className="text-sm text-[var(--color-primary)] mt-1">
+                  {responseAPI.msg}
+                </p>
+              )}
+            </li>
+          ))}
         </ul>
       </div>
 
