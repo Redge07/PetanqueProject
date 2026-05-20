@@ -258,17 +258,37 @@ const ClassementTournament = ({
                           return (
                             <div
                               key={m.key}
-                              className="bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-border)]"
+                              className="bg-white rounded-2xl p-4 border border-[var(--color-border)] shadow-sm"
                             >
-                              <p className="text-[var(--color-gray)] text-sm mb-3">
-                                <span className="font-semibold text-[var(--color-primary)]">
-                                  {m.pseudo_A}
-                                </span>{" "}
-                                vs{" "}
-                                <span className="font-semibold text-[var(--color-primary)]">
-                                  {m.id_playerB ? m.pseudo_B : "personne"}
-                                </span>
-                              </p>
+                              {/* Noms des joueurs */}
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex-1 text-center">
+                                  <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--color-primary)] rounded-full mb-1">
+                                    <span className="text-white text-xs font-bold">
+                                      A
+                                    </span>
+                                  </div>
+                                  <p className="font-semibold text-[var(--color-primary)] text-sm">
+                                    {m.pseudo_A}
+                                  </p>
+                                </div>
+                                <div className="flex flex-col items-center px-3">
+                                  <span className="text-xs font-bold text-white bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] px-3 py-1 rounded-full shadow">
+                                    VS
+                                  </span>
+                                </div>
+                                <div className="flex-1 text-center">
+                                  <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--color-gold)] rounded-full mb-1">
+                                    <span className="text-white text-xs font-bold">
+                                      B
+                                    </span>
+                                  </div>
+                                  <p className="font-semibold text-[var(--color-primary)] text-sm">
+                                    {m.id_playerB ? m.pseudo_B : "personne"}
+                                  </p>
+                                </div>
+                              </div>
+
                               {/* Si on est un orga on a les boutons qui apparaisse pour déclarer le vainqueur */}
                               {orga && (
                                 <form
@@ -280,32 +300,40 @@ const ClassementTournament = ({
                                       m.round,
                                     )
                                   }
-                                  className="flex items-center gap-2"
+                                  className="flex items-center gap-2 bg-[var(--color-bg-mid)] rounded-xl p-3"
                                 >
-                                  <input
-                                    type="number"
-                                    defaultValue={0}
-                                    placeholder={`Score ${m.pseudo_A}`}
-                                    disabled={m.end == -1}
-                                    name="scoreA"
-                                    className="w-24 h-10 px-3 rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-primary)] text-center focus:outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
-                                  />
-                                  <span className="text-[var(--color-gray)] text-sm">
-                                    vs
+                                  <div className="flex-1 flex flex-col items-center gap-1">
+                                    <span className="text-xs font-medium text-[var(--color-primary)]">
+                                      {m.pseudo_A}
+                                    </span>
+                                    <input
+                                      type="number"
+                                      defaultValue={0}
+                                      disabled={m.end == -1}
+                                      name="scoreA"
+                                      className="w-full h-10 px-3 rounded-xl border-2 border-[var(--color-primary)]/30 bg-white text-[var(--color-primary)] text-center font-bold focus:outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
+                                    />
+                                  </div>
+                                  <span className="text-[var(--color-gray-light)] text-sm mt-4 font-bold">
+                                    —
                                   </span>
-                                  <input
-                                    type="number"
-                                    defaultValue={1}
-                                    placeholder={`Score ${m.id_playerB ? m.pseudo_B : "personne"}`}
-                                    disabled={m.end == -1}
-                                    name="scoreB"
-                                    className="w-24 h-10 px-3 rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-primary)] text-center focus:outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
-                                  />
+                                  <div className="flex-1 flex flex-col items-center gap-1">
+                                    <span className="text-xs font-medium text-[var(--color-gold)]">
+                                      {m.id_playerB ? m.pseudo_B : "personne"}
+                                    </span>
+                                    <input
+                                      type="number"
+                                      defaultValue={1}
+                                      disabled={m.end == -1}
+                                      name="scoreB"
+                                      className="w-full h-10 px-3 rounded-xl border-2 border-[var(--color-gold)]/30 bg-white text-[var(--color-gold)] text-center font-bold focus:outline-none focus:border-[var(--color-gold)] transition-colors disabled:opacity-50"
+                                    />
+                                  </div>
                                   <input
                                     type="submit"
-                                    value="Valider"
+                                    value="✓"
                                     disabled={m.end == -1}
-                                    className="h-10 px-4 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl text-sm font-medium cursor-pointer hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="h-10 w-10 mt-5 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-xl text-lg font-bold cursor-pointer hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                   />
                                 </form>
                               )}

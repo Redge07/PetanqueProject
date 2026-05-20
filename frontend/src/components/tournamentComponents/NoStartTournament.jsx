@@ -209,7 +209,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
             </p>
           </div>
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-2 max-h-64 overflow-y-auto">
           {/* On liste les joueurs qui sont en attente en filtrant avec le colonne "valider" */}
           {listPlayersAttente.map((j) => (
             <li
@@ -273,7 +273,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
             </p>
           </div>
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-2 max-h-64 overflow-y-auto">
           {listPlayersValider.map((j) => (
             <li
               key={j.numero}

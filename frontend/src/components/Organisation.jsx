@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "../App";
-import { Plus, Trash2, Eye, X } from "lucide-react";
+import { Plus, Trash2, Eye, X, Trophy } from "lucide-react";
 
 const Organisation = ({ player }) => {
   // State qui contiendra les tournoi que gère ce compte en question
@@ -80,20 +80,46 @@ const Organisation = ({ player }) => {
             {tournaments.results.map((t) => (
               <li
                 key={t.id}
-                className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-xl flex items-center justify-between"
+                className="bg-white rounded-2xl p-4 shadow-sm border border-[var(--color-border)] flex items-center justify-between hover:shadow-md transition-all duration-300"
               >
-                <div>
-                  <p className="font-semibold text-[var(--color-primary)]">
-                    {t.name}
-                  </p>
-                  <p className="text-sm text-[var(--color-gray)]">
-                    Mode {t.style}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                    <Trophy className="w-5 h-5 text-[var(--color-gold)]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--color-primary)]">
+                      {t.name}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs font-medium text-white bg-[var(--color-primary)] px-2 py-0.5 rounded-full">
+                        {t.style}
+                      </span>
+                      <span className="text-xs text-[var(--color-gray-light)]">
+                        #{t.id}
+                      </span>
+                      <span
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          t.start == 0
+                            ? "bg-orange-100 text-orange-500"
+                            : t.start == 1
+                              ? "bg-green-100 text-green-600"
+                              : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {t.start == 0
+                          ? "Pas commencé"
+                          : t.start == 1
+                            ? "En cours"
+                            : "Terminé"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+
                 <div className="flex items-center gap-2">
                   <NavLink
                     to={"/" + t.id}
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-primary)] hover:bg-[var(--color-bg-mid)] transition-all duration-300 text-sm font-medium"
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-all duration-300 text-sm font-medium shadow-sm"
                   >
                     <Eye className="w-4 h-4" />
                     Voir
@@ -104,7 +130,6 @@ const Organisation = ({ player }) => {
                     className="flex items-center gap-1 px-3 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm font-medium"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Supprimer
                   </button>
                 </div>
               </li>

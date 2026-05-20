@@ -38,53 +38,69 @@ const Order = ({ idTournament }) => {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[var(--color-border)]">
-              <th className="text-left py-2 px-3 text-[var(--color-gray)] font-medium">
+            <tr className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl">
+              <th className="text-left py-3 px-3 text-white/70 font-medium rounded-l-xl">
                 #
               </th>
-              <th className="text-left py-2 px-3 text-[var(--color-gray)] font-medium">
+              <th className="text-left py-3 px-3 text-white/70 font-medium">
                 Pseudo
               </th>
-              <th className="text-left py-2 px-3 text-[var(--color-gray)] font-medium">
+              <th className="text-left py-3 px-3 text-white/70 font-medium">
                 N°
               </th>
-              <th className="text-left py-2 px-3 text-[var(--color-gray)] font-medium">
+              <th className="text-left py-3 px-3 text-white/70 font-medium">
                 Points
               </th>
-              <th className="text-left py-2 px-3 text-[var(--color-gray)] font-medium">
+              <th className="text-left py-3 px-3 text-white/70 font-medium">
                 Diff
               </th>
-              <th className="text-left py-2 px-3 text-[var(--color-gray)] font-medium">
+              <th className="text-left py-3 px-3 text-white/70 font-medium">
                 Victoires
               </th>
-              <th className="text-left py-2 px-3 text-[var(--color-gray)] font-medium">
+              <th className="text-left py-3 px-3 text-white/70 font-medium rounded-r-xl">
                 Matchs
               </th>
             </tr>
           </thead>
           <tbody>
             {dataOrder.map((l, i) => {
+              const isTop3 = i < 3;
+              const isQualified = i < 8;
+              const medals = ["🥇", "🥈", "🥉"];
+
               return (
                 <tr
                   key={l.numero}
-                  className={`border-b border-[var(--color-border)] last:border-0 ${i < 8 ? "bg-[var(--color-bg-mid)]" : ""}`}
+                  className={`border-b border-[var(--color-border)] last:border-0 transition-colors ${
+                    isTop3
+                      ? "bg-[var(--color-gold)]/10"
+                      : isQualified
+                        ? "bg-[var(--color-bg-mid)]"
+                        : "bg-white"
+                  }`}
                 >
-                  <td className="py-3 px-3 font-semibold text-[var(--color-primary)]">
-                    {i + 1}
+                  <td className="py-3 px-3 font-bold text-[var(--color-primary)]">
+                    {isTop3 ? medals[i] : i + 1}
                   </td>
-                  <td className="py-3 px-3 font-medium text-[var(--color-primary)]">
+                  <td className="py-3 px-3 font-semibold text-[var(--color-primary)]">
                     {l.pseudo}
                   </td>
                   <td className="py-3 px-3 text-[var(--color-gray)]">
-                    {l.numero}
+                    #{l.numero}
                   </td>
-                  <td className="py-3 px-3 font-semibold text-[var(--color-gold)]">
-                    {l.points}
+                  <td className="py-3 px-3">
+                    <span className="font-bold text-[var(--color-gold)] bg-[var(--color-gold)]/10 px-2 py-0.5 rounded-lg">
+                      {l.points}
+                    </span>
                   </td>
-                  <td className="py-3 px-3 text-[var(--color-gray)]">
-                    {l.diff}
+                  <td className="py-3 px-3">
+                    <span
+                      className={`font-medium ${l.diff >= 0 ? "text-green-600" : "text-red-500"}`}
+                    >
+                      {l.diff >= 0 ? `+${l.diff}` : l.diff}
+                    </span>
                   </td>
-                  <td className="py-3 px-3 text-[var(--color-gray)]">
+                  <td className="py-3 px-3 font-medium text-[var(--color-primary)]">
                     {l.nb_win}
                   </td>
                   <td className="py-3 px-3 text-[var(--color-gray)]">
