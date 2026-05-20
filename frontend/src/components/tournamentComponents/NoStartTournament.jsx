@@ -10,6 +10,9 @@ import {
   Play,
   CreditCard,
   Users,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 
 const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
@@ -18,6 +21,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   const [nbPlayers, setNbPlayers] = useState("");
   const [searchAttente, setSearchAttente] = useState("");
   const [searchValider, setSearchValider] = useState("");
+  const [editPrix, setEditPrix] = useState(false);
 
   const { setLoad, setError } = useContext(UsersContext);
   const navigate = useNavigate();
@@ -183,6 +187,23 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
     }
   };
 
+  const handleModifyPrice = async (e) => {
+    e.preventDefault();
+    setLoad(true);
+    try {
+      await axios.put(linkBackend + "tournaments/prix_entree/" + idTournament, {
+        prix_entree: e.target.elements.prix_entree.value,
+      });
+      setEditPrix(false);
+      recharge();
+    } catch (err) {
+      setError(true);
+      console.log(err);
+    } finally {
+      setLoad(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Recherche joueurs en attente */}
@@ -303,7 +324,6 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           ))}
         </ul>
       </div>
-
       {/* Ajouter un joueur manuellement */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
@@ -329,7 +349,6 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           />
         </form>
       </div>
-
       {/* Créer des joueurs automatiquement */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
@@ -357,7 +376,60 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           </button>
         </div>
       </div>
-
+      {listPlayers.style == "cascade" && (
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[var(--color-gold)]/10 rounded-xl flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-[var(--color-gold)]" />
+              </div>
+              <h3 className="font-semibold text-[var(--color-primary)]">
+                Prix d'entrée par équipe
+              </h3>
+            </div>
+            {editPrix ? (
+              <form
+                onSubmit={handleModifyPrice}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="number"
+                  name="prix_entree"
+                  min="0"
+                  defaultValue={listPlayers.prix_entree}
+                  className="w-24 h-9 px-3 rounded-xl border border-[var(--color-primary)] text-[var(--color-primary)] text-center focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditPrix(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-100 text-red-500 hover:bg-red-200 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[var(--color-gold)] text-lg">
+                  {listPlayers.prix_entree}€
+                </span>
+                <button
+                  onClick={() => setEditPrix(true)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-bg-mid)] transition-colors"
+                >
+                  <Pencil className="w-4 h-4 text-[var(--color-gray-light)]" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {/* Lancer le tournoi */}
       <button
         onClick={handleGoTournament}
@@ -366,13 +438,11 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         <Play className="w-6 h-6" />
         Lancer le tournoi
       </button>
-
       {responseGoTournament.message && (
         <p className="text-center text-sm text-[var(--color-primary)] bg-[var(--color-bg-mid)] rounded-xl p-3">
           {responseGoTournament.message}
         </p>
       )}
-
       {responseGoTournament.res == 1 && (
         <button
           onClick={handlePayement}

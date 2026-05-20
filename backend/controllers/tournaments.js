@@ -30,6 +30,7 @@ exports.charge = async (req, res) => {
         res: status.noStart,
         results: listPlayers,
         style: tournament.style,
+        prix_entree: tournament.prix_entree,
       });
     }
     // Sinon ça veut dire que le tournoi a bien commencé et que les matches ont déjà eté généré, donc on récupère ces matches
@@ -317,5 +318,21 @@ exports.modify_recompense_victoire = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);
+  }
+};
+
+// API pour modifier le prix d'entrée d'un tournoi
+exports.modify_prix_entree = async (req, res) => {
+  try {
+    const idTournament = req.params.id;
+    const { prix_entree } = req.body;
+    await query("update tournaments set prix_entree = ? where id = ?", [
+      prix_entree,
+      idTournament,
+    ]);
+    return res.status(200).json({ message: "Prix d'entrée modifié" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Une erreur est survenue" });
   }
 };

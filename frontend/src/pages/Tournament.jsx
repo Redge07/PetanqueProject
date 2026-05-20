@@ -41,6 +41,8 @@ const Tournament = () => {
       const res = await axios.get(linkBackend + "tournaments/" + idTournament);
       setFullListPlayers(res.data.matches);
       setResponseWin("");
+      console.log(res);
+
       const filteredMatches = res.data.matches
         ? res.data.matches.filter(
             (match) => match.id_playerA && (!match.end || match.end == -1),

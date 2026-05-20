@@ -11,6 +11,7 @@ const Organisation = ({ player }) => {
   // State qui gère l'apparition du formulaire pour crée un tournoi pour le joueur connecté
   const [addTournament, setAddTournament] = useState(false);
   const { setLoad, setError } = useContext(UsersContext);
+  const [styleTournament, setStyleTournament] = useState("arbre");
   // Fonction qui récupère les tournoi que gère le joueur
   const recharge = async () => {
     try {
@@ -36,7 +37,7 @@ const Organisation = ({ player }) => {
       await axios.post(linkBackend + "organisateurs/" + player.id, {
         name: e.target.elements.name.value,
         style: e.target.elements.style_tournament.value,
-        prix_entree: e.target.elements.prix_entree.value,
+        prix_entree: e.target.elements.prix_entree?.value || 0,
       });
     } catch (err) {
       setError(true);
@@ -162,25 +163,30 @@ const Organisation = ({ player }) => {
           />
           <select
             name="style_tournament"
+            value={styleTournament}
+            onChange={(e) => setStyleTournament(e.target.value)}
             className="w-full h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
           >
             <option value="arbre">Arbre</option>
             <option value="cascade">Cascade</option>
             <option value="classement">Classement</option>
           </select>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[var(--color-primary)]">
-              Prix d'entrée par équipe (€) (falcultatif, modifiable après la
-              création du tournoi)
-            </label>
-            <input
-              type="number"
-              defaultValue="10"
-              name="prix_entree"
-              min="0"
-              className="w-full h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-            />
-          </div>
+
+          {/* Le champ prix s'affiche uniquement si cascade est sélectionné */}
+          {styleTournament === "cascade" && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--color-primary)]">
+                Prix d'entrée par équipe (€)
+              </label>
+              <input
+                type="number"
+                defaultValue="10"
+                min="0"
+                name="prix_entree"
+                className="w-full h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+              />
+            </div>
+          )}
           <div className="flex gap-3">
             <input
               type="submit"
