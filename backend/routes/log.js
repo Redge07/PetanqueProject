@@ -16,6 +16,9 @@ router.post("/reset-password/:token", auth.resetPassword);
 
 router.post("/register", users.register);
 router.get("/positions/:id", users.positions);
+router.get("/profile/:id", users.getProfile);
+router.put("/password/:id", users.changePassword);
+router.delete("/account/:id", users.deleteAccount);
 
 router.post("/create-checkout-session/:id", stripe.checkoutSession);
 router.post("/webhooks", stripe.webhooks);

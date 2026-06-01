@@ -44,7 +44,7 @@ const Login = () => {
       setRes(res.data.message);
     } catch (err) {
       setError(true);
-      console.log(err);
+
     } finally {
       setTimeout(() => {
         setLoad(false);
@@ -74,8 +74,8 @@ const Login = () => {
           const position = await getLocation();
           latitude = position.coords.latitude;
           longitude = position.coords.longitude;
-        } catch (err) {
-          console.log("Pas de géoloc");
+        } catch {
+          // géolocalisation non disponible
         }
         // On envoie la position du PC et le token de notifications pour que l'API puisse les stocker et les utiliser plus tard pour envoyer des notifications ou afficher la position des joueurs sur une carte
         await axios.post(linkBackend + "log/register", {
@@ -91,7 +91,7 @@ const Login = () => {
       }
     } catch (err) {
       setError(true);
-      console.log(err);
+
     } finally {
       setTimeout(() => {
         setLoad(false);
@@ -100,7 +100,6 @@ const Login = () => {
   };
 
   const handleCredentialResponse = async (response) => {
-    console.log(response);
     setLoad(true);
     try {
       const res = await axios.post(linkBackend + "log/google", {
@@ -118,8 +117,8 @@ const Login = () => {
           const position = await getLocation();
           latitude = position.coords.latitude;
           longitude = position.coords.longitude;
-        } catch (err) {
-          console.log("Pas de géoloc");
+        } catch {
+          // géolocalisation non disponible
         }
         // On envoie la position du PC et le token de notifications pour que l'API puisse les stocker et les utiliser plus tard pour envoyer des notifications ou afficher la position des joueurs sur une carte
         await axios.post(linkBackend + "log/register", {
@@ -135,7 +134,7 @@ const Login = () => {
       }
     } catch (err) {
       setError(true);
-      console.log(err);
+
     } finally {
       setTimeout(() => {
         setLoad(false);

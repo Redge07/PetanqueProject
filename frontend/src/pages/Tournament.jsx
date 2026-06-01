@@ -10,7 +10,9 @@ import ClassementTournament from "../components/tournaments/ClassementTournament
 import createPaires from "../utils/CreatePaires";
 import Map from "../components/tournamentComponents/Map";
 import NotConnect from "../constants/NotConnect";
-import { ChevronLeft, Trophy } from "lucide-react";
+import { ChevronLeft, Trophy, FileDown, ExternalLink } from "lucide-react";
+import { getFormatLabel } from "../utils/formatLabels";
+import { generateTournamentPDF } from "../utils/generatePDF";
 
 export const OrgaContext = createContext();
 
@@ -23,6 +25,7 @@ const Tournament = () => {
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
   const [listPlayers, setListPlayers] = useState({});
   const [fullListPlayers, setFullListPlayers] = useState({});
+  const [classementData, setClassementData] = useState(null);
   // State qui dit que tel joueur a gagné
   const [responseWin, setResponseWin] = useState("");
   // State qui va nous aider quand faudra afficher les matchs trié par leurs catégories
@@ -41,8 +44,6 @@ const Tournament = () => {
       const res = await axios.get(linkBackend + "tournaments/" + idTournament);
       setFullListPlayers(res.data.matches);
       setResponseWin("");
-      console.log(res);
-
       const filteredMatches = res.data.matches
         ? res.data.matches.filter(
             (match) => match.id_playerA && (!match.end || match.end == -1),
@@ -56,13 +57,26 @@ const Tournament = () => {
       // Fonction pour connaitre les groupes, round et tour qui se déroulent pour voir les trucs qu'on affiche seulement
       const { rounds, groupes, tours } = createPaires(filteredMatches);
       setPaireInfos({ rounds, groupes, tours });
+
+      // Charger le classement si mode poules
+      if (res.data.style === "classement") {
+        try {
+          const cl = await axios.get(linkBackend + "tournaments/classement/" + idTournament);
+          setClassementData(cl.data.players ?? null);
+        } catch {
+          // pas bloquant
+        }
+      }
     } catch (err) {
       setError(true);
-      console.log(err);
       navigate("/");
     } finally {
       setLoad(false);
     }
+  };
+
+  const handleDownloadPDF = () => {
+    generateTournamentPDF(listPlayers, idTournament, classementData);
   };
 
   useEffect(() => {
@@ -82,17 +96,48 @@ const Tournament = () => {
               <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-lg">
                 <Trophy className="w-6 h-6 text-[var(--color-gold)]" />
               </div>
-              <h2 className="text-2xl font-light text-[var(--color-primary)]">
-                Tournoi <span className="font-semibold">#{idTournament}</span>
-              </h2>
+              <div>
+                <h2 className="text-2xl font-light text-[var(--color-primary)]">
+                  {listPlayers.name ? (
+                    <span className="font-semibold">{listPlayers.name}</span>
+                  ) : (
+                    <>Concours <span className="font-semibold">#{idTournament}</span></>
+                  )}
+                </h2>
+                {listPlayers.style && (
+                  <p className="text-sm text-[var(--color-gray)] mt-0.5">
+                    {getFormatLabel(listPlayers.style)}
+                  </p>
+                )}
+              </div>
             </div>
-            <NavLink
-              to="/"
-              className="flex items-center gap-2 text-[var(--color-gray)] hover:text-[var(--color-primary)] hover:bg-white/50 px-4 py-2 rounded-xl transition-all duration-300"
-            >
-              <ChevronLeft className="w-5 h-5" />
-              Retour
-            </NavLink>
+            <div className="flex items-center gap-2">
+              <a
+                href={`/public/${idTournament}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-gray)] hover:bg-white/50 hover:text-[var(--color-primary)] transition-all duration-300 text-sm"
+                title="Affichage public (grand écran)"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span className="hidden sm:inline">Public</span>
+              </a>
+              <button
+                onClick={handleDownloadPDF}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 transition-all duration-300 text-sm"
+                title="Télécharger PDF"
+              >
+                <FileDown className="w-4 h-4" />
+                <span className="hidden sm:inline">PDF</span>
+              </button>
+              <NavLink
+                to="/"
+                className="flex items-center gap-2 text-[var(--color-gray)] hover:text-[var(--color-primary)] hover:bg-white/50 px-4 py-2 rounded-xl transition-all duration-300 text-sm"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <span className="hidden sm:inline">Retour</span>
+              </NavLink>
+            </div>
           </div>
 
           {/* Si le tournoi n'a pas commencé on va afficher les joueurs en attente et accepté */}
@@ -110,10 +155,10 @@ const Tournament = () => {
             <div>
               <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-2xl p-6 text-white shadow-xl mb-6">
                 <p className="text-[var(--color-gold)] text-sm font-medium mb-1">
-                  Tournoi en cours
+                  Concours en cours
                 </p>
                 <h2 className="text-2xl font-semibold">
-                  Mode {listPlayers.style}
+                  {getFormatLabel(listPlayers.style)}
                 </h2>
                 {responseWin && (
                   <p className="mt-2 text-white/80 text-sm">{responseWin}</p>

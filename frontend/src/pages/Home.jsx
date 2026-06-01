@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import Organisation from "../components/Organisation";
 import Participant from "../components/Participant";
 import NotConnect from "../constants/NotConnect";
-import { Trophy, Crown, Target, LogOut, ChevronLeft } from "lucide-react";
+import { Trophy, Crown, Target, LogOut, ChevronLeft, User } from "lucide-react";
 
 const Home = () => {
   // Je récupère le fait de savoir si je suis connecté et les informations du compte sur lequel je suis connecté
@@ -33,13 +33,22 @@ const Home = () => {
               Pétanque<span className="font-semibold">Manager</span>
             </h1>
           </div>
-          <button
-            onClick={handleDisconnect}
-            className="flex items-center gap-2 text-[var(--color-gray)] hover:text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl transition-all duration-300"
-          >
-            <LogOut className="w-5 h-5" />
-            Se déconnecter
-          </button>
+          <div className="flex items-center gap-2">
+            <NavLink
+              to="/profile"
+              className="flex items-center gap-2 text-[var(--color-gray)] hover:text-[var(--color-primary)] hover:bg-white/50 px-4 py-2 rounded-xl transition-all duration-300"
+            >
+              <User className="w-5 h-5" />
+              <span className="hidden sm:inline">Profil</span>
+            </NavLink>
+            <button
+              onClick={handleDisconnect}
+              className="flex items-center gap-2 text-[var(--color-gray)] hover:text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl transition-all duration-300"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="hidden sm:inline">Se déconnecter</span>
+            </button>
+          </div>
         </div>
 
         {/* Carte de bienvenue */}
@@ -54,7 +63,7 @@ const Home = () => {
               Bonjour, <span className="font-semibold">{player.pseudo}</span>
             </p>
             <p className="text-white/70 mt-1">
-              Prêt à organiser ou participer à un tournoi ?
+              Prêt à organiser ou participer à un concours ?
             </p>
           </div>
         </div>
@@ -76,7 +85,7 @@ const Home = () => {
                 Organisateur
               </h3>
               <p className="text-[var(--color-gray)] mb-4">
-                Créez et gérez vos propres tournois de pétanque
+                Créez et gérez vos propres concours de pétanque
               </p>
               <div className="flex items-center text-[var(--color-gold)] font-medium">
                 <span>Accéder</span>
@@ -97,7 +106,7 @@ const Home = () => {
                 Participant
               </h3>
               <p className="text-[var(--color-gray)] mb-4">
-                Rejoignez un tournoi et suivez vos matchs en direct
+                Rejoignez un concours et suivez vos matchs en direct
               </p>
               <div className="flex items-center text-[var(--color-primary)] font-medium">
                 <span>Accéder</span>
@@ -129,6 +138,13 @@ const Home = () => {
             Retour au choix
           </button>
         ) : null}
+        {/* Footer légal */}
+        <div className="mt-12 pt-6 border-t border-[var(--color-border)] flex flex-wrap gap-4 justify-center text-xs text-[var(--color-gray-light)]">
+          <NavLink to="/mentions-legales" className="hover:text-[var(--color-primary)] transition-colors">Mentions légales</NavLink>
+          <NavLink to="/confidentialite" className="hover:text-[var(--color-primary)] transition-colors">Confidentialité</NavLink>
+          <NavLink to="/cgu" className="hover:text-[var(--color-primary)] transition-colors">CGU</NavLink>
+          <a href="mailto:mathonregis28@gmail.com" className="hover:text-[var(--color-primary)] transition-colors">Contact</a>
+        </div>
       </div>
     </div>
   );

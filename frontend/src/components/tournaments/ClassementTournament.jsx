@@ -7,7 +7,6 @@ import Arbre from "../tournamentComponents/Arbre";
 import { OrgaContext } from "../../pages/Tournament";
 import Order from "../tournamentComponents/Order";
 import { UsersContext } from "../../App";
-import { useNavigate } from "react-router-dom";
 import handleGoArbreClassementUtil from "../../utils/handleGoArbreClassement";
 
 const ClassementTournament = ({
@@ -19,7 +18,6 @@ const ClassementTournament = ({
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
   const context = useContext(OrgaContext);
-  const navigate = useNavigate();
   const orga = context?.orga;
 
   // State qui permet de gérer l'affichage du classement des poules
@@ -40,8 +38,7 @@ const ClassementTournament = ({
       setDataOrder(res.data);
     } catch (err) {
       setError(true);
-      navigate("/");
-      console.log(err);
+
     } finally {
       setLoad(false);
     }
@@ -92,8 +89,7 @@ const ClassementTournament = ({
       }
     } catch (err) {
       setError(true);
-      navigate("/");
-      console.log(err);
+
     } finally {
       setLoad(false);
     }
@@ -122,8 +118,7 @@ const ClassementTournament = ({
       }, 1000);
     } catch (err) {
       setError(true);
-      navigate("/");
-      console.log(err);
+
     } finally {
       setLoad(false);
     }
@@ -146,8 +141,7 @@ const ClassementTournament = ({
       }, 1000);
     } catch (err) {
       setError(true);
-      navigate("/");
-      console.log(err);
+
     } finally {
       setLoad(false);
     }
@@ -158,8 +152,8 @@ const ClassementTournament = ({
       {/* Pour un joueur quand tous les 3 matches sont fini */}
       {dataOrder.goArbre && !orga && (
         <p className="text-sm text-[var(--color-primary)] bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-gold)]/20">
-          La phase de poule est fini, il faut attendre le tirage au sort pour la
-          suite en arbre
+          La phase de poules est terminée. En attente du tirage au sort pour la
+          phase finale en arbre.
         </p>
       )}
 

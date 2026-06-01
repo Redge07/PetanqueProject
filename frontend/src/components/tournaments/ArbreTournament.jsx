@@ -3,7 +3,6 @@ import React, { useContext } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import Arbre from "../tournamentComponents/Arbre";
 import { UsersContext } from "../../App";
-import { useNavigate } from "react-router-dom";
 
 const ArbreTournament = ({
   pairesInfos,
@@ -13,7 +12,6 @@ const ArbreTournament = ({
   recharge,
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
-  const navigate = useNavigate();
   // Fonction quand je déclare le vainqueur dans un tournoi arbre
   const handleWinnerArbre = async (win, lose, versus) => {
     setLoad(true);
@@ -35,8 +33,7 @@ const ArbreTournament = ({
       }, 1000);
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
     } finally {
       setLoad(false);
     }

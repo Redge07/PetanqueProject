@@ -16,8 +16,7 @@ const ForgotPassword = () => {
         email: e.target.elements.email.value,
       });
       setRes(response.data.message);
-    } catch (err) {
-      console.log(err);
+    } catch {
       setError(true);
     } finally {
       setLoad(false);

@@ -134,6 +134,32 @@ exports.add_player = async (req, res) => {
   }
 };
 
+// API pour rechercher des concours par nom (texte libre)
+exports.searchByName = async (req, res) => {
+  try {
+    const name = req.params.name;
+    const tournaments = await query(
+      "SELECT id, name, style FROM tournaments WHERE name LIKE ? AND start = 0 ORDER BY id DESC LIMIT 15",
+      [`%${name}%`],
+    );
+    return res.status(200).json(tournaments);
+  } catch (err) {
+    return res.status(500).json({ res: -1 });
+  }
+};
+
+// API pour lister tous les concours disponibles (non commencés)
+exports.listAvailable = async (req, res) => {
+  try {
+    const tournaments = await query(
+      "SELECT id, name, style FROM tournaments WHERE start = 0 ORDER BY id DESC LIMIT 20",
+    );
+    return res.status(200).json(tournaments);
+  } catch (err) {
+    return res.status(500).json({ res: -1 });
+  }
+};
+
 // API qui désinscrit un joueur d'un tournoi
 exports.delete_player = async (req, res) => {
   try {

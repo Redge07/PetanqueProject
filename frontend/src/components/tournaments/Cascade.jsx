@@ -5,7 +5,6 @@ import Arbre from "../tournamentComponents/Arbre";
 import ButtonWinner from "../tournamentComponents/ButtonsWinner";
 import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import { UsersContext } from "../../App";
-import { useNavigate } from "react-router-dom";
 import RecompenseTableau from "../tournamentComponents/RecompenseTableau";
 import RecompenseWinner from "../tournamentComponents/RecompenseWinner";
 
@@ -18,7 +17,6 @@ const Cascade = ({
   idTournament,
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
-  const navigate = useNavigate();
   // State pour afficher la fenêtre de récompense et avoir les infos de récompense après une victoire
   const [recompenseModal, setRecompenseModal] = useState(null);
   // Fonction quand je déclare le vainqueur
@@ -58,8 +56,7 @@ const Cascade = ({
       }, 1000);
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
     } finally {
       setLoad(false);
     }

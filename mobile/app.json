@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "PétanqueManager",
+    "slug": "petanque-manager",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1e3a5f"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mathonregis.petanquemanager",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Votre position est utilisée pour afficher votre emplacement sur la carte du concours.",
+        "NSCameraUsageDescription": "La caméra est utilisée pour scanner les QR codes des concours."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1e3a5f"
+      },
+      "package": "com.mathonregis.petanquemanager",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Votre position est utilisée pour la carte du concours."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "La caméra est utilisée pour scanner les QR codes."
+        }
+      ]
+    ],
+    "scheme": "petanquemanager",
+    "newArchEnabled": false,
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

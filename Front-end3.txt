@@ -4,3 +4,49 @@
 - Quand j'ai une réponse API avec un status 500 ne pas envoyé l'erreur en dur, juste dire une erreur est survenu
 - Avoir un rate limiting, donc si une personne fait un script pour faire des milliers de requetes par seconde, dire STOP
 - Ajouter un système de auto-refresh, donc simplement avec un setInterval sur le front qui recharge la page toutes les X secondes
+
+Les vrais manques pour du professionnel
+Je les classe en 4 niveaux de gravité.
+
+🔴 Niveau 1 — Bloquants sécurité (à faire AVANT toute mise en prod sérieuse)
+Tes API backend n'ont aucune protection. N'importe qui connaissant l'URL peut appeler DELETE /organisateurs/47 et supprimer le concours de quelqu'un d'autre. Aucune route ne vérifie qui tu es ni si tu as le droit. Le JWT est généré mais jamais vérifié côté serveur sur les routes sensibles. C'est LE point critique : aujourd'hui l'app est ouverte à tous.
+
+Pas de validation des entrées backend. Un utilisateur peut envoyer n'importe quoi (scripts, données malformées). Risque d'injection et de crash.
+
+CORS grand ouvert (app.use(cors()) accepte tout le monde).
+
+Secrets potentiellement exposés — il faut vérifier que .env backend n'est pas commité sur Git.
+
+🟠 Niveau 2 — Indispensables pour la fiabilité
+Aucun test. Pour une app pro avec de la logique métier complexe (3 formats, calculs de scores, génération d'arbres), zéro test = chaque modif risque de tout casser sans que tu le voies.
+
+Pas de gestion d'état serveur propre. Les setTimeout(recharge, 1000) partout sont fragiles. Si l'API est lente, ça désynchronise l'affichage.
+
+Connectivité = point mort. Les boulodromes ont une 4G pourrie. Aujourd'hui chaque action = appel réseau. Si ça coupe en plein concours, l'orga est bloqué. C'est LE risque métier n°1.
+
+🟡 Niveau 3 — Qualité produit
+Modèle "équipe" pas explicite — fonctionne mais le vocabulaire ("pseudo") ne reflète pas doublette/triplette.
+
+Format "mêlée" manquant (très demandé en village).
+
+Pas de monitoring — si l'app crashe en prod, tu ne le sais pas. Pas de logs centralisés, pas d'alertes.
+
+🟢 Niveau 4 — Croissance
+App mobile (déjà prévue)
+Carte des concours publique (acquisition d'utilisateurs)
+Notifications push
+Mon conseil sur l'ordre
+Si c'est pour un besoin réel, voici l'ordre non négociable :
+
+
+1. SÉCURITÉ BACKEND (auth middleware + autorisation)  ← absolument en premier
+2. Validation des entrées + CORS restreint
+3. Mode offline / résilience réseau (le risque métier)
+4. Tests sur la logique métier critique
+5. Monitoring (savoir quand ça casse)
+---- à partir de là c'est "pro" ----
+6. Modèle équipe explicite + mêlée
+7. Mobile, carte publique, notifs
+Le point 1 est urgent. Tant qu'il n'est pas fait, n'importe qui peut détruire les données de n'importe quel concours. Tout le reste (UI, PDF, page publique) est du vernis sur une maison sans serrure.
+
+Veux-tu qu'on attaque la sécurisation du backend (middleware d'authentification JWT + vérification des droits sur chaque route) ? C'est le chantier le plus important et il n'est pas si long — quelques heures de travail bien ciblé.

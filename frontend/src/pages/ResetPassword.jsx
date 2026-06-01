@@ -30,8 +30,7 @@ const ResetPassword = () => {
       if (response.data.res == 1) {
         setTimeout(() => navigate("/Login"), 2000);
       }
-    } catch (err) {
-      console.log(err);
+    } catch {
       setError(true);
     } finally {
       setLoad(false);

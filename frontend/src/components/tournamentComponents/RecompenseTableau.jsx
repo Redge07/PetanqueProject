@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import { UsersContext } from "../../App";
 import { linkBackend } from "../../constants/LinkBackend";
-import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const RecompenseTableau = ({
@@ -13,7 +12,6 @@ const RecompenseTableau = ({
   nb_joueurs,
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
-  const navigate = useNavigate();
   const [editMatch, setEditMatch] = useState(null);
   const tours = [...new Set(matches.map((m) => m.class))]
     .filter((tour) => tour > 0)
@@ -33,8 +31,8 @@ const RecompenseTableau = ({
       recharge();
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
+
     } finally {
       setLoad(false);
     }
@@ -55,8 +53,8 @@ const RecompenseTableau = ({
       recharge();
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
+
     } finally {
       setLoad(false);
     }

@@ -3,16 +3,19 @@ import React, { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "../App";
-import { Plus, Trash2, Eye, X, Trophy } from "lucide-react";
+import { Plus, Trash2, Eye, X, Trophy, Share2 } from "lucide-react";
+import { getFormatLabel } from "../utils/formatLabels";
+import ShareModal from "./ui/ShareModal";
+import ConfirmModal from "./ui/ConfirmModal";
 
 const Organisation = ({ player }) => {
-  // State qui contiendra les tournoi que gère ce compte en question
   const [tournaments, setTournaments] = useState({ res: 0 });
-  // State qui gère l'apparition du formulaire pour crée un tournoi pour le joueur connecté
   const [addTournament, setAddTournament] = useState(false);
   const { setLoad, setError } = useContext(UsersContext);
   const [styleTournament, setStyleTournament] = useState("arbre");
-  // Fonction qui récupère les tournoi que gère le joueur
+  const [shareModal, setShareModal] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
   const recharge = async () => {
     try {
       const res = await axios.get(linkBackend + "organisateurs/" + player.id);
@@ -23,12 +26,12 @@ const Organisation = ({ player }) => {
       setLoad(false);
     }
   };
+
   useEffect(() => {
     setLoad(true);
     recharge();
   }, []);
 
-  // Fonction qui crée un nouveau tournoi pour le joueur connecté
   const createTournament = async (e) => {
     e.preventDefault();
     setLoad(true);
@@ -41,20 +44,18 @@ const Organisation = ({ player }) => {
       });
     } catch (err) {
       setError(true);
-      console.log(err);
     } finally {
       recharge();
     }
   };
 
-  // Fonction qui supprime un tournoi
-  const deleteTournament = async (value) => {
+  const deleteTournament = async (id) => {
+    setConfirmDelete(null);
     setLoad(true);
     try {
-      await axios.delete(linkBackend + "organisateurs/" + value);
+      await axios.delete(linkBackend + "organisateurs/" + id);
     } catch (err) {
       setError(true);
-      console.log(err);
     } finally {
       recharge();
     }
@@ -62,20 +63,32 @@ const Organisation = ({ player }) => {
 
   return (
     <div className="mt-6">
-      {/* Si l'api qui renvoie les tournoi a res = 0 ca veut dire que le joueur en question ne gère pas de tournoi */}
+      {shareModal && (
+        <ShareModal
+          tournament={shareModal}
+          onClose={() => setShareModal(null)}
+        />
+      )}
+      {confirmDelete && (
+        <ConfirmModal
+          message={`Supprimer le concours "${confirmDelete.name}" ? Cette action est irréversible.`}
+          onConfirm={() => deleteTournament(confirmDelete.id)}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
       {tournaments.res == 0 ? (
         <p className="text-[var(--color-gray)] mb-4">
-          Vous n'avez aucun tournoi
+          Vous n'avez aucun concours
         </p>
       ) : (
-        // Si le joueur gère bien des tournois, alors on map les tournoi contenu dans tournament avec la clé "résults"
         <div className="mb-6">
           <p className="text-[var(--color-gray)] mb-4">
             Vous avez{" "}
             <span className="font-semibold text-[var(--color-primary)]">
               {tournaments.results.length}
             </span>{" "}
-            tournoi{tournaments.results.length > 1 ? "s" : ""}
+            concours
           </p>
           <ul className="space-y-3">
             {tournaments.results.map((t) => (
@@ -93,7 +106,7 @@ const Organisation = ({ player }) => {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs font-medium text-white bg-[var(--color-primary)] px-2 py-0.5 rounded-full">
-                        {t.style}
+                        {getFormatLabel(t.style)}
                       </span>
                       <span className="text-xs text-[var(--color-gray-light)]">
                         #{t.id}
@@ -118,6 +131,13 @@ const Organisation = ({ player }) => {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShareModal(t)}
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 transition-all duration-300 text-sm font-medium"
+                    title="Partager le numéro du concours"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
                   <NavLink
                     to={"/" + t.id}
                     className="flex items-center gap-1 px-3 py-2 rounded-xl bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-all duration-300 text-sm font-medium shadow-sm"
@@ -125,9 +145,8 @@ const Organisation = ({ player }) => {
                     <Eye className="w-4 h-4" />
                     Voir
                   </NavLink>
-                  {/* Bouton pour supprimer ce tournoi précis qui apparait avec le map */}
                   <button
-                    onClick={() => deleteTournament(t.id)}
+                    onClick={() => setConfirmDelete(t)}
                     className="flex items-center gap-1 px-3 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm font-medium"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -139,16 +158,14 @@ const Organisation = ({ player }) => {
         </div>
       )}
 
-      {/* Bouton qui fait apparaitre le formulaire pour pouvoir crée un tournoi */}
       <button
         onClick={() => setAddTournament(true)}
         className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium shadow-lg hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
       >
         <Plus className="w-5 h-5" />
-        Créer un tournoi
+        Créer un concours
       </button>
 
-      {/* Si le state qui gère l'apparition du formulaire pour créer un tournoi est a true, alors le formulaire apparait */}
       {addTournament && (
         <form
           onSubmit={createTournament}
@@ -158,7 +175,7 @@ const Organisation = ({ player }) => {
             type="text"
             minLength={3}
             name="name"
-            placeholder="Nom du tournoi"
+            placeholder="Nom du concours"
             className="w-full h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
           />
           <select
@@ -167,12 +184,11 @@ const Organisation = ({ player }) => {
             onChange={(e) => setStyleTournament(e.target.value)}
             className="w-full h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
           >
-            <option value="arbre">Arbre</option>
+            <option value="arbre">Élimination directe</option>
             <option value="cascade">Cascade</option>
-            <option value="classement">Classement</option>
+            <option value="classement">Poules + Finale</option>
           </select>
 
-          {/* Le champ prix s'affiche uniquement si cascade est sélectionné */}
           {styleTournament === "cascade" && (
             <div className="space-y-2">
               <label className="text-sm font-medium text-[var(--color-primary)]">
@@ -193,7 +209,6 @@ const Organisation = ({ player }) => {
               value="Créer"
               className="flex-1 h-12 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-xl font-medium cursor-pointer hover:opacity-90 transition-all duration-300"
             />
-            {/* Bouton pour annuler le fait de créer un tournoi et donc reppasser le state "addTournament" a false */}
             <button
               onClick={() => setAddTournament(false)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-gray)] hover:bg-[var(--color-bg-mid)] transition-all duration-300"

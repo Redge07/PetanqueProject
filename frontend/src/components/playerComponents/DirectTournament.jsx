@@ -5,6 +5,7 @@ import ArbrePlayer from "./ArbrePlayer";
 import ViewTournament from "./ViewTournament";
 import Order from "../tournamentComponents/Order";
 import { Swords, BarChart2, List } from "lucide-react";
+import { getFormatLabel } from "../../utils/formatLabels";
 
 const DirectTournament = ({ dataPlayer }) => {
   // State pour afficher ou non le classement
@@ -25,13 +26,13 @@ const DirectTournament = ({ dataPlayer }) => {
       {/* Carte principale du tournoi */}
       <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-2xl p-6 shadow-xl text-white">
         <p className="text-[var(--color-gold)] text-sm font-medium mb-1">
-          Tournoi en cours
+          Concours en cours
         </p>
         <h2 className="text-2xl font-semibold mb-1">
           {dataPlayer.tournamentName}
         </h2>
         <p className="text-white/70 text-sm">
-          Mode {dataPlayer.style} • Numéro {dataPlayer.numero}
+          {getFormatLabel(dataPlayer.style)} • Numéro {dataPlayer.numero}
         </p>
       </div>
 

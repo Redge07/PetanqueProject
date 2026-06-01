@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import axios from "axios";
 
-// Fix icônes Leaflet (obligatoire)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -28,79 +27,62 @@ const Map = ({ idTournament }) => {
   useEffect(() => {
     axios
       .get(linkBackend + "log/positions/" + idTournament)
-      .then((res) => setPositions(res.data))
-      .catch((error) =>
-        console.error("Erreur lors de la récupération des positions:", error),
-      );
+      .then((res) => {
+        const valid = res.data.filter((p) => p.latitude && p.longitude);
+        setPositions(valid);
+      })
+      .catch(() => {});
   }, []);
 
-  if (!positions || positions.length === 0) {
-    return <p>Aucune position à afficher</p>;
-  }
+  if (positions.length === 0) return null;
 
-  const center = [
-    Number(positions[0].latitude),
-    Number(positions[0].longitude),
-  ];
+  const center = [Number(positions[0].latitude), Number(positions[0].longitude)];
 
   return (
-    <div
-      style={{
-        height: "500px",
-        width: "100%",
-        borderRadius: 12,
-        overflow: "hidden",
-      }}
-    >
-      <p>{positions.length} positions</p>
-      <MapContainer
-        center={center}
-        zoom={13}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <LayersControl position="topright">
-          {/* Plan */}
-          <BaseLayer name="Plan">
-            <TileLayer
-              attribution="© OpenStreetMap"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-          </BaseLayer>
-
-          {/* Satellite */}
-          <BaseLayer checked name="Satellite">
-            <TileLayer
-              attribution="Tiles © Esri"
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            />
-          </BaseLayer>
-        </LayersControl>
-
-        {positions.map((p) => (
-          <Marker
-            key={p.id}
-            position={[Number(p.latitude), Number(p.longitude)]}
-          >
-            <Popup>
-              <strong>
-                {p.pseudo} numéro {p.numero}
-              </strong>
-              <br />
-              Dernière position :
-              <br />
-              {p.last_position_at &&
-                new Date(p.last_position_at).toLocaleString()}
-            </Popup>
-          </Marker>
-        ))}
-        <Marker key="unknown" position={[44.808036, 4.352189]}>
-          <Popup>
-            <strong>Inconnu</strong>
-            <br />
-            Dernière position : Jamais
-          </Popup>
-        </Marker>
-      </MapContainer>
+    <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden">
+      <div className="px-5 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+        <h3 className="font-semibold text-[var(--color-primary)] text-sm">
+          Positions des joueurs
+        </h3>
+        <span className="text-xs text-[var(--color-gray)]">
+          {positions.length} joueur{positions.length > 1 ? "s" : ""} localisé{positions.length > 1 ? "s" : ""}
+        </span>
+      </div>
+      <div style={{ height: "360px" }}>
+        <MapContainer
+          center={center}
+          zoom={13}
+          style={{ height: "100%", width: "100%" }}
+        >
+          <LayersControl position="topright">
+            <BaseLayer name="Plan">
+              <TileLayer
+                attribution="© OpenStreetMap"
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </BaseLayer>
+            <BaseLayer checked name="Satellite">
+              <TileLayer
+                attribution="Tiles © Esri"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              />
+            </BaseLayer>
+          </LayersControl>
+          {positions.map((p, i) => (
+            <Marker key={i} position={[Number(p.latitude), Number(p.longitude)]}>
+              <Popup>
+                <strong>{p.pseudo} n°{p.numero}</strong>
+                {p.last_position_at && (
+                  <>
+                    <br />
+                    {new Date(p.last_position_at).toLocaleString("fr-FR")}
+                  </>
+                )}
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
     </div>
   );
 };

@@ -30,6 +30,7 @@ exports.charge = async (req, res) => {
         res: status.noStart,
         results: listPlayers,
         style: tournament.style,
+        name: tournament.name,
         prix_entree: tournament.prix_entree,
       });
     }
@@ -44,6 +45,7 @@ exports.charge = async (req, res) => {
         res: status.start,
         matches,
         style: tournament.style,
+        name: tournament.name,
         vainqueurs,
         prix_entree: tournament.prix_entree,
         nb_joueurs: tournament.nb_joueurs,
@@ -51,9 +53,13 @@ exports.charge = async (req, res) => {
     }
     // Si le tournoi est fini (c'est les cas que pour le tournoi en arbre)
     if (tournament.start == 2) {
-      return res
-        .status(200)
-        .json({ res: status.end, matches, vainqueur: tournament.vainqueur });
+      return res.status(200).json({
+        res: status.end,
+        matches,
+        name: tournament.name,
+        style: tournament.style,
+        vainqueur: tournament.vainqueur,
+      });
     }
   } catch (err) {
     console.log(err);

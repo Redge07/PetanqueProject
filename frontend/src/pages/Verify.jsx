@@ -16,8 +16,8 @@ const Verify = () => {
         const res = await axios.get(linkBackend + "log/verify/" + token);
         setRes(res.data);
         token = null;
-      } catch (err) {
-        console.log(err);
+      } catch {
+        // erreur silencieuse, setRes reste à "en attente"
       } finally {
         setTimeout(() => {
           setLoad(false);

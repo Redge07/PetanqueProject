@@ -2,7 +2,6 @@ import axios from "axios";
 import React, { useContext, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import { UsersContext } from "../../App";
-import { useNavigate } from "react-router-dom";
 import {
   UserCheck,
   UserX,
@@ -14,19 +13,19 @@ import {
   Check,
   X,
 } from "lucide-react";
+import ConfirmModal from "../ui/ConfirmModal";
 
 const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
-  // State qui gère les message quand on supprime ou qu'on accepte un joueur
   const [responseAPI, setResponseAPI] = useState({ res: 0 });
   const [nbPlayers, setNbPlayers] = useState("");
   const [searchAttente, setSearchAttente] = useState("");
   const [searchValider, setSearchValider] = useState("");
   const [editPrix, setEditPrix] = useState(false);
+  const [confirmDeleteAttente, setConfirmDeleteAttente] = useState(null);
+  const [confirmDeleteValid, setConfirmDeleteValid] = useState(null);
 
   const { setLoad, setError } = useContext(UsersContext);
-  const navigate = useNavigate();
 
-  // State qui affiche le message quand le tournoi est bien lancé
   const [responseGoTournament, setResponseGoTournament] = useState("");
 
   // Variable pour calculer le nombre de joueurs en attente et validé
@@ -63,9 +62,8 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       );
       handleApiResponse(res);
     } catch (err) {
-      console.log(err);
+
       setError(true);
-      navigate("/");
     } finally {
       setLoad(false);
     }
@@ -84,8 +82,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       handleApiResponse(res);
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
     } finally {
       setLoad(false);
     }
@@ -94,8 +91,6 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // Fonction pour accepté un joueur
   const handleValid = async (value) => {
     setLoad(true);
-    console.log(value);
-    console.log(idTournament);
     try {
       const res = await axios.put(linkBackend + "tournaments/" + idTournament, {
         id_user: value,
@@ -103,8 +98,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       handleApiResponse(res);
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
     } finally {
       setLoad(false);
     }
@@ -124,8 +118,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       handleApiResponse(res);
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
     } finally {
       setLoad(false);
     }
@@ -144,8 +137,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       }, 1000);
     } catch (err) {
       setError(true);
-      console.log(err);
-      navigate("/");
+
     } finally {
       setLoad(false);
     }
@@ -163,9 +155,8 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       );
       recharge();
     } catch (err) {
-      console.log(err);
+
       setError(true);
-      navigate("/");
     } finally {
       setLoad(false);
     }
@@ -179,9 +170,8 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       );
       window.open(res.data.url, "_blank", "noopener,noreferrer");
     } catch (err) {
-      console.log(err);
+
       setError(true);
-      navigate("/");
     } finally {
       setLoad(false);
     }
@@ -198,14 +188,35 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       recharge();
     } catch (err) {
       setError(true);
-      console.log(err);
+
     } finally {
       setLoad(false);
     }
   };
 
+
   return (
     <div className="space-y-6">
+      {confirmDeleteAttente && (
+        <ConfirmModal
+          message={`Refuser et supprimer "${confirmDeleteAttente.pseudo}" de la liste d'attente ?`}
+          onConfirm={() => {
+            handleDeleteAttente(confirmDeleteAttente.id_user);
+            setConfirmDeleteAttente(null);
+          }}
+          onCancel={() => setConfirmDeleteAttente(null)}
+        />
+      )}
+      {confirmDeleteValid && (
+        <ConfirmModal
+          message={`Supprimer "${confirmDeleteValid.pseudo}" (n°${confirmDeleteValid.numero}) du concours ?`}
+          onConfirm={() => {
+            handleDeleteValid(confirmDeleteValid.numero);
+            setConfirmDeleteValid(null);
+          }}
+          onCancel={() => setConfirmDeleteValid(null)}
+        />
+      )}
       {/* Recherche joueurs en attente */}
       <input
         type="text"
@@ -244,7 +255,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
               <div className="flex items-center gap-2">
                 {/* Bouton pour supprimer ce joueur */}
                 <button
-                  onClick={() => handleDeleteAttente(j.id_user)}
+                  onClick={() => setConfirmDeleteAttente(j)}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
                 >
                   <UserX className="w-4 h-4" />
@@ -309,7 +320,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
                 </span>
               </div>
               <button
-                onClick={() => handleDeleteValid(j.numero)}
+                onClick={() => setConfirmDeleteValid(j)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
               >
                 <UserX className="w-4 h-4" />
@@ -436,7 +447,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         className="w-full flex items-center justify-center gap-2 h-14 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-2xl font-semibold text-lg shadow-xl hover:opacity-90 transition-all duration-300"
       >
         <Play className="w-6 h-6" />
-        Lancer le tournoi
+        Lancer le concours
       </button>
       {responseGoTournament.message && (
         <p className="text-center text-sm text-[var(--color-primary)] bg-[var(--color-bg-mid)] rounded-xl p-3">

@@ -5,6 +5,7 @@ import SearchTournament from "./playerComponents/SearchTournament";
 import DirectTournament from "./playerComponents/DirectTournament";
 import { UsersContext } from "../App";
 import { RefreshCw, Clock, CheckCircle, Trophy } from "lucide-react";
+import { getFormatLabel } from "../utils/formatLabels";
 
 const Participant = ({ player }) => {
   // State qui va récupérer la situation de l'utilisateur sous sa forme de "player", il sera soit inscrit a aucun tournoi, soit en attente, soit accepté, soit le tournoi a commencé et il n'a aucun adversaire, soit il a un adversaire
@@ -22,7 +23,7 @@ const Participant = ({ player }) => {
       setResponseDeinscription(res.data.res);
     } catch (err) {
       setError(true);
-      console.log(err);
+
     } finally {
       recharge();
     }
@@ -37,7 +38,7 @@ const Participant = ({ player }) => {
       setDataPlayer(res.data);
     } catch (err) {
       setError(true);
-      console.log(err);
+
     } finally {
       setLoad(false);
     }
@@ -79,11 +80,11 @@ const Participant = ({ player }) => {
             </h3>
           </div>
           <p className="text-[var(--color-gray)] mb-6">
-            Vous etes en liste d'attente pour le tournoi{" "}
+            Vous êtes en liste d'attente pour le concours{" "}
             <span className="font-semibold text-[var(--color-primary)]">
               {dataPlayer.tournamentName}
             </span>{" "}
-            qui est en {dataPlayer.style}
+            en {getFormatLabel(dataPlayer.style)}
           </p>
           {/* On laisse le choix au joueur de se désinscrire avant d'etre accepté */}
           <button
@@ -112,15 +113,15 @@ const Participant = ({ player }) => {
             </h3>
           </div>
           <p className="text-[var(--color-gray)]">
-            Votre demande pour participer au tournoi{" "}
+            Votre demande pour participer au concours{" "}
             <span className="font-semibold text-[var(--color-primary)]">
               {dataPlayer.tournamentName}
             </span>{" "}
-            qui est en {dataPlayer.style} a été accepté. Vous etes le numéro{" "}
+            a été acceptée. Vous êtes le numéro{" "}
             <span className="font-semibold text-[var(--color-primary)]">
               {dataPlayer.numero}
             </span>
-            . Le tournoi va bientot commencer
+            . Le concours va bientôt commencer.
           </p>
         </div>
       )}

@@ -2,13 +2,11 @@ import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { linkBackend } from "../../constants/LinkBackend";
 import { UsersContext } from "../../App";
-import { useNavigate } from "react-router-dom";
 
 const Order = ({ idTournament }) => {
   // State pour avoir les données du classement
   const [dataOrder, setDataOrder] = useState([]);
   const { setLoad, setError } = useContext(UsersContext);
-  const navigate = useNavigate();
 
   // On récupérer toutes les données du classement pret a etre bien afficher
   useEffect(() => {
@@ -21,8 +19,7 @@ const Order = ({ idTournament }) => {
         setDataOrder(res.data.players);
       } catch (err) {
         setError(true);
-        navigate("/");
-        console.log(err);
+
       } finally {
         setLoad(false);
       }
