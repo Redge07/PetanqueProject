@@ -72,7 +72,6 @@ const App = () => {
           <Route path="/" element={<Home />}></Route>
           <Route path="/:idTournament" element={<Tournament />}></Route>
           <Route path="/verify/:token" element={<Verify />}></Route>
-          <Route path="/verify/:token" element={<Verify />}></Route>
           <Route path="/success" element={<SuccessPayement />}></Route>
           <Route path="/cancel" element={<CancelPayement />}></Route>
           <Route path="/forgot-password" element={<ForgotPassword />} />
