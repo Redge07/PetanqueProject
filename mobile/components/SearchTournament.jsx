@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
   Modal,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -12,6 +11,61 @@ import axios from "axios";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "../app/_layout";
 import { getFormatLabel } from "../utils/formatLabels";
+
+// Formulaire d'inscription — composant module-level pour éviter le remount à chaque frappe
+function InscriptionForm({ tournament, pseudo, setPseudo, onSubmit, msg }) {
+  return (
+    <View className="mt-3 p-4 bg-bg-mid rounded-xl border border-gold/20">
+      <Text className="font-semibold text-primary mb-1">{tournament.name}</Text>
+      <Text className="text-gray-500 text-xs mb-3">{getFormatLabel(tournament.style)}</Text>
+      <TextInput
+        className="h-11 px-4 rounded-xl border border-border bg-white text-primary mb-2"
+        placeholder="Nom de l'équipe (ex: Dupont / Martin)"
+        placeholderTextColor="#9ca3af"
+        value={pseudo}
+        onChangeText={setPseudo}
+      />
+      <TouchableOpacity
+        onPress={() => onSubmit(tournament)}
+        disabled={!pseudo.trim()}
+        className={`h-11 rounded-xl items-center justify-center ${pseudo.trim() ? "bg-gold" : "bg-gray-200"}`}
+      >
+        <Text className={`font-semibold ${pseudo.trim() ? "text-white" : "text-gray-400"}`}>
+          S'inscrire
+        </Text>
+      </TouchableOpacity>
+      {!!msg && <Text className="text-primary text-sm mt-2 text-center">{msg}</Text>}
+    </View>
+  );
+}
+
+// Ligne de concours — module-level également
+function TournamentRow({ t, selected, onSelect, pseudo, setPseudo, onSubmit, msg }) {
+  const isOpen = selected?.id === t.id;
+  return (
+    <View className="mb-2">
+      <TouchableOpacity
+        onPress={() => onSelect(isOpen ? null : t)}
+        className={`flex-row items-center justify-between p-3 rounded-xl border ${isOpen ? "border-gold bg-gold/5" : "border-border bg-bg-mid"}`}
+      >
+        <View>
+          <Text className="font-medium text-primary text-sm">{t.name}</Text>
+          <Text className="text-gray-400 text-xs">{getFormatLabel(t.style)} · #{t.id}</Text>
+        </View>
+        <Text className="text-gold text-xs font-medium">{isOpen ? "Fermer" : "Rejoindre"}</Text>
+      </TouchableOpacity>
+      {isOpen && (
+        <InscriptionForm
+          tournament={t}
+          pseudo={pseudo}
+          setPseudo={setPseudo}
+          onSubmit={onSubmit}
+          msg={msg}
+        />
+      )}
+    </View>
+  );
+}
 
 export default function SearchTournament({ player, recharge }) {
   const { setLoad, setError } = useContext(UsersContext);
@@ -90,47 +144,15 @@ export default function SearchTournament({ player, recharge }) {
     }
   };
 
-  const InscriptionForm = ({ tournament }) => (
-    <View className="mt-3 p-4 bg-bg-mid rounded-xl border border-gold/20">
-      <Text className="font-semibold text-primary mb-1">{tournament.name}</Text>
-      <Text className="text-gray-500 text-xs mb-3">{getFormatLabel(tournament.style)}</Text>
-      <TextInput
-        className="h-11 px-4 rounded-xl border border-border bg-white text-primary mb-2"
-        placeholder="Nom de l'équipe (ex: Dupont / Martin)"
-        placeholderTextColor="#9ca3af"
-        value={pseudo}
-        onChangeText={setPseudo}
-      />
-      <TouchableOpacity
-        onPress={() => handleInscrire(tournament)}
-        disabled={!pseudo.trim()}
-        className={`h-11 rounded-xl items-center justify-center ${pseudo.trim() ? "bg-gold" : "bg-gray-200"}`}
-      >
-        <Text className={`font-semibold ${pseudo.trim() ? "text-white" : "text-gray-400"}`}>
-          S'inscrire
-        </Text>
-      </TouchableOpacity>
-      {!!msg && <Text className="text-primary text-sm mt-2 text-center">{msg}</Text>}
-    </View>
-  );
-
-  const TournamentRow = ({ t }) => (
-    <View className="mb-2">
-      <TouchableOpacity
-        onPress={() => setSelected(selected?.id === t.id ? null : t)}
-        className={`flex-row items-center justify-between p-3 rounded-xl border ${selected?.id === t.id ? "border-gold bg-gold/5" : "border-border bg-bg-mid"}`}
-      >
-        <View>
-          <Text className="font-medium text-primary text-sm">{t.name}</Text>
-          <Text className="text-gray-400 text-xs">{getFormatLabel(t.style)} · #{t.id}</Text>
-        </View>
-        <Text className="text-gold text-xs font-medium">
-          {selected?.id === t.id ? "Fermer" : "Rejoindre"}
-        </Text>
-      </TouchableOpacity>
-      {selected?.id === t.id && <InscriptionForm tournament={t} />}
-    </View>
-  );
+  // Props partagées par les lignes de concours
+  const rowProps = {
+    selected,
+    onSelect: setSelected,
+    pseudo,
+    setPseudo,
+    onSubmit: handleInscrire,
+    msg,
+  };
 
   return (
     <View className="bg-white rounded-2xl p-5 shadow-sm border border-border">
@@ -170,7 +192,7 @@ export default function SearchTournament({ player, recharge }) {
       {tab === "list" && (
         availableList.length === 0
           ? <Text className="text-gray-400 text-sm text-center py-4">Aucun concours disponible</Text>
-          : availableList.map((t) => <TournamentRow key={t.id} t={t} />)
+          : availableList.map((t) => <TournamentRow key={t.id} t={t} {...rowProps} />)
       )}
 
       {/* Onglet nom */}
@@ -186,7 +208,7 @@ export default function SearchTournament({ player, recharge }) {
           {nameQuery.length >= 2 && nameResults.length === 0 && (
             <Text className="text-gray-400 text-sm text-center">Aucun résultat</Text>
           )}
-          {nameResults.map((t) => <TournamentRow key={t.id} t={t} />)}
+          {nameResults.map((t) => <TournamentRow key={t.id} t={t} {...rowProps} />)}
         </View>
       )}
 
@@ -214,7 +236,15 @@ export default function SearchTournament({ player, recharge }) {
               Aucun concours avec ce numéro
             </Text>
           )}
-          {idResult.res === 1 && selected && <InscriptionForm tournament={selected} />}
+          {idResult.res === 1 && selected && (
+            <InscriptionForm
+              tournament={selected}
+              pseudo={pseudo}
+              setPseudo={setPseudo}
+              onSubmit={handleInscrire}
+              msg={msg}
+            />
+          )}
           {idResult.res === 2 && (
             <Text className="text-gray-500 text-sm bg-bg-mid p-3 rounded-xl">
               Le concours {idResult.name} a déjà commencé

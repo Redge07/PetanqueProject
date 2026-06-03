@@ -146,7 +146,7 @@ export default function Organisation({ player }) {
 
             <View className="flex-row gap-2">
               <TouchableOpacity
-                onPress={() => router.push(`/tournament/${t.id}`)}
+                onPress={() => router.push(`/tournament/${t.id}?orga=1`)}
                 className="flex-1 bg-primary py-2.5 rounded-xl items-center"
               >
                 <Text className="text-white font-medium text-sm">Gérer</Text>

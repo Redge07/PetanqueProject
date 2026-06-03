@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -12,15 +12,9 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
 import axios from "axios";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "./_layout";
-
-WebBrowser.maybeCompleteAuthSession();
-
-const GOOGLE_CLIENT_ID = "420341218128-0tlbi05tqb2p6g8s6ar1s5rjgisvu5ud.apps.googleusercontent.com";
 
 export default function LoginScreen() {
   const { setPlayer, setLoad, setError } = useContext(UsersContext);
@@ -29,18 +23,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [pseudo, setPseudo] = useState("");
   const [msg, setMsg] = useState("");
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: GOOGLE_CLIENT_ID,
-    iosClientId: GOOGLE_CLIENT_ID,
-    androidClientId: GOOGLE_CLIENT_ID,
-  });
-
-  useEffect(() => {
-    if (response?.type === "success") {
-      handleGoogleSuccess(response.authentication.accessToken);
-    }
-  }, [response]);
 
   const getLocationAndToken = async (userId) => {
     let latitude = null;
@@ -97,28 +79,6 @@ export default function LoginScreen() {
     try {
       const res = await axios.post(linkBackend + "log/inscription", { email, pseudo, password });
       setMsg(res.data.message);
-    } catch {
-      setError(true);
-    } finally {
-      setLoad(false);
-    }
-  };
-
-  const handleGoogleSuccess = async (accessToken) => {
-    setLoad(true);
-    try {
-      const userInfo = await axios.get("https://www.googleapis.com/userinfo/v2/me", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const res = await axios.post(linkBackend + "log/google", {
-        tokenGoogle: accessToken,
-        email: userInfo.data.email,
-        name: userInfo.data.name,
-      });
-      if (res.data.res === 1) {
-        await getLocationAndToken(res.data.user.id);
-        await chargeHome(res.data.user, res.data.token);
-      }
     } catch {
       setError(true);
     } finally {
@@ -212,23 +172,6 @@ export default function LoginScreen() {
               <Text className="text-primary text-sm text-center">{msg}</Text>
             </View>
           )}
-
-          {/* Séparateur */}
-          <View className="flex-row items-center gap-3 my-5">
-            <View className="flex-1 h-px bg-border" />
-            <Text className="text-gray-400 text-sm">ou</Text>
-            <View className="flex-1 h-px bg-border" />
-          </View>
-
-          {/* Google */}
-          <TouchableOpacity
-            onPress={() => promptAsync()}
-            disabled={!request}
-            className="h-12 rounded-xl border border-border items-center justify-center flex-row gap-2 bg-white"
-          >
-            <Text className="text-lg">G</Text>
-            <Text className="text-primary font-medium">Continuer avec Google</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -18,7 +18,8 @@ import { getFormatLabel } from "../../utils/formatLabels";
 import createPaires from "../../utils/createPaires";
 
 export default function TournamentScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, orga } = useLocalSearchParams();
+  const isOrga = orga === "1";
   const { setLoad, setError } = useContext(UsersContext);
   const [data, setData] = useState(null);
   const [paires, setPaires] = useState({});
@@ -156,11 +157,23 @@ export default function TournamentScreen() {
 
         {/* Pas commencé */}
         {data.res === 0 && (
-          <NoStartTournament
-            listPlayers={data}
-            idTournament={id}
-            recharge={recharge}
-          />
+          isOrga ? (
+            <NoStartTournament
+              listPlayers={data}
+              idTournament={id}
+              recharge={recharge}
+            />
+          ) : (
+            <View className="bg-white rounded-2xl p-8 items-center border border-border mt-4">
+              <Text className="text-4xl mb-3">⏳</Text>
+              <Text className="text-primary font-semibold text-center">
+                Le concours n'a pas encore commencé
+              </Text>
+              <Text className="text-gray-400 text-sm text-center mt-1">
+                {data.results?.filter((p) => p.valider === 1).length ?? 0} équipe(s) inscrite(s)
+              </Text>
+            </View>
+          )
         )}
 
         {/* Terminé */}
@@ -174,7 +187,7 @@ export default function TournamentScreen() {
 
         {/* En cours — Matchs */}
         {data.res === 1 && tab === "matchs" && (
-          <MatchsTab data={data} paires={paires} handleWinner={handleWinner} responseWin={responseWin} />
+          <MatchsTab data={data} paires={paires} handleWinner={handleWinner} responseWin={responseWin} isOrga={isOrga} />
         )}
 
         {/* En cours — Classement */}
@@ -339,7 +352,50 @@ function NoStartTournament({ listPlayers, idTournament, recharge }) {
   );
 }
 
-function MatchsTab({ data, paires, handleWinner, responseWin }) {
+// Libellé d'un tour de tableau (class) — comme sur le web
+function tourLabel(t) {
+  if (t === 1) return "Finale";
+  if (t === 0.5) return "Finale B vs B2";
+  return `1/${t} de finale`;
+}
+
+// Construit les sections de matchs selon le format du concours
+function buildSections(data, paires) {
+  const { style, matches } = data;
+  const sections = [];
+
+  if (style === "arbre") {
+    // En arbre : on groupe par "class" (le tour du tableau), pas par round
+    [...(paires.tours || [])]
+      .sort((a, b) => a - b)
+      .forEach((t) => {
+        const ms = matches.filter((m) => m.class === t);
+        if (ms.length) sections.push({ key: `t${t}`, title: tourLabel(t), matches: ms });
+      });
+  } else {
+    // Cascade / classement : phases de poule (round 1-3) puis phase finale (round 4)
+    [...(paires.rounds || [])]
+      .sort((a, b) => b - a)
+      .forEach((r) => {
+        if (r === 4) {
+          [...(paires.tours || [])]
+            .sort((a, b) => a - b)
+            .forEach((t) => {
+              const ms = matches.filter((m) => m.round === 4 && m.class === t);
+              if (ms.length)
+                sections.push({ key: `f${t}`, title: `Phase finale — ${tourLabel(t)}`, matches: ms });
+            });
+        } else {
+          const ms = matches.filter((m) => m.round === r);
+          if (ms.length) sections.push({ key: `r${r}`, title: `Poule — Tour ${r}`, matches: ms });
+        }
+      });
+  }
+  return sections;
+}
+
+function MatchsTab({ data, paires, handleWinner, responseWin, isOrga }) {
+  const sections = buildSections(data, paires);
   return (
     <View className="gap-4">
       {!!responseWin && (
@@ -360,26 +416,25 @@ function MatchsTab({ data, paires, handleWinner, responseWin }) {
           </View>
         ))
       }
-      {/* Matchs */}
-      {paires.rounds && [...paires.rounds].sort((a, b) => b - a).map((r) => {
-        const matchs = data.matches.filter((m) => m.round === r);
-        if (!matchs.length) return null;
-        return (
-          <View key={r} className="bg-white rounded-2xl p-4 shadow-sm border border-border">
-            <Text className="font-semibold text-primary mb-3">
-              {r === 4 ? "Phase finale" : data.style === "classement" ? `Poules — Tour ${r}` : `Round ${r}`}
-            </Text>
-            {matchs.map((m, i) => (
-              <MatchCard key={i} match={m} handleWinner={handleWinner} />
-            ))}
-          </View>
-        );
-      })}
+      {/* Matchs groupés par section */}
+      {sections.length === 0 && (
+        <View className="bg-white rounded-2xl p-6 items-center border border-border">
+          <Text className="text-gray-400 text-sm">Aucun match en cours</Text>
+        </View>
+      )}
+      {sections.map((section) => (
+        <View key={section.key} className="bg-white rounded-2xl p-4 shadow-sm border border-border">
+          <Text className="font-semibold text-primary mb-3">{section.title}</Text>
+          {section.matches.map((m, i) => (
+            <MatchCard key={i} match={m} handleWinner={handleWinner} isOrga={isOrga} />
+          ))}
+        </View>
+      ))}
     </View>
   );
 }
 
-function MatchCard({ match: m, handleWinner }) {
+function MatchCard({ match: m, handleWinner, isOrga }) {
   return (
     <View className="bg-bg-mid rounded-xl p-3 mb-2">
       <View className="flex-row items-center gap-2 mb-2">
@@ -397,7 +452,7 @@ function MatchCard({ match: m, handleWinner }) {
           {m.id_winner > 0 && <Text className="text-xs text-gray-400">{m.score_B}</Text>}
         </View>
       </View>
-      {m.id_playerB > 0 && !m.id_winner && (
+      {isOrga && m.id_playerB > 0 && !m.id_winner && (
         <View className="flex-row gap-2 mt-2">
           <TouchableOpacity
             onPress={() => handleWinner(m.id_playerA, m.id_playerB, m)}

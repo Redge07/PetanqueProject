@@ -1,9 +1,42 @@
-import { useContext, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { getFormatLabel } from "../utils/formatLabels";
 
-export default function DirectTournament({ dataPlayer, recharge }) {
+// Phrase de situation du joueur selon le format (reprend la logique du web)
+function statusText(dataPlayer) {
+  const { style, class: cls, round } = dataPlayer;
+
+  if (style === "arbre") {
+    return cls == 1
+      ? "Tu es actuellement en finale du tournoi 🏆"
+      : `Tu es actuellement en 1/${cls} de finale du tournoi.`;
+  }
+
+  if (style === "cascade") {
+    if (round == 4) {
+      if (cls == 1) return "Tu es en finale de ton groupe 🏆";
+      if (cls == 0.5 && dataPlayer.groupe === "B")
+        return "Tu es dans la grande finale : vainqueur du groupe B contre vainqueur du groupe B2.";
+      return `Tu es en 1/${cls} de finale de ton groupe.`;
+    }
+    return `Tu es au match n°${round} de la phase de groupe.`;
+  }
+
+  if (style === "classement") {
+    if (round == 4) {
+      if (cls == 0)
+        return "Fin des 3 matchs de poule. En attente que tout le monde finisse pour le tirage de la phase finale.";
+      return cls == 1
+        ? "Tu es en finale de ton groupe 🏆"
+        : `Tu es en 1/${cls} de finale de ton groupe.`;
+    }
+    return `Tu es au match n°${round} de la phase de poule.`;
+  }
+
+  return "";
+}
+
+export default function DirectTournament({ dataPlayer }) {
   return (
     <View className="gap-4">
       {/* Carte concours */}
@@ -13,6 +46,22 @@ export default function DirectTournament({ dataPlayer, recharge }) {
         <Text className="text-white/60 text-sm mt-1">
           {getFormatLabel(dataPlayer.style)} · Numéro #{dataPlayer.numero}
         </Text>
+      </View>
+
+      {/* Situation du joueur */}
+      <View className="bg-white rounded-2xl p-5 shadow-sm border border-border">
+        <Text className="font-semibold text-primary mb-2">📍 Ta situation</Text>
+        {dataPlayer.groupe && (
+          <Text className="text-gray-500 text-sm mb-1">
+            Groupe <Text className="font-semibold text-primary">{dataPlayer.groupe}</Text>
+          </Text>
+        )}
+        <Text className="text-gray-600 text-sm leading-5">{statusText(dataPlayer)}</Text>
+        {dataPlayer.barrage == 1 && (
+          <View className="mt-3 bg-orange-50 rounded-xl p-3">
+            <Text className="text-orange-600 text-sm font-medium">Tu joues un match de barrage</Text>
+          </View>
+        )}
       </View>
 
       {/* Adversaire */}
@@ -42,6 +91,9 @@ export default function DirectTournament({ dataPlayer, recharge }) {
         <Text className="text-primary font-medium">Voir le tableau complet</Text>
         <Text className="text-primary">→</Text>
       </TouchableOpacity>
+      <Text className="text-gray-400 text-xs text-center -mt-2">
+        Consultation en lecture seule
+      </Text>
     </View>
   );
 }
