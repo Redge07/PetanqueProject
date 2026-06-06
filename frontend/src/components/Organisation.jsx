@@ -3,8 +3,8 @@ import React, { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "../App";
-import { Plus, Trash2, Eye, X, Trophy, Share2 } from "lucide-react";
-import { getFormatLabel } from "../utils/formatLabels";
+import { Plus, Trash2, Eye, X, Share2 } from "lucide-react";
+import { getFormatLabel, getFormatIcon } from "../utils/formatLabels";
 import ShareModal from "./ui/ShareModal";
 import ConfirmModal from "./ui/ConfirmModal";
 
@@ -91,21 +91,24 @@ const Organisation = ({ player }) => {
             concours
           </p>
           <ul className="space-y-3">
-            {tournaments.results.map((t) => (
+            {tournaments.results.map((t) => {
+              const FormatIcon = getFormatIcon(t.style);
+              const isFinished = t.start == 2;
+              return (
               <li
                 key={t.id}
-                className="bg-white rounded-2xl p-4 shadow-sm border border-[var(--color-border)] flex items-center justify-between hover:shadow-md transition-all duration-300"
+                className={`bg-white rounded-2xl p-4 shadow-sm border border-[var(--color-border)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:shadow-md transition-all duration-300 ${isFinished ? "opacity-60" : ""}`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-                    <Trophy className="w-5 h-5 text-[var(--color-gold)]" />
+                    <FormatIcon className="w-5 h-5 text-[var(--color-gold)]" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-[var(--color-primary)]">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[var(--color-primary)] truncate">
                       {t.name}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs font-medium text-white bg-[var(--color-primary)] px-2 py-0.5 rounded-full">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-xs font-medium text-[var(--color-gray)]">
                         {getFormatLabel(t.style)}
                       </span>
                       <span className="text-xs text-[var(--color-gray-light)]">
@@ -130,30 +133,33 @@ const Organisation = ({ player }) => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 sm:flex-shrink-0">
                   <button
                     onClick={() => setShareModal(t)}
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 transition-all duration-300 text-sm font-medium"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 transition-all duration-300 text-sm font-medium"
                     title="Partager le numéro du concours"
                   >
                     <Share2 className="w-4 h-4" />
+                    Partager
                   </button>
                   <NavLink
                     to={"/" + t.id}
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-all duration-300 text-sm font-medium shadow-sm"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-all duration-300 text-sm font-medium shadow-sm"
                   >
                     <Eye className="w-4 h-4" />
                     Voir
                   </NavLink>
                   <button
                     onClick={() => setConfirmDelete(t)}
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm font-medium"
+                    className="flex items-center justify-center p-2 rounded-xl text-[var(--color-gray-light)] hover:text-red-500 hover:bg-red-50 transition-all duration-300 flex-shrink-0"
+                    title="Supprimer le concours"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       )}

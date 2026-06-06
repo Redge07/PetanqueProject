@@ -91,13 +91,13 @@ const Tournament = () => {
       <div className="min-h-screen bg-gradient-to-br from-[var(--color-bg)] via-[var(--color-bg-mid)] to-[var(--color-bg-dark)]">
         <div className="max-w-4xl mx-auto p-4 md:p-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-lg">
+          <div className="flex items-center justify-between gap-3 mb-8">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                 <Trophy className="w-6 h-6 text-[var(--color-gold)]" />
               </div>
-              <div>
-                <h2 className="text-2xl font-light text-[var(--color-primary)]">
+              <div className="min-w-0">
+                <h2 className="text-xl sm:text-2xl font-light text-[var(--color-primary)] truncate">
                   {listPlayers.name ? (
                     <span className="font-semibold">{listPlayers.name}</span>
                   ) : (
@@ -111,7 +111,7 @@ const Tournament = () => {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <a
                 href={`/public/${idTournament}`}
                 target="_blank"

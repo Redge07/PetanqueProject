@@ -246,13 +246,13 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           {listPlayersAttente.map((j) => (
             <li
               key={j.id_user}
-              className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
+              className="flex items-center justify-between gap-2 p-3 bg-[var(--color-bg-mid)] rounded-xl"
             >
               {/* Pseudo du joueur */}
-              <span className="font-medium text-[var(--color-primary)]">
+              <span className="font-medium text-[var(--color-primary)] truncate min-w-0">
                 {j.pseudo}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Bouton pour supprimer ce joueur */}
                 <button
                   onClick={() => setConfirmDeleteAttente(j)}
@@ -309,19 +309,19 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           {listPlayersValider.map((j) => (
             <li
               key={j.numero}
-              className="flex items-center justify-between p-3 bg-[var(--color-bg-mid)] rounded-xl"
+              className="flex items-center justify-between gap-2 p-3 bg-[var(--color-bg-mid)] rounded-xl"
             >
-              <div>
-                <span className="font-medium text-[var(--color-primary)]">
+              <div className="min-w-0 flex items-baseline gap-2">
+                <span className="font-medium text-[var(--color-primary)] truncate">
                   {j.pseudo}
                 </span>
-                <span className="text-sm text-[var(--color-gray)] ml-2">
+                <span className="text-sm text-[var(--color-gray)] flex-shrink-0">
                   #{j.numero}
                 </span>
               </div>
               <button
                 onClick={() => setConfirmDeleteValid(j)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all duration-300 text-sm flex-shrink-0"
               >
                 <UserX className="w-4 h-4" />
                 Supprimer
@@ -389,12 +389,12 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       </div>
       {listPlayers.style == "cascade" && (
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[var(--color-gold)]/10 rounded-xl flex items-center justify-center">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 bg-[var(--color-gold)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
                 <CreditCard className="w-5 h-5 text-[var(--color-gold)]" />
               </div>
-              <h3 className="font-semibold text-[var(--color-primary)]">
+              <h3 className="font-semibold text-[var(--color-primary)] truncate">
                 Prix d'entrée par équipe
               </h3>
             </div>

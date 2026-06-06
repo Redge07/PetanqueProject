@@ -43,19 +43,19 @@ const ButtonWinner = ({ versus, handleWinner }) => {
             onClick={() =>
               handleWinner(versus.id_playerA, versus.id_playerB, versus)
             }
-            className="flex-1 flex items-center justify-center gap-2 h-10 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl text-sm font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-10 px-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl text-sm font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
           >
-            <Trophy className="w-4 h-4 text-[var(--color-gold)]" />
-            {versus.pseudo_A}
+            <Trophy className="w-4 h-4 text-[var(--color-gold)] flex-shrink-0" />
+            <span className="truncate">{versus.pseudo_A}</span>
           </button>
           <button
             onClick={() =>
               handleWinner(versus.id_playerB, versus.id_playerA, versus)
             }
-            className="flex-1 flex items-center justify-center gap-2 h-10 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl text-sm font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+            className="flex-1 min-w-0 flex items-center justify-center gap-2 h-10 px-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl text-sm font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
           >
-            <Trophy className="w-4 h-4 text-[var(--color-gold)]" />
-            {versus.pseudo_B}
+            <Trophy className="w-4 h-4 text-[var(--color-gold)] flex-shrink-0" />
+            <span className="truncate">{versus.pseudo_B}</span>
           </button>
         </div>
       )}
