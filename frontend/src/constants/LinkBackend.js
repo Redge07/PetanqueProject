@@ -1,5 +1,5 @@
-export const linkBackend = "http://localhost:5000/";
-// export const linkBackend = "http://10.189.175.118:5000/";
+// export const linkBackend = "http://localhost:5000/";
+export const linkBackend = "http://10.189.175.118:5000/";
 // export const linkBackend = "http://10.189.164.154:5000/";
 // export const linkBackend = "https://petanqueproject.onrender.com/";
 
