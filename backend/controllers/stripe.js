@@ -1,4 +1,5 @@
 const { Stripe } = require("stripe");
+const { query } = require("../constants/query");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 exports.checkoutSession = async (req, res) => {
