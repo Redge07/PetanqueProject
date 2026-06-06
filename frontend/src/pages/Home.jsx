@@ -30,7 +30,7 @@ const Home = () => {
               <Trophy className="w-6 h-6 text-[var(--color-gold)]" />
             </div>
             <h1 className="text-2xl font-light text-[var(--color-primary)]">
-              Pétanque<span className="font-semibold">Managers</span>
+              Pétanque<span className="font-semibold">Manager</span>
             </h1>
           </div>
           <div className="flex items-center gap-2">
