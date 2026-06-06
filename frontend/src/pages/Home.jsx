@@ -30,7 +30,7 @@ const Home = () => {
               <Trophy className="w-6 h-6 text-[var(--color-gold)]" />
             </div>
             <h1 className="text-2xl font-light text-[var(--color-primary)]">
-              Pétanque<span className="font-semibold">Manager</span>
+              Pétanque<span className="font-semibold">Managers</span>
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -140,10 +140,30 @@ const Home = () => {
         ) : null}
         {/* Footer légal */}
         <div className="mt-12 pt-6 border-t border-[var(--color-border)] flex flex-wrap gap-4 justify-center text-xs text-[var(--color-gray-light)]">
-          <NavLink to="/mentions-legales" className="hover:text-[var(--color-primary)] transition-colors">Mentions légales</NavLink>
-          <NavLink to="/confidentialite" className="hover:text-[var(--color-primary)] transition-colors">Confidentialité</NavLink>
-          <NavLink to="/cgu" className="hover:text-[var(--color-primary)] transition-colors">CGU</NavLink>
-          <a href="mailto:mathonregis28@gmail.com" className="hover:text-[var(--color-primary)] transition-colors">Contact</a>
+          <NavLink
+            to="/mentions-legales"
+            className="hover:text-[var(--color-primary)] transition-colors"
+          >
+            Mentions légales
+          </NavLink>
+          <NavLink
+            to="/confidentialite"
+            className="hover:text-[var(--color-primary)] transition-colors"
+          >
+            Confidentialité
+          </NavLink>
+          <NavLink
+            to="/cgu"
+            className="hover:text-[var(--color-primary)] transition-colors"
+          >
+            CGU
+          </NavLink>
+          <a
+            href="mailto:mathonregis28@gmail.com"
+            className="hover:text-[var(--color-primary)] transition-colors"
+          >
+            Contact
+          </a>
         </div>
       </div>
     </div>
