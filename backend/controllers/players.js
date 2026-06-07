@@ -139,7 +139,11 @@ exports.searchByName = async (req, res) => {
   try {
     const name = req.params.name;
     const tournaments = await query(
-      "SELECT id, name, style FROM tournaments WHERE name LIKE ? AND start = 0 ORDER BY id DESC LIMIT 15",
+      `SELECT t.id, t.name, t.style,
+        (SELECT COUNT(*) FROM players p WHERE p.id_tournament = t.id AND p.valider = 1) AS nb_joueurs
+       FROM tournaments t
+       WHERE t.name LIKE ? AND t.start = 0
+       ORDER BY t.id DESC LIMIT 15`,
       [`%${name}%`],
     );
     return res.status(200).json(tournaments);
@@ -152,7 +156,11 @@ exports.searchByName = async (req, res) => {
 exports.listAvailable = async (req, res) => {
   try {
     const tournaments = await query(
-      "SELECT id, name, style FROM tournaments WHERE start = 0 ORDER BY id DESC LIMIT 20",
+      `SELECT t.id, t.name, t.style,
+        (SELECT COUNT(*) FROM players p WHERE p.id_tournament = t.id AND p.valider = 1) AS nb_joueurs
+       FROM tournaments t
+       WHERE t.start = 0
+       ORDER BY t.id DESC LIMIT 20`,
     );
     return res.status(200).json(tournaments);
   } catch (err) {

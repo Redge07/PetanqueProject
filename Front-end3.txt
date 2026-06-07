@@ -50,3 +50,31 @@ Si c'est pour un besoin réel, voici l'ordre non négociable :
 Le point 1 est urgent. Tant qu'il n'est pas fait, n'importe qui peut détruire les données de n'importe quel concours. Tout le reste (UI, PDF, page publique) est du vernis sur une maison sans serrure.
 
 Veux-tu qu'on attaque la sécurisation du backend (middleware d'authentification JWT + vérification des droits sur chaque route) ? C'est le chantier le plus important et il n'est pas si long — quelques heures de travail bien ciblé.
+
+------------------------ Autre réponse --------------------------------
+Là tu me demandes la vraie checklist de lancement. Je te la donne franche et priorisée, spécifique à ton app (pas du générique).
+
+🔴 Les vrais bloquants
+1. Sécurité backend. Le seul truc non-négociable. Aujourd'hui n'importe qui peut appeler ton API et supprimer/modifier le concours de quelqu'un d'autre. Il faut : un middleware qui vérifie le JWT sur les routes sensibles + une vérification "es-tu bien le propriétaire ?". C'est LE chantier avant d'ouvrir au public.
+
+2. Le backend Render s'endort (plan gratuit). ⚠️ Souvent oublié et pourtant critique : sur le plan gratuit, ton backend Render se met en veille après 15 min d'inactivité. Le premier utilisateur qui arrive attend 30 à 50 secondes que ça redémarre → il croit que l'app est cassée et il part. Pour un vrai produit : plan payant Render (~7$/mois) ou un système de "keep-alive".
+
+3. La config d'URL est en dur et manuelle. Tu changes LinkBackend.js à la main entre localhost et Render. En prod il faut une variable d'environnement (VITE_API_URL) — sinon tu vas un jour déployer avec localhost par erreur. Pareil pour le Google Client ID.
+
+4. CGV manquantes. Tu as Mentions légales + Confidentialité + CGU, mais tu fais du paiement Stripe → les Conditions Générales de Vente sont légalement obligatoires dès qu'il y a transaction.
+
+🟠 Important avant lancement
+5. Emails délivrés correctement. Vérifier que les mails de vérification de compte et reset password arrivent bien (et pas en spam). C'est souvent le point qui casse l'inscription en vrai.
+
+6. Stripe en mode live. Confirmer que tu es sur les clés de production, pas les clés de test.
+
+7. Sauvegardes de la base de données. Si ta DB Render saute, tu perds tout. Vérifier que les backups automatiques sont activés.
+
+8. Nettoyage du repo. Supprimer le vieux dossier petanque/ (l'ancien CRA) et les fichiers Front-end.txt, save.txt, etc. qui traînent à la racine. Ça fait pro et ça évite la confusion.
+
+🟡 Confort / qualité (pas bloquant mais fortement recommandé)
+9. Monitoring d'erreurs (Sentry) — savoir quand ça plante en prod.
+10. Analytics (Plausible/Umami) — savoir si des gens utilisent l'app et comment.
+11. Un nom de domaine propre (au lieu de petanqueapp.netlify.app).
+12. Onboarding pour ton public (comités de villages peu techniques) — au moins une explication des formats.
+13. Tester un vrai concours de bout en bout avant de le proposer à d'autres.
