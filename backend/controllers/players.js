@@ -119,6 +119,16 @@ exports.search = async (req, res) => {
 exports.add_player = async (req, res) => {
   try {
     const { idUser, idTournament, pseudo } = req.body;
+    // On vérifie qu'aucun joueur du concours n'a déjà ce pseudo (insensible à la casse)
+    const existing = await query(
+      "select id from players where id_tournament = ? and LOWER(TRIM(pseudo)) = LOWER(TRIM(?))",
+      [idTournament, pseudo],
+    );
+    if (existing.length > 0) {
+      return res.status(200).json({
+        res: "Ce nom d'équipe est déjà pris pour ce concours, choisissez-en un autre.",
+      });
+    }
     await query(
       "insert into players (pseudo, id_versus, class, id_tournament, id_user, valider) values (?, 0, 0, ?, ?, 0)",
       [pseudo, idTournament, idUser],

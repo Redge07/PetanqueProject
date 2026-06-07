@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "../App";
-import { Plus, Trash2, Eye, X, Share2 } from "lucide-react";
+import { Plus, Trash2, Eye, X, Share2, Target } from "lucide-react";
 import { getFormatLabel, getFormatIcon } from "../utils/formatLabels";
 import ShareModal from "./ui/ShareModal";
 import ConfirmModal from "./ui/ConfirmModal";
@@ -78,9 +78,26 @@ const Organisation = ({ player }) => {
       )}
 
       {tournaments.res == 0 ? (
-        <p className="text-[var(--color-gray)] mb-4">
-          Vous n'avez aucun concours
-        </p>
+        /* Empty state : invite à créer le premier concours */
+        <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-[var(--color-border)] text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg">
+            <Target className="w-8 h-8 text-[var(--color-gold)]" />
+          </div>
+          <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-1">
+            Aucun concours pour le moment
+          </h3>
+          <p className="text-[var(--color-gray)] text-sm mb-6 max-w-sm mx-auto">
+            Créez votre premier concours de pétanque pour commencer à gérer vos
+            parties, vos joueurs et vos résultats.
+          </p>
+          <button
+            onClick={() => setAddTournament(true)}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium shadow-lg hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+          >
+            <Plus className="w-5 h-5" />
+            Créer mon premier concours
+          </button>
+        </div>
       ) : (
         <div className="mb-6">
           <p className="text-[var(--color-gray)] mb-4">
@@ -161,16 +178,17 @@ const Organisation = ({ player }) => {
               );
             })}
           </ul>
+
+          {/* Gros bouton de création, en bas de la liste */}
+          <button
+            onClick={() => setAddTournament(true)}
+            className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-2xl font-semibold shadow-lg hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+          >
+            <Plus className="w-5 h-5" />
+            Créer un concours
+          </button>
         </div>
       )}
-
-      <button
-        onClick={() => setAddTournament(true)}
-        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium shadow-lg hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
-      >
-        <Plus className="w-5 h-5" />
-        Créer un concours
-      </button>
 
       {addTournament && (
         <form

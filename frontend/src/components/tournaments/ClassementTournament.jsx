@@ -8,6 +8,9 @@ import { OrgaContext } from "../../pages/Tournament";
 import Order from "../tournamentComponents/Order";
 import { UsersContext } from "../../App";
 import handleGoArbreClassementUtil from "../../utils/handleGoArbreClassement";
+import PlayerSearch, {
+  filterMatchesByPlayer,
+} from "../tournamentComponents/PlayerSearch";
 
 const ClassementTournament = ({
   listPlayers,
@@ -22,6 +25,10 @@ const ClassementTournament = ({
 
   // State qui permet de gérer l'affichage du classement des poules
   const [order, setOrder] = useState(false);
+
+  // Recherche de joueur : filtre l'affichage des matchs
+  const [query, setQuery] = useState("");
+  const filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
 
   // State pour avoir les données du classement
   const [dataOrder, setDataOrder] = useState([]);
@@ -186,8 +193,18 @@ const ClassementTournament = ({
       {/* Si on veut afficher les matches */}
       {!order && (
         <div className="space-y-6">
-          {/* On affiche les vainqueurs si il y en a */}
-          <VainqueurGroupe listPlayers={listPlayers} />
+          {/* Barre de recherche de joueur (orga uniquement) */}
+          {orga && <PlayerSearch query={query} setQuery={setQuery} />}
+
+          {/* Si la recherche ne renvoie rien */}
+          {query.trim() && filteredMatches.length === 0 && (
+            <p className="text-sm text-[var(--color-gray)] text-center py-6 bg-white/80 rounded-2xl shadow-xl">
+              Aucun joueur trouvé dans les matchs en cours
+            </p>
+          )}
+
+          {/* On affiche les vainqueurs si il y en a (masqués pendant une recherche) */}
+          {!query.trim() && <VainqueurGroupe listPlayers={listPlayers} />}
 
           {/* On va commencer avec les rounds tout en haut (car énorme diff entre r = 4 et r inferieur 3 */}
           {pairesInfos.rounds
@@ -207,13 +224,13 @@ const ClassementTournament = ({
                       .map((g) => {
                         // Si y'a vainqueur deja dans ce groupe on affiche rien
                         const vainqueur = `vainqueur${g}`;
-                        if (listPlayers.vainqueurs[vainqueur]) {
+                        // On prend les matches du groupe qui correspondent à la recherche
+                        const matches = filteredMatches.filter(
+                          (m) => m.groupe == g,
+                        );
+                        if (listPlayers.vainqueurs[vainqueur] || matches.length === 0) {
                           return null;
                         } else {
-                          // On prend tous les matches du groupe auquel on est actuellement dans la boucle
-                          const matches = listPlayers.matches.filter(
-                            (m) => m.groupe == g,
-                          );
                           return (
                             <div
                               key={g}
@@ -236,6 +253,10 @@ const ClassementTournament = ({
               }
               // Sinon on est dans les matches de poules
               if (r < 4) {
+                const roundMatches = filteredMatches.filter(
+                  (m) => m.round == r,
+                );
+                if (roundMatches.length === 0) return null;
                 return (
                   <div
                     key={r}
@@ -246,9 +267,7 @@ const ClassementTournament = ({
                       Round {r}
                     </h3>
                     <div className="space-y-4">
-                      {listPlayers.matches
-                        .filter((m) => m.round == r)
-                        .map((m) => {
+                      {roundMatches.map((m) => {
                           return (
                             <div
                               key={m.key}

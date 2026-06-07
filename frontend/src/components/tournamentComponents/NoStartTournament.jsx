@@ -12,6 +12,8 @@ import {
   Pencil,
   Check,
   X,
+  Search,
+  Clock,
 } from "lucide-react";
 import ConfirmModal from "../ui/ConfirmModal";
 
@@ -23,27 +25,28 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   const [editPrix, setEditPrix] = useState(false);
   const [confirmDeleteAttente, setConfirmDeleteAttente] = useState(null);
   const [confirmDeleteValid, setConfirmDeleteValid] = useState(null);
+  const [addPlayerMsg, setAddPlayerMsg] = useState("");
 
   const { setLoad, setError } = useContext(UsersContext);
 
   const [responseGoTournament, setResponseGoTournament] = useState("");
 
-  // Variable pour calculer le nombre de joueurs en attente et validé
-  const listPlayersAttente = listPlayers.results
-    .filter((p) => p.valider == 0)
-    .filter(
-      (p) =>
-        p.pseudo.toLowerCase().includes(searchAttente.toLowerCase()) ||
-        p.numero?.toString().includes(searchAttente),
-    );
+  // Listes complètes (pour les compteurs et savoir si on affiche la recherche)
+  const rawAttente = listPlayers.results.filter((p) => p.valider == 0);
+  const rawValider = listPlayers.results.filter((p) => p.valider == 1);
 
-  const listPlayersValider = listPlayers.results
-    .filter((p) => p.valider == 1)
-    .filter(
-      (p) =>
-        p.pseudo.toLowerCase().includes(searchValider.toLowerCase()) ||
-        p.numero?.toString().includes(searchValider),
-    );
+  // Listes filtrées par la recherche (affichées)
+  const listPlayersAttente = rawAttente.filter(
+    (p) =>
+      p.pseudo.toLowerCase().includes(searchAttente.toLowerCase()) ||
+      p.numero?.toString().includes(searchAttente),
+  );
+
+  const listPlayersValider = rawValider.filter(
+    (p) =>
+      p.pseudo.toLowerCase().includes(searchValider.toLowerCase()) ||
+      p.numero?.toString().includes(searchValider),
+  );
 
   const handleApiResponse = (res) => {
     setResponseAPI(res.data);
@@ -107,18 +110,24 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
   // Fonction pour ajouter un joueur manuellement
   const handleAddPlayer = async (e) => {
     e.preventDefault();
+    const form = e.target;
+    const pseudo = form.elements.pseudo.value;
     setLoad(true);
+    setAddPlayerMsg("");
     try {
       const res = await axios.post(
         linkBackend + "tournaments/" + idTournament,
-        {
-          pseudo: e.target.elements.pseudo.value,
-        },
+        { pseudo },
       );
-      handleApiResponse(res);
+      // Si le pseudo est déjà pris, on affiche le message et on ne recharge pas
+      if (res.data.res === 0) {
+        setAddPlayerMsg(res.data.msg);
+      } else {
+        form.reset();
+        recharge();
+      }
     } catch (err) {
       setError(true);
-
     } finally {
       setLoad(false);
     }
@@ -217,30 +226,44 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           onCancel={() => setConfirmDeleteValid(null)}
         />
       )}
-      {/* Recherche joueurs en attente */}
-      <input
-        type="text"
-        placeholder="Rechercher par nom ou numéro..."
-        value={searchAttente}
-        onChange={(e) => setSearchAttente(e.target.value)}
-        className="w-full h-10 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-3"
-      />
       {/* Joueurs en attente */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-[var(--color-gold)]/10 rounded-xl flex items-center justify-center">
-            <Users className="w-5 h-5 text-[var(--color-gold)]" />
+          <div className="w-10 h-10 bg-[var(--color-gold)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5 text-[var(--color-gold)]" />
           </div>
           <div>
             <h3 className="font-semibold text-[var(--color-primary)]">
-              Joueurs en attente
+              En attente d'acceptation
             </h3>
             <p className="text-sm text-[var(--color-gray)]">
-              {listPlayersAttente.length}{" "}
-              {listPlayersAttente.length > 1 ? "joueurs" : "joueur"} en attente
+              <span className="font-semibold text-[var(--color-primary)]">
+                {rawAttente.length}
+              </span>{" "}
+              {rawAttente.length > 1 ? "joueurs" : "joueur"}
             </p>
           </div>
         </div>
+
+        {/* Recherche intégrée, seulement si la liste est longue */}
+        {rawAttente.length > 8 && (
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-gray-light)]" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom ou numéro..."
+              value={searchAttente}
+              onChange={(e) => setSearchAttente(e.target.value)}
+              className="w-full h-10 pl-10 pr-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+            />
+          </div>
+        )}
+
+        {rawAttente.length === 0 ? (
+          <p className="text-sm text-[var(--color-gray-light)] text-center py-4">
+            Aucun joueur en attente pour le moment
+          </p>
+        ) : (
         <ul className="space-y-2 max-h-64 overflow-y-auto">
           {/* On liste les joueurs qui sont en attente en filtrant avec le colonne "valider" */}
           {listPlayersAttente.map((j) => (
@@ -279,32 +302,47 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
             </li>
           ))}
         </ul>
+        )}
       </div>
-      {/* Recherche joueurs validés */}
-      <input
-        type="text"
-        placeholder="Rechercher par nom ou numéro..."
-        value={searchValider}
-        onChange={(e) => setSearchValider(e.target.value)}
-        className="w-full h-10 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors mb-3"
-      />
+
       {/* Joueurs acceptés */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
             <UserCheck className="w-5 h-5 text-green-600" />
           </div>
           <div>
-            {/* On va lister tous les joueurs qui n'ont pas encore été accepté pour ce tournoi en question dans la base de données */}
             <h3 className="font-semibold text-[var(--color-primary)]">
               Joueurs acceptés
             </h3>
             <p className="text-sm text-[var(--color-gray)]">
-              {listPlayersValider.length}{" "}
-              {listPlayersValider.length > 1 ? "joueurs" : "joueur"} accepté
+              <span className="font-semibold text-[var(--color-primary)]">
+                {rawValider.length}
+              </span>{" "}
+              {rawValider.length > 1 ? "joueurs prêts" : "joueur prêt"}
             </p>
           </div>
         </div>
+
+        {/* Recherche intégrée, seulement si la liste est longue */}
+        {rawValider.length > 8 && (
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-gray-light)]" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom ou numéro..."
+              value={searchValider}
+              onChange={(e) => setSearchValider(e.target.value)}
+              className="w-full h-10 pl-10 pr-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+            />
+          </div>
+        )}
+
+        {rawValider.length === 0 ? (
+          <p className="text-sm text-[var(--color-gray-light)] text-center py-4">
+            Aucun joueur accepté pour le moment
+          </p>
+        ) : (
         <ul className="space-y-2 max-h-64 overflow-y-auto">
           {listPlayersValider.map((j) => (
             <li
@@ -334,11 +372,13 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
             </li>
           ))}
         </ul>
+        )}
       </div>
+
       {/* Ajouter un joueur manuellement */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <UserPlus className="w-5 h-5 text-[var(--color-primary)]" />
           </div>
           <h3 className="font-semibold text-[var(--color-primary)]">
@@ -359,17 +399,25 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
             className="h-12 px-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium cursor-pointer hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
           />
         </form>
+        {addPlayerMsg && (
+          <p className="mt-3 text-sm text-red-500 bg-red-50 rounded-xl p-3">
+            {addPlayerMsg}
+          </p>
+        )}
       </div>
       {/* Créer des joueurs automatiquement */}
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
             <Users className="w-5 h-5 text-[var(--color-primary)]" />
           </div>
           <h3 className="font-semibold text-[var(--color-primary)]">
-            Créer des joueurs automatiquement
+            Générer des joueurs de test
           </h3>
         </div>
+        <p className="text-xs text-[var(--color-gray-light)] mb-4">
+          Crée des joueurs fictifs (Test1, Test2…) pour essayer le concours.
+        </p>
         <div className="flex gap-2">
           <input
             type="number"

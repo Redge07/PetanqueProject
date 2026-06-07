@@ -5,8 +5,9 @@ import { UsersContext } from "../../App";
 import { Search, Hash, MapPin, Users, Eye } from "lucide-react";
 import { getFormatLabel, getFormatIcon } from "../../utils/formatLabels";
 
-// Formulaire d'inscription — module-level pour éviter le remount à chaque frappe
-function InscriptionForm({ tournament, pseudo, setPseudo, onSubmit, responseInscription }) {
+// Formulaire d'inscription — état local pour éviter tout re-render du parent à la frappe
+function InscriptionForm({ tournament, onSubmit, responseInscription }) {
+  const [pseudo, setPseudo] = useState("");
   return (
     <div className="mt-4 p-4 bg-[var(--color-bg-mid)] rounded-xl border border-[var(--color-gold)]/20">
       <p className="text-sm font-medium text-[var(--color-primary)] mb-2">
@@ -21,7 +22,7 @@ function InscriptionForm({ tournament, pseudo, setPseudo, onSubmit, responseInsc
           className="flex-1 h-11 px-4 rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
         />
         <button
-          onClick={() => onSubmit(tournament)}
+          onClick={() => onSubmit(tournament, pseudo)}
           disabled={!pseudo.trim()}
           className="h-11 px-5 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-xl font-medium hover:opacity-90 transition-all duration-300 disabled:opacity-40"
         >
@@ -38,7 +39,7 @@ function InscriptionForm({ tournament, pseudo, setPseudo, onSubmit, responseInsc
 }
 
 // Carte d'événement d'un concours — module-level
-function TournamentCard({ t, isOpen, onToggle, pseudo, setPseudo, onSubmit, responseInscription }) {
+function TournamentCard({ t, isOpen, onToggle, onSubmit, responseInscription }) {
   const FormatIcon = getFormatIcon(t.style);
   const nb = Number(t.nb_joueurs ?? 0);
   return (
@@ -108,8 +109,6 @@ function TournamentCard({ t, isOpen, onToggle, pseudo, setPseudo, onSubmit, resp
         {isOpen && (
           <InscriptionForm
             tournament={t}
-            pseudo={pseudo}
-            setPseudo={setPseudo}
             onSubmit={onSubmit}
             responseInscription={responseInscription}
           />
@@ -128,7 +127,6 @@ const SearchTournament = ({ player, recharge }) => {
   const [dataTournament, setDataTournament] = useState({ res: -1 });
   const [responseInscription, setResponseInscription] = useState("");
   const [selectedTournament, setSelectedTournament] = useState(null);
-  const [pseudo, setPseudo] = useState("");
   const { setLoad, setError } = useContext(UsersContext);
 
   // Charger la liste des concours disponibles au montage
@@ -191,7 +189,7 @@ const SearchTournament = ({ player, recharge }) => {
     handleSearchById(idQuery);
   };
 
-  const handleInscrire = async (tournament) => {
+  const handleInscrire = async (tournament, pseudo) => {
     if (!pseudo.trim()) return;
     setLoad(true);
     try {
@@ -211,8 +209,6 @@ const SearchTournament = ({ player, recharge }) => {
 
   // Props communes aux cartes
   const cardProps = {
-    pseudo,
-    setPseudo,
     onSubmit: handleInscrire,
     responseInscription,
     onToggle: (t) => {
@@ -223,9 +219,19 @@ const SearchTournament = ({ player, recharge }) => {
 
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-      <p className="text-[var(--color-gray)] mb-5">
-        Vous ne participez à aucun concours
-      </p>
+      {/* Message principal bien visible */}
+      <div className="text-center mb-6">
+        <div className="w-14 h-14 bg-[var(--color-primary)]/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <Search className="w-7 h-7 text-[var(--color-primary)]" />
+        </div>
+        <h3 className="text-lg font-semibold text-[var(--color-primary)]">
+          Vous ne participez à aucun concours
+        </h3>
+        <p className="text-sm text-[var(--color-gray)] mt-1 max-w-md mx-auto">
+          Trouvez un concours ci-dessous et inscrivez-vous pour suivre vos
+          matchs en direct.
+        </p>
+      </div>
 
       {/* Onglets */}
       <div className="flex rounded-xl bg-[var(--color-bg-mid)] p-1 mb-5">
@@ -257,7 +263,7 @@ const SearchTournament = ({ player, recharge }) => {
               Aucun concours disponible pour le moment
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
               {availableList.map((t) => (
                 <TournamentCard
                   key={t.id}
@@ -294,7 +300,7 @@ const SearchTournament = ({ player, recharge }) => {
             </p>
           )}
           {nameResults.length > 0 && (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
               {nameResults.map((t) => (
                 <TournamentCard
                   key={t.id}
@@ -334,11 +340,13 @@ const SearchTournament = ({ player, recharge }) => {
             </p>
           )}
           {dataTournament.res == 1 && selectedTournament && (
-            <TournamentCard
-              t={selectedTournament}
-              isOpen={true}
-              {...cardProps}
-            />
+            <div className="max-w-xl mx-auto">
+              <TournamentCard
+                t={selectedTournament}
+                isOpen={true}
+                {...cardProps}
+              />
+            </div>
           )}
           {dataTournament.res == 2 && (
             <p className="text-sm text-[var(--color-gray)] bg-[var(--color-bg-mid)] rounded-xl p-3">

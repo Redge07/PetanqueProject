@@ -141,6 +141,17 @@ exports.add_player = async (req, res) => {
   try {
     const { pseudo } = req.body;
     const idTournament = req.params.id;
+    // On vérifie qu'aucun joueur du concours n'a déjà ce pseudo (insensible à la casse)
+    const existing = await query(
+      "select id from players where id_tournament = ? and LOWER(TRIM(pseudo)) = LOWER(TRIM(?))",
+      [idTournament, pseudo],
+    );
+    if (existing.length > 0) {
+      return res.status(200).json({
+        res: 0,
+        msg: "Ce nom d'équipe est déjà pris pour ce concours.",
+      });
+    }
     const listPlayers = await query(
       "select * from players where id_tournament = ? and valider = 1",
       [idTournament],
@@ -155,7 +166,7 @@ exports.add_player = async (req, res) => {
           : 1,
       ],
     );
-    return res.status(200).send("Le joueur a été ajouté");
+    return res.status(200).json({ res: 1, msg: "Le joueur a été ajouté" });
   } catch (err) {
     console.log(err);
     return res.status(500).send(err);

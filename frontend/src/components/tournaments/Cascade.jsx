@@ -7,6 +7,9 @@ import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import { UsersContext } from "../../App";
 import RecompenseTableau from "../tournamentComponents/RecompenseTableau";
 import RecompenseWinner from "../tournamentComponents/RecompenseWinner";
+import PlayerSearch, {
+  filterMatchesByPlayer,
+} from "../tournamentComponents/PlayerSearch";
 
 const Cascade = ({
   fullListPlayers,
@@ -19,6 +22,9 @@ const Cascade = ({
   const { setLoad, setError } = useContext(UsersContext);
   // State pour afficher la fenêtre de récompense et avoir les infos de récompense après une victoire
   const [recompenseModal, setRecompenseModal] = useState(null);
+  // Recherche de joueur : filtre l'affichage des matchs
+  const [query, setQuery] = useState("");
+  const filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = async (win, lose, versus) => {
     setLoad(true);
@@ -77,8 +83,15 @@ const Cascade = ({
         prix_entree={listPlayers.prix_entree}
         nb_joueurs={listPlayers.nb_joueurs}
       />
-      {/* On affichera directement les vainqueurs si il y en a  */}
-      <VainqueurGroupe listPlayers={listPlayers} />
+      <PlayerSearch query={query} setQuery={setQuery} />
+      {/* Si la recherche ne renvoie rien */}
+      {query.trim() && filteredMatches.length === 0 && (
+        <p className="text-sm text-[var(--color-gray)] text-center py-6 bg-white/80 rounded-2xl shadow-xl">
+          Aucun joueur trouvé dans les matchs en cours
+        </p>
+      )}
+      {/* On affichera directement les vainqueurs si il y en a (masqués pendant une recherche) */}
+      {!query.trim() && <VainqueurGroupe listPlayers={listPlayers} />}
       {/* On tri par les groupes */}
       {pairesInfos.groupes
         .sort(
@@ -88,7 +101,9 @@ const Cascade = ({
         .map((g) => {
           // Si ce groupe a déjà un vainqueur alors on affiche rien car c'est fini
           const vainqueur = `vainqueur${g}`;
-          if (listPlayers.vainqueurs[vainqueur]) {
+          // On ne garde que les matchs du groupe qui correspondent à la recherche
+          const groupMatches = filteredMatches.filter((v) => v.groupe == g);
+          if (listPlayers.vainqueurs[vainqueur] || groupMatches.length === 0) {
             return null;
           } else {
             // Sinon on affiche bien les matches de ce groupe
@@ -105,8 +120,8 @@ const Cascade = ({
                   {pairesInfos.rounds
                     .sort((a, b) => b - a)
                     .map((r) => {
-                      const matches = listPlayers.matches.filter(
-                        (v) => v.groupe == g && v.round == r,
+                      const matches = groupMatches.filter(
+                        (v) => v.round == r,
                       );
                       // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
                       if (matches.length == 0) {
