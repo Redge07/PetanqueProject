@@ -5,6 +5,7 @@ import Arbre from "../tournamentComponents/Arbre";
 import ButtonWinner from "../tournamentComponents/ButtonsWinner";
 import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
 import { UsersContext } from "../../App";
+import { OrgaContext } from "../../pages/Tournament";
 import RecompenseTableau from "../tournamentComponents/RecompenseTableau";
 import RecompenseWinner from "../tournamentComponents/RecompenseWinner";
 import PlayerSearch, {
@@ -20,11 +21,19 @@ const Cascade = ({
   idTournament,
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
+  const { orga } = useContext(OrgaContext) ?? {};
   // State pour afficher la fenêtre de récompense et avoir les infos de récompense après une victoire
   const [recompenseModal, setRecompenseModal] = useState(null);
-  // Recherche de joueur : filtre l'affichage des matchs
+  // Recherche de joueur et filtres : filtrent l'affichage des matchs
   const [query, setQuery] = useState("");
-  const filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
+  const [filters, setFilters] = useState({ groupe: "", round: "", tour: "" });
+
+  let filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
+  if (filters.groupe) filteredMatches = filteredMatches.filter((m) => m.groupe == filters.groupe);
+  if (filters.round) filteredMatches = filteredMatches.filter((m) => String(m.round) == filters.round);
+  if (filters.tour) filteredMatches = filteredMatches.filter((m) => String(m.class) == filters.tour);
+
+  const hasActiveFilters = query.trim() || filters.groupe || filters.round || filters.tour;
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = async (win, lose, versus) => {
     setLoad(true);
@@ -76,22 +85,30 @@ const Cascade = ({
           setRecompenseModal={setRecompenseModal}
         />
       )}
-      <RecompenseTableau
-        matches={fullListPlayers}
-        idTournament={idTournament}
-        recharge={recharge}
-        prix_entree={listPlayers.prix_entree}
-        nb_joueurs={listPlayers.nb_joueurs}
+      {orga && (
+        <RecompenseTableau
+          matches={fullListPlayers}
+          idTournament={idTournament}
+          recharge={recharge}
+          prix_entree={listPlayers.prix_entree}
+          nb_joueurs={listPlayers.nb_joueurs}
+        />
+      )}
+      <PlayerSearch
+        query={query}
+        setQuery={setQuery}
+        options={orga ? { groupes: pairesInfos.groupes, rounds: pairesInfos.rounds, tours: pairesInfos.tours } : {}}
+        filters={filters}
+        setFilters={orga ? setFilters : undefined}
       />
-      <PlayerSearch query={query} setQuery={setQuery} />
-      {/* Si la recherche ne renvoie rien */}
-      {query.trim() && filteredMatches.length === 0 && (
+      {/* Si les filtres ne renvoient rien */}
+      {hasActiveFilters && filteredMatches.length === 0 && (
         <p className="text-sm text-[var(--color-gray)] text-center py-6 bg-white/80 rounded-2xl shadow-xl">
-          Aucun joueur trouvé dans les matchs en cours
+          Aucun match trouvé pour ces filtres
         </p>
       )}
-      {/* On affichera directement les vainqueurs si il y en a (masqués pendant une recherche) */}
-      {!query.trim() && <VainqueurGroupe listPlayers={listPlayers} />}
+      {/* On affichera directement les vainqueurs si il y en a (masqués pendant une recherche/filtre) */}
+      {!hasActiveFilters && <VainqueurGroupe listPlayers={listPlayers} />}
       {/* On tri par les groupes */}
       {pairesInfos.groupes
         .sort(

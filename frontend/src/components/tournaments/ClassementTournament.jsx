@@ -26,9 +26,16 @@ const ClassementTournament = ({
   // State qui permet de gérer l'affichage du classement des poules
   const [order, setOrder] = useState(false);
 
-  // Recherche de joueur : filtre l'affichage des matchs
+  // Recherche de joueur et filtres : filtrent l'affichage des matchs
   const [query, setQuery] = useState("");
-  const filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
+  const [filters, setFilters] = useState({ groupe: "", round: "", tour: "" });
+
+  let filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
+  if (filters.groupe) filteredMatches = filteredMatches.filter((m) => m.groupe == filters.groupe);
+  if (filters.round) filteredMatches = filteredMatches.filter((m) => String(m.round) == filters.round);
+  if (filters.tour) filteredMatches = filteredMatches.filter((m) => String(m.class) == filters.tour);
+
+  const hasActiveFilters = query.trim() || filters.groupe || filters.round || filters.tour;
 
   // State pour avoir les données du classement
   const [dataOrder, setDataOrder] = useState([]);
@@ -193,18 +200,26 @@ const ClassementTournament = ({
       {/* Si on veut afficher les matches */}
       {!order && (
         <div className="space-y-6">
-          {/* Barre de recherche de joueur (orga uniquement) */}
-          {orga && <PlayerSearch query={query} setQuery={setQuery} />}
+          {/* Barre de recherche et filtres (orga uniquement) */}
+          {orga && (
+            <PlayerSearch
+              query={query}
+              setQuery={setQuery}
+              options={{ groupes: pairesInfos.groupes, rounds: pairesInfos.rounds, tours: pairesInfos.tours }}
+              filters={filters}
+              setFilters={setFilters}
+            />
+          )}
 
-          {/* Si la recherche ne renvoie rien */}
-          {query.trim() && filteredMatches.length === 0 && (
+          {/* Si les filtres ne renvoient rien */}
+          {hasActiveFilters && filteredMatches.length === 0 && (
             <p className="text-sm text-[var(--color-gray)] text-center py-6 bg-white/80 rounded-2xl shadow-xl">
-              Aucun joueur trouvé dans les matchs en cours
+              Aucun match trouvé pour ces filtres
             </p>
           )}
 
-          {/* On affiche les vainqueurs si il y en a (masqués pendant une recherche) */}
-          {!query.trim() && <VainqueurGroupe listPlayers={listPlayers} />}
+          {/* On affiche les vainqueurs si il y en a (masqués pendant un filtre actif) */}
+          {!hasActiveFilters && <VainqueurGroupe listPlayers={listPlayers} />}
 
           {/* On va commencer avec les rounds tout en haut (car énorme diff entre r = 4 et r inferieur 3 */}
           {pairesInfos.rounds

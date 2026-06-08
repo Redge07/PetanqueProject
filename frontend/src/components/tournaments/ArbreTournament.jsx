@@ -6,6 +6,7 @@ import PlayerSearch, {
   filterMatchesByPlayer,
 } from "../tournamentComponents/PlayerSearch";
 import { UsersContext } from "../../App";
+import { OrgaContext } from "../../pages/Tournament";
 
 const ArbreTournament = ({
   pairesInfos,
@@ -15,8 +16,14 @@ const ArbreTournament = ({
   recharge,
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
+  const { orga } = useContext(OrgaContext) ?? {};
   const [query, setQuery] = useState("");
-  const filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
+  const [filters, setFilters] = useState({ groupe: "", round: "", tour: "" });
+
+  let filteredMatches = filterMatchesByPlayer(listPlayers.matches, query);
+  if (filters.tour) filteredMatches = filteredMatches.filter((m) => String(m.class) == filters.tour);
+
+  const hasActiveFilters = query.trim() || filters.tour;
   // Fonction quand je déclare le vainqueur dans un tournoi arbre
   const handleWinnerArbre = async (win, lose, versus) => {
     setLoad(true);
@@ -45,10 +52,16 @@ const ArbreTournament = ({
   };
   return (
     <div>
-      <PlayerSearch query={query} setQuery={setQuery} />
-      {query.trim() && filteredMatches.length === 0 ? (
+      <PlayerSearch
+        query={query}
+        setQuery={setQuery}
+        options={orga ? { groupes: pairesInfos.groupes, rounds: pairesInfos.rounds, tours: pairesInfos.tours } : {}}
+        filters={filters}
+        setFilters={orga ? setFilters : undefined}
+      />
+      {hasActiveFilters && filteredMatches.length === 0 ? (
         <p className="text-sm text-[var(--color-gray)] text-center py-6 bg-white/80 rounded-2xl shadow-xl">
-          Aucun joueur trouvé dans les matchs en cours
+          Aucun match trouvé pour ces filtres
         </p>
       ) : (
         <Arbre

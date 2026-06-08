@@ -5,7 +5,7 @@ import { linkBackend } from "../../constants/LinkBackend";
 import axios from "axios";
 
 const RecompenseTableau = ({
-  matches,
+  matches = [],
   idTournament,
   recharge,
   prix_entree,
@@ -177,7 +177,7 @@ const RecompenseTableau = ({
                     className="w-16 h-8 px-2 rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] text-center text-sm focus:outline-none"
                     defaultValue={
                       matches.find((m) => m.round == 1 && m.groupe == "A")
-                        .recompense
+                        ?.recompense
                     }
                   />
                   <button
@@ -199,7 +199,7 @@ const RecompenseTableau = ({
                   <span className="font-semibold text-[var(--color-gold)]">
                     {
                       matches.find((m) => m.round == 1 && m.groupe == "A")
-                        .recompense
+                        ?.recompense
                     }
                     €
                   </span>
@@ -227,7 +227,7 @@ const RecompenseTableau = ({
                     className="w-16 h-8 px-2 rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] text-center text-sm focus:outline-none"
                     defaultValue={
                       matches.find((m) => m.round == 2 && m.groupe == "A")
-                        .recompense
+                        ?.recompense
                     }
                   />
                   <button
@@ -249,7 +249,7 @@ const RecompenseTableau = ({
                   <span className="font-semibold text-[var(--color-gold)]">
                     {
                       matches.find((m) => m.round == 2 && m.groupe == "A")
-                        .recompense
+                        ?.recompense
                     }
                     €
                   </span>
@@ -277,7 +277,7 @@ const RecompenseTableau = ({
                     className="w-16 h-8 px-2 rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] text-center text-sm focus:outline-none"
                     defaultValue={
                       matches.find((m) => m.round == 3 && m.groupe == "A")
-                        .recompense
+                        ?.recompense
                     }
                   />
                   <button
@@ -299,7 +299,7 @@ const RecompenseTableau = ({
                   <span className="font-semibold text-[var(--color-gold)]">
                     {
                       matches.find((m) => m.round == 3 && m.groupe == "A")
-                        .recompense
+                        ?.recompense
                     }
                     €
                   </span>
