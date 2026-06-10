@@ -3,9 +3,28 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SecureStore from "expo-secure-store";
+import * as Notifications from "expo-notifications";
 import axios from "axios";
 import { linkBackend } from "../constants/LinkBackend";
 import { ActivityIndicator, View, Text, TouchableOpacity, Modal } from "react-native";
+
+// Affiche les notifications même quand l'app est au premier plan
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
+// Attache automatiquement le JWT (stocké dans SecureStore) à toutes les requêtes axios
+axios.interceptors.request.use(async (config) => {
+  const token = await SecureStore.getItemAsync("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 export const UsersContext = createContext();
 

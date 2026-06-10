@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import axios from "axios";
 import { linkBackend } from "../constants/LinkBackend";
 import { UsersContext } from "./_layout";
@@ -29,10 +30,33 @@ export default function LoginScreen() {
     let longitude = null;
     let pushToken = null;
 
+    // --- Token de notifications push ---
     try {
-      pushToken = (await Notifications.getExpoPushTokenAsync()).data;
-    } catch {}
+      // 1. Demander la permission notifications
+      const { status: existing } = await Notifications.getPermissionsAsync();
+      let finalStatus = existing;
+      if (existing !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      // 2. Si accordée, récupérer le token avec le projectId
+      if (finalStatus === "granted") {
+        const projectId =
+          Constants.expoConfig?.extra?.eas?.projectId ??
+          Constants.easConfig?.projectId;
+        const tokenData = await Notifications.getExpoPushTokenAsync({
+          projectId,
+        });
+        pushToken = tokenData.data;
+        console.log("Push token récupéré :", pushToken);
+      } else {
+        console.log("Permission notifications refusée");
+      }
+    } catch (e) {
+      console.log("Erreur récupération token push :", e?.message ?? e);
+    }
 
+    // --- Position ---
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === "granted") {

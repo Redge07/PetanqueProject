@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,16 +15,19 @@ export default function HomeScreen() {
   const { player, setPlayer } = useContext(UsersContext);
   const [choice, setChoice] = useState(null); // null | "orga" | "participant"
 
+  // Redirection vers l'écran de connexion quand on n'est plus connecté
+  // (dans un effet, jamais pendant le rendu)
+  useEffect(() => {
+    if (!player) router.replace("/");
+  }, [player]);
+
   const handleDisconnect = async () => {
     await SecureStore.deleteItemAsync("token");
     setPlayer(null);
-    router.replace("/");
+    // la redirection est gérée par le useEffect ci-dessus
   };
 
-  if (!player) {
-    router.replace("/");
-    return null;
-  }
+  if (!player) return null;
 
   return (
     <ScrollView className="flex-1 bg-bg" contentContainerClassName="pb-8">

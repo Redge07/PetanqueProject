@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  FlatList,
   Modal,
   Share,
   Alert,
@@ -123,12 +122,16 @@ export default function Organisation({ player }) {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={tournaments}
-        keyExtractor={(t) => String(t.id)}
-        scrollEnabled={false}
-        renderItem={({ item: t }) => (
-          <View className="bg-white rounded-2xl p-4 shadow-sm border border-border mb-3">
+      {tournaments.length === 0 ? (
+        <Text className="text-gray-400 text-sm text-center py-6">
+          Aucun concours pour le moment.{"\n"}Créez-en un !
+        </Text>
+      ) : (
+        tournaments.map((t) => (
+          <View
+            key={String(t.id)}
+            className="bg-white rounded-2xl p-4 shadow-sm border border-border mb-3"
+          >
             <View className="flex-row items-start justify-between mb-3">
               <View className="flex-1 mr-3">
                 <Text className="font-semibold text-primary text-base">{t.name}</Text>
@@ -165,13 +168,8 @@ export default function Organisation({ player }) {
               </TouchableOpacity>
             </View>
           </View>
-        )}
-        ListEmptyComponent={
-          <Text className="text-gray-400 text-sm text-center py-6">
-            Aucun concours pour le moment.{"\n"}Créez-en un !
-          </Text>
-        }
-      />
+        ))
+      )}
 
       {/* Modal création */}
       <Modal visible={showCreate} transparent animationType="slide">
