@@ -10,9 +10,10 @@ import ClassementTournament from "../components/tournaments/ClassementTournament
 import createPaires from "../utils/CreatePaires";
 import Map from "../components/tournamentComponents/Map";
 import NotConnect from "../constants/NotConnect";
-import { ChevronLeft, Trophy, FileDown, ExternalLink } from "lucide-react";
+import { ChevronLeft, Trophy, FileDown, ExternalLink, LayoutList } from "lucide-react";
 import { getFormatLabel } from "../utils/formatLabels";
 import { generateTournamentPDF } from "../utils/generatePDF";
+import TournamentFullView from "../components/tournaments/TournamentFullView";
 
 export const OrgaContext = createContext();
 
@@ -24,6 +25,7 @@ const Tournament = () => {
   const navigate = useNavigate();
   // State qui va récupérer tous les joueurs qui sont en lien avec le tournoi, vérifie aussi si le tournoi a commencé, si res = 0 alors le tournoi n'a pas commencé et on doit afficher les joueurs, sinon res = 1 et ca a commencé
   const [listPlayers, setListPlayers] = useState({});
+  const [showFullView, setShowFullView] = useState(false);
   const [fullListPlayers, setFullListPlayers] = useState({});
   const [classementData, setClassementData] = useState(null);
   // State qui dit que tel joueur a gagné
@@ -154,25 +156,46 @@ const Tournament = () => {
           {listPlayers.res == 1 && (
             <div>
               <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-2xl p-6 text-white shadow-xl mb-6">
-                <p className="text-[var(--color-gold)] text-sm font-medium mb-1">
-                  Concours en cours
-                </p>
-                <h2 className="text-2xl font-semibold">
-                  {getFormatLabel(listPlayers.style)}
-                </h2>
-                {responseWin && (
-                  <p className="mt-2 text-white/80 text-sm">{responseWin}</p>
-                )}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[var(--color-gold)] text-sm font-medium mb-1">
+                      Concours en cours
+                    </p>
+                    <h2 className="text-2xl font-semibold">
+                      {getFormatLabel(listPlayers.style)}
+                    </h2>
+                    {responseWin && (
+                      <p className="mt-2 text-white/80 text-sm">{responseWin}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setShowFullView((v) => !v)}
+                    className="flex items-center gap-1.5 text-sm text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl transition-colors flex-shrink-0"
+                  >
+                    <LayoutList className="w-4 h-4" />
+                    <span className="hidden sm:inline">
+                      {showFullView ? "Vue normale" : "Tout voir"}
+                    </span>
+                  </button>
+                </div>
               </div>
-              {TournamentComponent && (
-                <TournamentComponent
+              {showFullView ? (
+                <TournamentFullView
                   fullListPlayers={fullListPlayers}
-                  listPlayers={listPlayers}
-                  pairesInfos={pairesInfos}
-                  setResponseWin={setResponseWin}
-                  idTournament={idTournament}
-                  recharge={recharge}
+                  style={listPlayers.style}
+                  onBack={() => setShowFullView(false)}
                 />
+              ) : (
+                TournamentComponent && (
+                  <TournamentComponent
+                    fullListPlayers={fullListPlayers}
+                    listPlayers={listPlayers}
+                    pairesInfos={pairesInfos}
+                    setResponseWin={setResponseWin}
+                    idTournament={idTournament}
+                    recharge={recharge}
+                  />
+                )
               )}
             </div>
           )}

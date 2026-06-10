@@ -107,86 +107,81 @@ const Organisation = ({ player }) => {
             </span>{" "}
             concours
           </p>
-          <ul className="space-y-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {tournaments.results.map((t) => {
               const FormatIcon = getFormatIcon(t.style);
               const isFinished = t.start == 2;
               return (
-              <li
-                key={t.id}
-                className={`bg-white rounded-2xl p-4 shadow-sm border border-[var(--color-border)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between hover:shadow-md transition-all duration-300 ${isFinished ? "opacity-60" : ""}`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-                    <FormatIcon className="w-5 h-5 text-[var(--color-gold)]" />
+                <div
+                  key={t.id}
+                  className={`bg-white rounded-2xl p-5 shadow-sm border border-[var(--color-border)] flex flex-col gap-5 hover:shadow-md transition-all duration-300 min-h-[200px] ${isFinished ? "opacity-60" : ""}`}
+                >
+                  {/* En-tête : icône + statut */}
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                      <FormatIcon className="w-6 h-6 text-[var(--color-gold)]" />
+                    </div>
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      t.start == 0
+                        ? "bg-orange-100 text-orange-500"
+                        : t.start == 1
+                          ? "bg-green-100 text-green-600"
+                          : "bg-gray-100 text-gray-500"
+                    }`}>
+                      {t.start == 0 ? "En attente" : t.start == 1 ? "En cours" : "Terminé"}
+                    </span>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-[var(--color-primary)] truncate">
+
+                  {/* Nom + format */}
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <p className="font-semibold text-[var(--color-primary)] leading-snug">
                       {t.name}
                     </p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-xs font-medium text-[var(--color-gray)]">
-                        {getFormatLabel(t.style)}
-                      </span>
-                      <span className="text-xs text-[var(--color-gray-light)]">
-                        #{t.id}
-                      </span>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          t.start == 0
-                            ? "bg-orange-100 text-orange-500"
-                            : t.start == 1
-                              ? "bg-green-100 text-green-600"
-                              : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {t.start == 0
-                          ? "Pas commencé"
-                          : t.start == 1
-                            ? "En cours"
-                            : "Terminé"}
-                      </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm text-[var(--color-gray)]">{getFormatLabel(t.style)}</span>
+                      <span className="text-sm text-[var(--color-gray-light)]">· #{t.id}</span>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 sm:flex-shrink-0">
-                  <button
-                    onClick={() => setShareModal(t)}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 transition-all duration-300 text-sm font-medium"
-                    title="Partager le numéro du concours"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Partager
-                  </button>
-                  <NavLink
-                    to={"/" + t.id}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-all duration-300 text-sm font-medium shadow-sm"
-                  >
-                    <Eye className="w-4 h-4" />
-                    Voir
-                  </NavLink>
-                  <button
-                    onClick={() => setConfirmDelete(t)}
-                    className="flex items-center justify-center p-2 rounded-xl text-[var(--color-gray-light)] hover:text-red-500 hover:bg-red-50 transition-all duration-300 flex-shrink-0"
-                    title="Supprimer le concours"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-[var(--color-border)]">
+                    <button
+                      onClick={() => setShareModal(t)}
+                      className="flex items-center justify-center p-2.5 rounded-xl text-[var(--color-gold)] hover:bg-[var(--color-gold)]/10 transition-colors"
+                      title="Partager"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                    <NavLink
+                      to={"/" + t.id}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-colors text-sm font-medium shadow-sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Voir
+                    </NavLink>
+                    <button
+                      onClick={() => setConfirmDelete(t)}
+                      className="flex items-center justify-center p-2.5 rounded-xl text-[var(--color-gray-light)] hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </li>
               );
             })}
-          </ul>
 
-          {/* Gros bouton de création, en bas de la liste */}
-          <button
-            onClick={() => setAddTournament(true)}
-            className="w-full mt-4 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-2xl font-semibold shadow-lg hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
-          >
-            <Plus className="w-5 h-5" />
-            Créer un concours
-          </button>
+            {/* Carte de création */}
+            <button
+              onClick={() => setAddTournament(true)}
+              className="bg-white/60 rounded-2xl p-5 border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-3 hover:border-[var(--color-primary)] hover:bg-white transition-all duration-300 min-h-[200px] text-[var(--color-gray)] hover:text-[var(--color-primary)]"
+            >
+              <div className="w-10 h-10 rounded-xl border-2 border-dashed border-current flex items-center justify-center">
+                <Plus className="w-5 h-5" />
+              </div>
+              <span className="text-sm font-medium">Nouveau concours</span>
+            </button>
+          </div>
         </div>
       )}
 

@@ -21,7 +21,7 @@ const Home = () => {
   };
   if (!player) return <NotConnect />;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[var(--color-bg)] via-[var(--color-bg-mid)] to-[var(--color-bg-dark)]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[var(--color-bg)] via-[var(--color-bg-mid)] to-[var(--color-bg-dark)]">
       {/* Barre d'en-tête */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-[var(--color-border)] shadow-sm">
         <div className="max-w-4xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
@@ -52,7 +52,7 @@ const Home = () => {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
+      <div className="flex-1 flex flex-col w-full max-w-4xl mx-auto p-4 md:p-8">
 
         {/* Carte de bienvenue — visible seulement sur l'écran de choix */}
         {!choice && (
@@ -143,7 +143,7 @@ const Home = () => {
           </>
         )}
         {/* Footer légal */}
-        <div className="mt-12 pt-6 border-t border-[var(--color-border)] flex flex-wrap gap-4 justify-center text-xs text-[var(--color-gray-light)]">
+        <div className="mt-auto pt-6 border-t border-[var(--color-border)] flex flex-wrap gap-4 justify-center text-xs text-[var(--color-gray-light)]">
           <NavLink
             to="/mentions-legales"
             className="hover:text-[var(--color-primary)] transition-colors"

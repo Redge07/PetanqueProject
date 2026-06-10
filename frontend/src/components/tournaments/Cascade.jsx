@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useContext, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { linkBackend } from "../../constants/LinkBackend";
 import Arbre from "../tournamentComponents/Arbre";
 import ButtonWinner from "../tournamentComponents/ButtonsWinner";
@@ -34,6 +35,8 @@ const Cascade = ({
   if (filters.tour) filteredMatches = filteredMatches.filter((m) => String(m.class) == filters.tour);
 
   const hasActiveFilters = query.trim() || filters.groupe || filters.round || filters.tour;
+  const [openGroups, setOpenGroups] = useState({});
+  const toggleGroup = (g) => setOpenGroups((prev) => ({ ...prev, [g]: !prev[g] }));
   // Fonction quand je déclare le vainqueur
   const handleWinnerCascade = async (win, lose, versus) => {
     setLoad(true);
@@ -123,63 +126,83 @@ const Cascade = ({
           if (listPlayers.vainqueurs[vainqueur] || groupMatches.length === 0) {
             return null;
           } else {
-            // Sinon on affiche bien les matches de ce groupe
+            const isOpen = hasActiveFilters || !!openGroups[g];
+            const roundLabels = pairesInfos.rounds
+              .filter((r) => groupMatches.some((v) => v.round == r))
+              .sort((a, b) => b - a)
+              .map((r) => (r == 4 ? "Phase finale" : `Round ${r}`))
+              .join(" · ");
             return (
               <div
-                className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
+                className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden"
                 key={g}
               >
-                <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
-                  Groupe {g}
-                </h2>
-                <div className="space-y-4">
-                  {/* Ensuite on tri par les rounds */}
-                  {pairesInfos.rounds
-                    .sort((a, b) => b - a)
-                    .map((r) => {
-                      const matches = groupMatches.filter(
-                        (v) => v.round == r,
-                      );
-                      // Si y'a personne dans ce round et dans ce groupe on peut arreter la et ne rien n'afficher
-                      if (matches.length == 0) {
-                        return null;
-                        // Sinon si y'a bien des matches et qu'on est dans les matches en phase finale on va les afficher differemment qui si on était en phase de groupe au début
-                      } else if (r == 4) {
-                        return (
-                          <Arbre
-                            key={r}
-                            pairesInfos={pairesInfos}
-                            matches={matches}
-                            handleWinner={handleWinnerCascade}
-                          />
-                        );
-                        // Sinon on est bien en phase du début
-                      } else {
-                        return (
-                          <div
-                            key={r}
-                            className="bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-border)]"
-                          >
-                            <h3 className="text-sm font-semibold text-[var(--color-primary)] mb-3">
-                              Round {r}
-                            </h3>
-                            <div className="space-y-3">
-                              {/* J'affiche les confrontations qui respectent les filtres */}
-                              {matches.map((versus) => {
-                                return (
+                {/* En-tête cliquable */}
+                <button
+                  onClick={() => toggleGroup(g)}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-[var(--color-primary)]">{g}</span>
+                    </div>
+                    <div>
+                      <h2 className="text-base font-semibold text-[var(--color-primary)]">
+                        Groupe {g}
+                      </h2>
+                      <p className="text-xs text-[var(--color-gray)] mt-0.5">
+                        {groupMatches.length} match{groupMatches.length > 1 ? "s" : ""}
+                        {roundLabels ? ` · ${roundLabels}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown
+                    className={`w-5 h-5 text-[var(--color-gray)] transition-transform duration-300 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {/* Contenu dépliable */}
+                {isOpen && (
+                  <div className="px-6 pb-6 space-y-4 border-t border-[var(--color-border)]">
+                    <div className="space-y-4 pt-4">
+                      {pairesInfos.rounds
+                        .sort((a, b) => b - a)
+                        .map((r) => {
+                          const matches = groupMatches.filter((v) => v.round == r);
+                          if (matches.length == 0) return null;
+                          if (r == 4) {
+                            return (
+                              <Arbre
+                                key={r}
+                                pairesInfos={pairesInfos}
+                                matches={matches}
+                                handleWinner={handleWinnerCascade}
+                              />
+                            );
+                          }
+                          return (
+                            <div
+                              key={r}
+                              className="bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-border)]"
+                            >
+                              <h3 className="text-sm font-semibold text-[var(--color-primary)] mb-3">
+                                Round {r}
+                              </h3>
+                              <div className="space-y-3">
+                                {matches.map((versus) => (
                                   <ButtonWinner
                                     versus={versus}
                                     handleWinner={handleWinnerCascade}
                                     key={versus.key}
                                   />
-                                );
-                              })}
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      }
-                    })}
-                </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           }

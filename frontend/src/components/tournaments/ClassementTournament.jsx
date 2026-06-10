@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useContext, useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { linkBackend } from "../../constants/LinkBackend";
 import CreateTournamentArbreClassement from "../tournamentComponents/CreateTournamentArbreClassement";
 import VainqueurGroupe from "../tournamentComponents/VainqueurGroupe";
@@ -36,6 +37,8 @@ const ClassementTournament = ({
   if (filters.tour) filteredMatches = filteredMatches.filter((m) => String(m.class) == filters.tour);
 
   const hasActiveFilters = query.trim() || filters.groupe || filters.round || filters.tour;
+  const [openGroups, setOpenGroups] = useState({});
+  const toggleGroup = (g) => setOpenGroups((prev) => ({ ...prev, [g]: !prev[g] }));
 
   // State pour avoir les données du classement
   const [dataOrder, setDataOrder] = useState([]);
@@ -246,19 +249,47 @@ const ClassementTournament = ({
                         if (listPlayers.vainqueurs[vainqueur] || matches.length === 0) {
                           return null;
                         } else {
+                          const isOpen = hasActiveFilters || !!openGroups[g];
                           return (
                             <div
                               key={g}
-                              className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl"
+                              className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden"
                             >
-                              <h2 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
-                                Groupe {g}
-                              </h2>
-                              <Arbre
-                                pairesInfos={pairesInfos}
-                                matches={matches}
-                                handleWinner={handleWinnerClassementArbre}
-                              />
+                              {/* En-tête cliquable */}
+                              <button
+                                onClick={() => toggleGroup(g)}
+                                className="w-full flex items-center justify-between px-6 py-5 text-left"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
+                                    <span className="text-sm font-bold text-[var(--color-primary)]">{g}</span>
+                                  </div>
+                                  <div>
+                                    <h2 className="text-base font-semibold text-[var(--color-primary)]">
+                                      Groupe {g}
+                                    </h2>
+                                    <p className="text-xs text-[var(--color-gray)] mt-0.5">
+                                      {matches.length} match{matches.length > 1 ? "s" : ""} · Phase finale
+                                    </p>
+                                  </div>
+                                </div>
+                                <ChevronDown
+                                  className={`w-5 h-5 text-[var(--color-gray)] transition-transform duration-300 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
+                                />
+                              </button>
+
+                              {/* Contenu dépliable */}
+                              {isOpen && (
+                                <div className="px-6 pb-6 border-t border-[var(--color-border)]">
+                                  <div className="pt-4">
+                                    <Arbre
+                                      pairesInfos={pairesInfos}
+                                      matches={matches}
+                                      handleWinner={handleWinnerClassementArbre}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           );
                         }
@@ -293,7 +324,7 @@ const ClassementTournament = ({
                                 <div className="flex-1 text-center">
                                   <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--color-primary)] rounded-full mb-1">
                                     <span className="text-white text-xs font-bold">
-                                      A
+                                      {m.id_playerA}
                                     </span>
                                   </div>
                                   <p className="font-semibold text-[var(--color-primary)] text-sm">
@@ -308,7 +339,7 @@ const ClassementTournament = ({
                                 <div className="flex-1 text-center">
                                   <div className="inline-flex items-center justify-center w-8 h-8 bg-[var(--color-gold)] rounded-full mb-1">
                                     <span className="text-white text-xs font-bold">
-                                      B
+                                      {m.id_playerB}
                                     </span>
                                   </div>
                                   <p className="font-semibold text-[var(--color-primary)] text-sm">

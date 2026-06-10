@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, ChevronDown } from "lucide-react";
 import { UsersContext } from "../../App";
 import { linkBackend } from "../../constants/LinkBackend";
 import axios from "axios";
@@ -12,6 +12,7 @@ const RecompenseTableau = ({
   nb_joueurs,
 }) => {
   const { setLoad, setError } = useContext(UsersContext);
+  const [open, setOpen] = useState(false);
   const [editMatch, setEditMatch] = useState(null);
   const tours = [...new Set(matches.map((m) => m.class))]
     .filter((tour) => tour > 0)
@@ -66,13 +67,37 @@ const RecompenseTableau = ({
   const reste = nb_joueurs * prix_entree - totalRecompenses;
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-xl mb-6">
-      <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-1">
-        Tableau des récompenses
-      </h3>
-      <p className="text-sm text-[var(--color-gray)] mb-4">
-        Cliquez sur un montant pour le modifier
-      </p>
+    <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl mb-6 overflow-hidden">
+      {/* En-tête cliquable */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-6 py-5 text-left"
+      >
+        <div>
+          <h3 className="text-base font-semibold text-[var(--color-primary)]">
+            Tableau des récompenses
+          </h3>
+          <p className="text-xs text-[var(--color-gray)] mt-0.5">
+            Cagnotte : {nb_joueurs * prix_entree}€
+            {totalRecompenses > 0 && (
+              <> · Distribué : {Math.round(totalRecompenses)}€ · Reste :{" "}
+                <span className={reste < 0 ? "text-red-500" : "text-green-600"}>
+                  {Math.round(reste)}€
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+        <ChevronDown
+          className={`w-5 h-5 text-[var(--color-gray)] transition-transform duration-300 flex-shrink-0 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+      <div className="px-6 pb-6 border-t border-[var(--color-border)]">
+        <p className="text-sm text-[var(--color-gray)] mt-4 mb-4">
+          Cliquez sur un montant pour le modifier
+        </p>
 
       {/* Tableau */}
       <div className="overflow-x-auto mb-6">
@@ -347,6 +372,8 @@ const RecompenseTableau = ({
           </span>
         </div>
       </div>
+      </div>
+      )}
     </div>
   );
 };
