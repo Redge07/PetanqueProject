@@ -21,6 +21,13 @@ import CookieBanner from "./components/ui/CookieBanner";
 
 export const UsersContext = createContext();
 
+// Attache automatiquement le JWT à toutes les requêtes axios
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 const App = () => {
   const [player, setPlayer] = useState(null);
   const [load, setLoad] = useState(false);

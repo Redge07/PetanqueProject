@@ -44,6 +44,12 @@ const Tournament = () => {
     setLoad(true);
     try {
       const res = await axios.get(linkBackend + "tournaments/" + idTournament);
+      // Vérifie que l'utilisateur connecté est bien l'organisateur
+      if (res.data.admin && res.data.admin !== player?.id) {
+        navigate("/");
+        return;
+      }
+
       setFullListPlayers(res.data.matches);
       setResponseWin("");
       const filteredMatches = res.data.matches

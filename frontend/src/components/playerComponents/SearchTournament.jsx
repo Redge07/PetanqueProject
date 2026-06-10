@@ -19,12 +19,12 @@ function InscriptionForm({ tournament, onSubmit, responseInscription }) {
           placeholder="Nom de l'équipe (ex: Dupont / Martin)"
           value={pseudo}
           onChange={(e) => setPseudo(e.target.value)}
-          className="flex-1 h-11 px-4 rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+          className="flex-1 min-w-0 h-11 px-4 rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
         />
         <button
           onClick={() => onSubmit(tournament, pseudo)}
           disabled={!pseudo.trim()}
-          className="h-11 px-5 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-xl font-medium hover:opacity-90 transition-all duration-300 disabled:opacity-40"
+          className="flex-shrink-0 h-11 px-5 bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-dark)] text-white rounded-xl font-medium hover:opacity-90 transition-all duration-300 disabled:opacity-40"
         >
           S'inscrire
         </button>
@@ -324,11 +324,11 @@ const SearchTournament = ({ player, recharge }) => {
               onChange={(e) => setIdQuery(e.target.value)}
               placeholder="Numéro du concours..."
               required
-              className="flex-1 h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+              className="flex-1 min-w-0 h-12 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)]/50 text-[var(--color-primary)] placeholder-[var(--color-gray-light)] focus:outline-none focus:border-[var(--color-primary)] transition-colors"
             />
             <button
               type="submit"
-              className="h-12 px-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
+              className="flex-shrink-0 h-12 px-6 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-xl font-medium hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-all duration-300"
             >
               Chercher
             </button>

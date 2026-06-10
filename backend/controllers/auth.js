@@ -8,6 +8,38 @@ const { sendMail, sendResetPasswordMail } = require("../constants/sendMail");
 const JWT_SECRET = process.env.JWT_SECRET;
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Middleware : vérifie que le token JWT est présent et valide
+exports.verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer "))
+    return res.status(401).json({ message: "Token manquant" });
+  try {
+    const decoded = jwt.verify(authHeader.split(" ")[1], JWT_SECRET);
+    req.user = decoded.user;
+    next();
+  } catch {
+    return res.status(401).json({ message: "Token invalide ou expiré" });
+  }
+};
+
+// Middleware : vérifie que l'utilisateur connecté est bien l'organisateur du tournoi (:id)
+exports.verifyOrganizer = async (req, res, next) => {
+  try {
+    const idTournament = req.params.id;
+    const [tournament] = await query(
+      "select admin from tournaments where id = ?",
+      [idTournament],
+    );
+    if (!tournament)
+      return res.status(404).json({ message: "Tournoi introuvable" });
+    if (String(tournament.admin) !== String(req.user.id))
+      return res.status(403).json({ message: "Accès refusé" });
+    next();
+  } catch {
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
 // Fonction pour générer un token JWT pour un utilisateur
 const generateToken = (user) => {
   return jwt.sign({ user }, JWT_SECRET, {

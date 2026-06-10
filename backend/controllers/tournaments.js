@@ -46,6 +46,7 @@ exports.charge = async (req, res) => {
         matches,
         style: tournament.style,
         name: tournament.name,
+        admin: tournament.admin,
         vainqueurs,
         prix_entree: tournament.prix_entree,
         nb_joueurs: tournament.nb_joueurs,

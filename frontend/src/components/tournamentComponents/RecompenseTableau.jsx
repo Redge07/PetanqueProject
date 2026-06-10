@@ -185,7 +185,7 @@ const RecompenseTableau = ({
             Récompenses quand un joueur atteint tant de victoires en phase de
             poule
           </p>
-          <div className="flex gap-5">
+          <div className="grid grid-cols-3 gap-2 sm:gap-5">
             {/* 1 victoire */}
             <div className="bg-[var(--color-bg-mid)] rounded-xl p-4 border border-[var(--color-border)] flex-1 flex flex-col justify-center items-center">
               <p className="text-xs text-[var(--color-gray)] font-medium mb-2">
