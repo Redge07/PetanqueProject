@@ -99,10 +99,8 @@ const ClassementTournament = ({
           },
         );
         setResponseWin(res.data);
-        setTimeout(() => {
-          recharge();
-          chargeOrder();
-        }, 1000);
+        await recharge();
+        await chargeOrder();
       }
     } catch (err) {
       setError(true);
@@ -129,10 +127,8 @@ const ClassementTournament = ({
         },
       );
       setResponseWin(res.data);
-      setTimeout(() => {
-        recharge();
-        chargeOrder();
-      }, 1000);
+      await recharge();
+      await chargeOrder();
     } catch (err) {
       setError(true);
 
@@ -152,10 +148,8 @@ const ClassementTournament = ({
         dataOrder.players,
         idTournament,
       );
-      setTimeout(() => {
-        recharge();
-        chargeOrder();
-      }, 1000);
+      await recharge();
+      await chargeOrder();
     } catch (err) {
       setError(true);
 

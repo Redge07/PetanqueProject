@@ -69,9 +69,7 @@ const Cascade = ({
           round: versus.round,
         });
       }
-      setTimeout(() => {
-        recharge();
-      }, 1000);
+      await recharge();
     } catch (err) {
       setError(true);
 

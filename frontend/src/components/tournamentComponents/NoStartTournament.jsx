@@ -48,12 +48,8 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       p.numero?.toString().includes(searchValider),
   );
 
-  const handleApiResponse = (res) => {
-    setResponseAPI(res.data);
-    setTimeout(() => {
-      setResponseAPI({ res: 0 });
-      recharge();
-    }, 1000);
+  const handleApiResponse = async () => {
+    await recharge();
   };
 
   // Fonction pour supprimer un joueur du tournoi en attente
@@ -63,7 +59,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       const res = await axios.delete(
         linkBackend + "tournaments/players_attente/" + value,
       );
-      handleApiResponse(res);
+      await handleApiResponse();
     } catch (err) {
 
       setError(true);
@@ -82,7 +78,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
           data: { numero: value },
         },
       );
-      handleApiResponse(res);
+      await handleApiResponse();
     } catch (err) {
       setError(true);
 
@@ -98,7 +94,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
       const res = await axios.put(linkBackend + "tournaments/" + idTournament, {
         id_user: value,
       });
-      handleApiResponse(res);
+      await handleApiResponse();
     } catch (err) {
       setError(true);
 
@@ -124,7 +120,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         setAddPlayerMsg(res.data.msg);
       } else {
         form.reset();
-        recharge();
+        await recharge();
       }
     } catch (err) {
       setError(true);
@@ -141,9 +137,7 @@ const NoStartTournament = ({ listPlayers, recharge, idTournament, style }) => {
         linkBackend + `gotournaments/${style}/` + idTournament,
       );
       setResponseGoTournament(res.data);
-      setTimeout(() => {
-        recharge();
-      }, 1000);
+      await recharge();
     } catch (err) {
       setError(true);
 

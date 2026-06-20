@@ -45,7 +45,7 @@ exports.goTournamentCascade = async (req, res) => {
           res: status.noEnough,
           message: "Il faut au moins 8 joueurs",
         };
-      if (listPlayers.length > 11 && tournament.premium == 1)
+      if (listPlayers.length > 11 && tournament.premium == 0)
         return {
           res: status.premium,
           message: "Vous etes dans le cas d'un tournoi payant",

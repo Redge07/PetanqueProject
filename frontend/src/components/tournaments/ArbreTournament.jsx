@@ -40,9 +40,7 @@ const ArbreTournament = ({
         },
       );
       setResponseWin(res.data);
-      setTimeout(() => {
-        recharge();
-      }, 1000);
+      await recharge();
     } catch (err) {
       setError(true);
 

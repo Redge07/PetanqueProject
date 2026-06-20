@@ -25,14 +25,21 @@ const Home = () => {
       {/* Barre d'en-tête */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-[var(--color-border)] shadow-sm">
         <div className="max-w-4xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setChoice(false);
+              setAdmin(false);
+            }}
+            className="flex items-center gap-3 rounded-xl transition-opacity duration-300 hover:opacity-80"
+            title="Retour à l'accueil"
+          >
             <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] rounded-xl flex items-center justify-center shadow-md">
               <Trophy className="w-5 h-5 text-[var(--color-gold)]" />
             </div>
             <h1 className="text-xl font-light text-[var(--color-primary)]">
               Pétanque<span className="font-semibold">Manager</span>
             </h1>
-          </div>
+          </button>
           <div className="flex items-center gap-1 sm:gap-2">
             <NavLink
               to="/profile"
